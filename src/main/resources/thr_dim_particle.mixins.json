@@ -1,0 +1,16 @@
+{
+    "required": true,
+    "package": "org.mesdag.thr_dim_particle.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "mixins": [
+    ],
+    "client": [
+        "client.MinecraftMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    },
+    "overwrites": {
+        "requireAnnotations": true
+    }
+}
