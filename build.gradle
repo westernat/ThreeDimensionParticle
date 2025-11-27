@@ -130,7 +130,7 @@ configurations {
 }
 
 dependencies {
-    if (true) {
+    if (false) {
         implementation(files("libs/particlestorm-${particlestorm_version}.jar"))
     } else {
         implementation("org.mesdag:ParticleStorm:${particlestorm_version}")
