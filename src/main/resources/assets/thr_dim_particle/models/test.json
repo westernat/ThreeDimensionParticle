@@ -4,8 +4,8 @@
 	"ambientocclusion": false,
 	"texture_size": [64, 64],
 	"textures": {
-		"0": "thr_dim_particle:test",
-		"particle": "thr_dim_particle:test"
+		"0": "thr_dim_particle:block/test",
+		"particle": "thr_dim_particle:block/test"
 	},
     "render_type": "thr_dim_particle:solid",
 	"elements": [
