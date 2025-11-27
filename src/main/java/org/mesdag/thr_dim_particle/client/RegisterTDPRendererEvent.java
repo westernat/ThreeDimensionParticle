@@ -1,5 +1,6 @@
 package org.mesdag.thr_dim_particle.client;
 
+import com.google.common.collect.ImmutableMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
@@ -26,13 +27,9 @@ import java.util.function.*;
 public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
     private static Map<ModelType, ImmutableTriple<Function<EntityRendererProvider.Context, HardcodeModel.Renderer<?>>, @Nullable ModelLayerLocation, @Nullable Supplier<LayerDefinition>>> hardcodeCache;
     private static Map<ModelType, MutableTriple<@Nullable Function<EntityRendererProvider.Context, GeometryModel.Renderer<?>>, @Nullable ResourceLocation, @Nullable ModelResourceLocation>> geometryCache;
-    private static Map<ModelType, TDPRenderer> map;
+    private static Map<ModelType, ModelRenderer<?>> map;
 
     private RegisterTDPRendererEvent() {}
-
-    public void register(ModelType type, TDPRenderer renderer) {
-        map.put(type, renderer);
-    }
 
     public void registerHardcode(ModelType type, Function<EntityRendererProvider.Context, HardcodeModel.Renderer<?>> provider, @Nullable ModelLayerLocation layerLocation, @Nullable Supplier<LayerDefinition> supplier) {
         if ((layerLocation == null) != (supplier == null)) {
@@ -60,12 +57,11 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
         geometryCache.put(type, new MutableTriple<>(null, modelId, ModelResourceLocation.standalone(modelId)));
     }
 
-    public static TDPRenderer getRenderer(ResourceLocation type) {
-        return map.getOrDefault(ModelType.Loader.INSTANCE.getModelTypes().get(type), TDPRenderer::doNothing);
+    public static ModelRenderer<?> getRenderer(ResourceLocation type) {
+        return map.getOrDefault(ModelType.Loader.INSTANCE.getModelTypes().get(type), ModelRenderer.DO_NOTHING);
     }
 
     public static void start() {
-        map = new HashMap<>();
         hardcodeCache = new HashMap<>();
         geometryCache = new HashMap<>();
     }
@@ -112,6 +108,7 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
     }
 
     public static void end() {
+        ImmutableMap.Builder<ModelType, ModelRenderer<?>> builder = ImmutableMap.builder();
         Minecraft minecraft = Minecraft.getInstance();
         EntityRendererProvider.Context context = new EntityRendererProvider.Context(
                 minecraft.getEntityRenderDispatcher(),
@@ -123,14 +120,15 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
                 minecraft.font
         );
         for (var entry : hardcodeCache.entrySet()) {
-            map.put(entry.getKey(), entry.getValue().left.apply(context));
+            builder.put(entry.getKey(), entry.getValue().left.apply(context));
         }
         hardcodeCache = null;
         for (var entry : geometryCache.entrySet()) {
             var provider = entry.getValue().left;
             if (provider == null) continue;
-            map.put(entry.getKey(), provider.apply(context));
+            builder.put(entry.getKey(), provider.apply(context));
         }
         geometryCache = null;
+        map = builder.build();
     }
 }

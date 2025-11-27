@@ -5,7 +5,9 @@
     "mixins": [
     ],
     "client": [
-        "client.MinecraftMixin"
+        "client.MinecraftMixin",
+        "client.ParticleEngineMixin",
+        "client.ParticleMixin"
     ],
     "injectors": {
         "defaultRequire": 1

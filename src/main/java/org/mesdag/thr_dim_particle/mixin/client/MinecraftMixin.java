@@ -13,12 +13,12 @@ import java.util.concurrent.CompletableFuture;
 
 @Mixin(Minecraft.class)
 public abstract class MinecraftMixin {
-    @Inject(method = "reloadResourcePacks(ZLnet/minecraft/client/Minecraft$GameLoadCookie;)Ljava/util/concurrent/CompletableFuture;",at=@At("HEAD"))
+    @Inject(method = "reloadResourcePacks(ZLnet/minecraft/client/Minecraft$GameLoadCookie;)Ljava/util/concurrent/CompletableFuture;", at = @At("HEAD"))
     private void start(boolean error, @Coerce Object gameLoadCookie, CallbackInfoReturnable<CompletableFuture<Void>> cir) {
         RegisterTDPRendererEvent.start();
     }
 
-    @Inject(method = "onResourceLoadFinished", at=@At("TAIL"))
+    @Inject(method = "onResourceLoadFinished", at = @At("TAIL"))
     private void end(@Coerce Object gameLoadCookie, CallbackInfo ci) {
         RegisterTDPRendererEvent.end();
     }
