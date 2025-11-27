@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
@@ -33,13 +34,9 @@ import java.io.IOException;
 @Mod(value = TDP.MODID, dist = Dist.CLIENT)
 @EventBusSubscriber(modid = TDP.MODID, value = Dist.CLIENT)
 public class TDPClient {
+    public static final ResourceLocation ATLAS = TextureAtlas.LOCATION_BLOCKS; // todo 换particle图集
     private static ShaderInstance particleSolidShaderInstance;
     private static RenderType particleSolidRenderType;
-
-    public TDPClient(ModContainer container) {
-        container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
-        RegisterTDPRendererEvent.start();
-    }
 
     public static RenderType getParticleSolidRenderType() {
         if (particleSolidRenderType == null) {
@@ -52,14 +49,87 @@ public class TDPClient {
                     false,
                     RenderType.CompositeState.builder()
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleSolidShaderInstance))
-                            // todo 换particle图集（需要解决uv换算问题）
-                            .setTextureState(new RenderStateShard.TextureStateShard(TextureAtlas.LOCATION_BLOCKS, false, false))
+                            .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, false))
                             .setTransparencyState(RenderType.NO_TRANSPARENCY)
                             .setLightmapState(RenderType.LIGHTMAP)
                             .createCompositeState(false)
             );
         }
         return particleSolidRenderType;
+    }
+
+    private static ShaderInstance particleCutoutShaderInstance;
+    private static RenderType particleCutoutRenderType;
+
+    public static RenderType getParticleCutoutRenderType() {
+        if (particleCutoutRenderType == null) {
+            particleCutoutRenderType = RenderType.create(
+                    "tdp_particle_cutout",
+                    DefaultVertexFormat.NEW_ENTITY,
+                    VertexFormat.Mode.QUADS,
+                    256,
+                    true,
+                    false,
+                    RenderType.CompositeState.builder()
+                            .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleCutoutShaderInstance))
+                            .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, false))
+                            .setTransparencyState(RenderType.NO_TRANSPARENCY)
+                            .setLightmapState(RenderType.LIGHTMAP)
+                            .createCompositeState(false)
+            );
+        }
+        return particleCutoutRenderType;
+    }
+
+    private static ShaderInstance particleCutoutMippedShaderInstance;
+    private static RenderType particleCutoutMippedRenderType;
+
+    public static RenderType getParticleCutoutMippedRenderType() {
+        if (particleCutoutMippedRenderType == null) {
+            particleCutoutMippedRenderType = RenderType.create(
+                    "tdp_particle_cutout_mipped",
+                    DefaultVertexFormat.NEW_ENTITY,
+                    VertexFormat.Mode.QUADS,
+                    256,
+                    true,
+                    false,
+                    RenderType.CompositeState.builder()
+                            .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleCutoutMippedShaderInstance))
+                            .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, true))
+                            .setTransparencyState(RenderType.NO_TRANSPARENCY)
+                            .setLightmapState(RenderType.LIGHTMAP)
+                            .createCompositeState(false)
+            );
+        }
+        return particleCutoutMippedRenderType;
+    }
+
+    private static ShaderInstance particleTranslucentShaderInstance;
+    private static RenderType particleTranslucentRenderType;
+
+    public static RenderType getParticleTranslucentRenderType() {
+        if (particleTranslucentRenderType == null) {
+            particleTranslucentRenderType = RenderType.create(
+                    "tdp_particle_translucent",
+                    DefaultVertexFormat.NEW_ENTITY,
+                    VertexFormat.Mode.QUADS,
+                    256,
+                    true,
+                    true,
+                    RenderType.CompositeState.builder()
+                            .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleTranslucentShaderInstance))
+                            .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, false))
+                            .setTransparencyState(RenderType.TRANSLUCENT_TRANSPARENCY)
+                            .setLightmapState(RenderType.LIGHTMAP)
+                            .createCompositeState(false)
+            );
+        }
+        return particleTranslucentRenderType;
+    }
+
+    public TDPClient(ModContainer container) {
+        container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+        RegisterTDPRendererEvent.start();
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -101,11 +171,17 @@ public class TDPClient {
     public static void registerShaders(RegisterShadersEvent event) throws IOException {
         ResourceProvider provider = event.getResourceProvider();
         event.registerShader(new ShaderInstance(provider, TDP.asResource("particle_solid"), DefaultVertexFormat.NEW_ENTITY), instance -> particleSolidShaderInstance = instance);
+        event.registerShader(new ShaderInstance(provider, TDP.asResource("particle_cutout"), DefaultVertexFormat.NEW_ENTITY), instance -> particleCutoutShaderInstance = instance);
+        event.registerShader(new ShaderInstance(provider, TDP.asResource("particle_cutout_mipped"), DefaultVertexFormat.NEW_ENTITY), instance -> particleCutoutMippedShaderInstance = instance);
+        event.registerShader(new ShaderInstance(provider, TDP.asResource("particle_translucent"), DefaultVertexFormat.NEW_ENTITY), instance -> particleTranslucentShaderInstance = instance);
     }
 
     @SubscribeEvent
     public static void registerNamedRenderTypes(RegisterNamedRenderTypesEvent event) {
         event.register(TDP.asResource("solid"), RenderType.solid(), getParticleSolidRenderType(), NeoForgeRenderTypes.ITEM_LAYERED_SOLID.get());
+        event.register(TDP.asResource("cutout"), RenderType.cutout(), getParticleCutoutRenderType(), NeoForgeRenderTypes.ITEM_LAYERED_CUTOUT.get());
+        event.register(TDP.asResource("cutout_mipped"), RenderType.cutoutMipped(), getParticleCutoutMippedRenderType(), NeoForgeRenderTypes.ITEM_LAYERED_CUTOUT_MIPPED.get());
+        event.register(TDP.asResource("translucent"), RenderType.translucent(), getParticleTranslucentRenderType(), NeoForgeRenderTypes.ITEM_LAYERED_TRANSLUCENT.get());
     }
 
     @SubscribeEvent

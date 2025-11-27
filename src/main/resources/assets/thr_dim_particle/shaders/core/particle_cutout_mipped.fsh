@@ -17,5 +17,10 @@ in vec2 texCoord0;
 out vec4 fragColor;
 
 void main() {
-    fragColor = linear_fog(texture(Sampler0, texCoord0) * vertexColor * ColorModulator * lightMapColor, vertexDistance, FogStart, FogEnd, FogColor);
+    vec4 color = texture(Sampler0, texCoord0);
+    if (color.a < 0.1) {
+        discard;
+    }
+    color *= vertexColor * ColorModulator * lightMapColor;
+    fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
 }
