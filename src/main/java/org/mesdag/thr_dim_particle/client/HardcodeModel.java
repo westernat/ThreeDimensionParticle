@@ -2,22 +2,17 @@ package org.mesdag.thr_dim_particle.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 
-import java.util.function.Function;
-
-public class HardcodeModel extends Model {
+public class HardcodeModel { // todo
     protected final ModelPart root;
+    protected TDPRenderType renderType;
 
-    public HardcodeModel(Function<ResourceLocation, RenderType> renderType, ModelPart root) {
-        super(renderType);
+    public HardcodeModel(ModelPart root) {
         this.root = root;
     }
 
-    @Override
     public void renderToBuffer(PoseStack poseStack, VertexConsumer buffer, int packedLight, int packedOverlay, int color) {
         root.render(poseStack, buffer, packedLight, packedOverlay, color);
     }
@@ -26,8 +21,8 @@ public class HardcodeModel extends Model {
         ResourceLocation getTextureLocation(TDParticle particle);
 
         @Override
-        default RenderType getRenderType(TDParticle particle) {
-            return getModel().renderType(getTextureLocation(particle));
+        default TDPRenderType getRenderType(TDParticle particle) {
+            return getModel().renderType;
         }
     }
 }

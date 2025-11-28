@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.resources.model.ModelBakery;
@@ -13,7 +12,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.Event;
 import net.neoforged.fml.ModLoader;
 import net.neoforged.fml.event.IModBusEvent;
-import net.neoforged.neoforge.client.model.geometry.BlockGeometryBakingContext;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.MutableTriple;
 import org.jetbrains.annotations.Nullable;
@@ -96,9 +94,8 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
             if (triple.middle == null || triple.right == null || !modelExistsChecker.test(triple.right)) continue;
             BlockModel blockModel = blockModelGetter.apply(ModelBakery.MODEL_LISTER.idToFile(triple.middle));
             if (blockModel == null) continue;
-            BlockGeometryBakingContext customData = blockModel.customData;
-            ResourceLocation renderTypeHint = customData.getRenderTypeHint();
-            RenderType renderType = renderTypeHint == null ? TDPClient.getParticleSolidRenderType() : customData.getRenderType(renderTypeHint).entity();
+            ResourceLocation renderTypeHint = blockModel.customData.getRenderTypeHint();
+            TDPRenderType renderType = renderTypeHint == null ? TDPRenderType.get(0) : TDPRenderType.get(renderTypeHint);
             triple.left = context -> {
                 SimpleGeometryModelRenderer renderer = new SimpleGeometryModelRenderer(context, triple.right);
                 renderer.getModel().setRenderType(renderType);

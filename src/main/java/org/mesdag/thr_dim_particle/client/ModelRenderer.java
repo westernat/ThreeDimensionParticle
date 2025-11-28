@@ -3,12 +3,11 @@ package org.mesdag.thr_dim_particle.client;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Camera;
-import net.minecraft.client.renderer.RenderType;
 
 public interface ModelRenderer<M> {
     M getModel();
 
-    RenderType getRenderType(TDParticle particle);
+    TDPRenderType getRenderType(TDParticle particle);
 
     void render(TDParticle particle, PoseStack poseStack, BufferBuilder buffer, Camera camera, float partialTick);
 
@@ -19,7 +18,7 @@ public interface ModelRenderer<M> {
         }
 
         @Override
-        public RenderType getRenderType(TDParticle particle) {
+        public TDPRenderType getRenderType(TDParticle particle) {
             throw new UnsupportedOperationException();
         }
 

@@ -2,7 +2,6 @@ package org.mesdag.thr_dim_particle.client;
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.util.FastColor;
@@ -14,14 +13,14 @@ import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
 public class GeometryModel {
-    protected RenderType renderType = TDPClient.getParticleSolidRenderType();
+    protected TDPRenderType renderType = TDPRenderType.get(0);
     protected final BakedModel model;
 
     public GeometryModel(BakedModel model) {
         this.model = model;
     }
 
-    public void setRenderType(RenderType renderType) {
+    public void setRenderType(TDPRenderType renderType) {
         this.renderType = renderType;
     }
 
@@ -53,12 +52,15 @@ public class GeometryModel {
                         (int) ((color >> 8 & 0xFF) * g),
                         (int) ((color >> 16 & 0xFF) * r)
                 );
-                packedLight = applyBakedLighting(packedLight, vertices[start + IQuadTransformer.UV2]);
                 if (BufferBuilder.IS_LITTLE_ENDIAN) {
                     MemoryUtil.memPutInt(p + 12L, color);
+                    MemoryUtil.memPutInt(p + 24L, vertices[start + IQuadTransformer.UV2]);
                     MemoryUtil.memPutInt(p + 28L, packedLight);
                 } else {
                     MemoryUtil.memPutInt(p + 12L, Integer.reverseBytes(color));
+                    color = vertices[start + IQuadTransformer.UV2];
+                    MemoryUtil.memPutShort(p + 24L, (short) (color & 0xFFFF));
+                    MemoryUtil.memPutShort(p + 26L, (short) (color >> 16 & 0xFFFF));
                     MemoryUtil.memPutShort(p + 28L, (short) (packedLight & 0xFFFF));
                     MemoryUtil.memPutShort(p + 30L, (short) (packedLight >> 16 & 0xFFFF));
                 }
@@ -69,17 +71,9 @@ public class GeometryModel {
         }
     }
 
-    private static int applyBakedLighting(int packedLight, int verticeLight) {
-        int bl = packedLight & 0xFFFF;
-        int sl = (packedLight >> 16) & 0xFFFF;
-        bl = Math.max(bl, verticeLight & 0xFFFF);
-        sl = Math.max(sl, (verticeLight >> 16) & 0xFFFF);
-        return bl | (sl << 16);
-    }
-
     public interface Renderer<M extends GeometryModel> extends ModelRenderer<M> {
         @Override
-        default RenderType getRenderType(TDParticle particle) {
+        default TDPRenderType getRenderType(TDParticle particle) {
             return getModel().renderType;
         }
     }

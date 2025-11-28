@@ -5,6 +5,7 @@
 in vec3 Position;
 in vec4 Color;
 in vec2 UV0;
+in ivec2 UV1;
 in ivec2 UV2;
 
 uniform sampler2D Sampler2;
@@ -23,6 +24,6 @@ void main() {
 
     vertexDistance = fog_distance(Position, FogShape);
     vertexColor = Color;
-    lightMapColor = texelFetch(Sampler2, UV2 / 16, 0);
+    lightMapColor = texelFetch(Sampler2, max(UV1, UV2) / 16, 0);
     texCoord0 = UV0;
 }
