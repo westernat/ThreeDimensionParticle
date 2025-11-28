@@ -114,7 +114,7 @@ public record TDParticleAppearance(
         ).apply(instance, ModelAnimation::new));
 
         public void setCurrentModel(TDParticle particle) {
-            particle.tdp$setRenderer(RegisterTDPRendererEvent.getRenderer(typeFrames.get(particle.getCurrentFrame())));
+            particle.renderer = RegisterTDPRendererEvent.getRenderer(typeFrames.get(particle.getCurrentFrame()));
         }
     }
 }

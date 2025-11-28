@@ -1,12 +1,16 @@
 package org.mesdag.thr_dim_particle.client;
 
+import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceProvider;
@@ -21,6 +25,7 @@ import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.registries.RegisterEvent;
+import org.jetbrains.annotations.Nullable;
 import org.mesdag.particlestorm.api.IComponent;
 import org.mesdag.particlestorm.api.ParticlePresetLoadedEvent;
 import org.mesdag.particlestorm.api.RegisterCustomParticleTypeEvent;
@@ -34,6 +39,17 @@ import java.io.IOException;
 @Mod(value = TDP.MODID, dist = Dist.CLIENT)
 @EventBusSubscriber(modid = TDP.MODID, value = Dist.CLIENT)
 public class TDPClient {
+    public static final ParticleRenderType TDP_RENDER_TYPE = new ParticleRenderType() {
+        @Override
+        public @Nullable BufferBuilder begin(Tesselator tesselator, TextureManager textureManager) {
+            return null;
+        }
+
+        @Override
+        public String toString() {
+            return "TDP";
+        }
+    };
     public static final ResourceLocation ATLAS = TextureAtlas.LOCATION_BLOCKS; // todo 换particle图集
     private static ShaderInstance particleSolidShaderInstance;
     private static RenderType particleSolidRenderType;
@@ -52,6 +68,7 @@ public class TDPClient {
                             .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, false))
                             .setTransparencyState(RenderType.NO_TRANSPARENCY)
                             .setLightmapState(RenderType.LIGHTMAP)
+//                            .setCullState(RenderStateShard.CULL)
                             .createCompositeState(false)
             );
         }
@@ -75,6 +92,7 @@ public class TDPClient {
                             .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, false))
                             .setTransparencyState(RenderType.NO_TRANSPARENCY)
                             .setLightmapState(RenderType.LIGHTMAP)
+//                            .setCullState(RenderStateShard.CULL)
                             .createCompositeState(false)
             );
         }
@@ -98,6 +116,7 @@ public class TDPClient {
                             .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, true))
                             .setTransparencyState(RenderType.NO_TRANSPARENCY)
                             .setLightmapState(RenderType.LIGHTMAP)
+//                            .setCullState(RenderStateShard.CULL)
                             .createCompositeState(false)
             );
         }
@@ -121,6 +140,7 @@ public class TDPClient {
                             .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, false))
                             .setTransparencyState(RenderType.TRANSLUCENT_TRANSPARENCY)
                             .setLightmapState(RenderType.LIGHTMAP)
+//                            .setCullState(RenderStateShard.CULL)
                             .createCompositeState(false)
             );
         }

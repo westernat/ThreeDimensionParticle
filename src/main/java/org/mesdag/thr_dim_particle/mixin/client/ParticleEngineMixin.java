@@ -2,76 +2,68 @@ package org.mesdag.thr_dim_particle.mixin.client;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.sugar.Share;
-import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.CrashReport;
+import net.minecraft.CrashReportCategory;
+import net.minecraft.ReportedException;
 import net.minecraft.client.Camera;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
+import org.jetbrains.annotations.Nullable;
 import org.mesdag.thr_dim_particle.client.ModelRenderer;
+import org.mesdag.thr_dim_particle.client.TDPClient;
 import org.mesdag.thr_dim_particle.client.TDParticle;
-import org.mesdag.thr_dim_particle.mixed.IParticle;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Map;
-import java.util.function.Predicate;
+import java.util.Queue;
 
 @Mixin(ParticleEngine.class)
 public abstract class ParticleEngineMixin {
-    @WrapOperation(method = "render(Lnet/minecraft/client/renderer/LightTexture;Lnet/minecraft/client/Camera;FLnet/minecraft/client/renderer/culling/Frustum;Ljava/util/function/Predicate;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/particle/Particle;render(Lcom/mojang/blaze3d/vertex/VertexConsumer;Lnet/minecraft/client/Camera;F)V"))
-    private void wrapVertexConsumer(Particle instance,
-                                    VertexConsumer vertexConsumer,
-                                    Camera camera,
-                                    float partialTick,
-                                    Operation<Void> original,
-                                    @Share("customRenderTypes") LocalRef<Map<RenderType, BufferBuilder>> customRenderTypes
+    @WrapOperation(method = "render(Lnet/minecraft/client/renderer/LightTexture;Lnet/minecraft/client/Camera;FLnet/minecraft/client/renderer/culling/Frustum;Ljava/util/function/Predicate;)V", at = @At(value = "INVOKE", target = "Ljava/util/Queue;isEmpty()Z"))
+    private boolean handleCustomRenderType(
+            Queue<Particle> instance,
+            Operation<Boolean> original,
+            @Local(argsOnly = true) Camera camera,
+            @Local(argsOnly = true) float partialTick,
+            @Local(argsOnly = true) @Nullable Frustum frustum,
+            @Local ParticleRenderType particleRenderType
     ) {
-        if (instance.getRenderType() == ParticleRenderType.CUSTOM) {
-            ModelRenderer<?> renderer = IParticle.of(instance).tdp$getRenderer();
-            if (renderer != null && renderer != ModelRenderer.DO_NOTHING) {
-                RenderType renderType = renderer.getRenderType((TDParticle) instance);
-                Map<RenderType, BufferBuilder> map = customRenderTypes.get();
-                if (map == null) {
-                    customRenderTypes.set(map = new Object2ObjectOpenHashMap<>());
+        if (original.call(instance)) return true; // isEmpty
+        if (frustum != null && particleRenderType == TDPClient.TDP_RENDER_TYPE) {
+            Map<RenderType, BufferBuilder> map = new Object2ObjectOpenHashMap<>();
+            for (Particle particle : instance) {
+                if (!frustum.isVisible(particle.getRenderBoundingBox(partialTick))) continue;
+                ModelRenderer<?> renderer = ((TDParticle) particle).renderer;
+                if (renderer == ModelRenderer.DO_NOTHING) continue;
+                try {
+                    particle.render(map.computeIfAbsent(renderer.getRenderType((TDParticle) particle),
+                            rt -> Tesselator.getInstance().begin(rt.mode, rt.format)
+                    ), camera, partialTick);
+                } catch (Throwable throwable) {
+                    CrashReport report = CrashReport.forThrowable(throwable, "Rendering Particle");
+                    CrashReportCategory category = report.addCategory("Particle being rendered");
+                    category.setDetail("Particle", particle::toString);
+                    category.setDetail("Particle Type", particleRenderType::toString);
+                    throw new ReportedException(report);
                 }
-                vertexConsumer = map.computeIfAbsent(renderType, rt -> Tesselator.getInstance().begin(rt.mode, rt.format));
             }
-        }
-        original.call(instance, vertexConsumer, camera, partialTick);
-    }
 
-    @Inject(method = "render(Lnet/minecraft/client/renderer/LightTexture;Lnet/minecraft/client/Camera;FLnet/minecraft/client/renderer/culling/Frustum;Ljava/util/function/Predicate;)V", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/BufferBuilder;build()Lcom/mojang/blaze3d/vertex/MeshData;"))
-    private void draw(
-            LightTexture lightTexture,
-            Camera camera,
-            float partialTick,
-            Frustum frustum,
-            Predicate<ParticleRenderType> renderTypePredicate,
-            CallbackInfo ci,
-            @Share("customRenderTypes") LocalRef<Map<RenderType, BufferBuilder>> customRenderTypes
-    ) {
-        Map<RenderType, BufferBuilder> map = customRenderTypes.get();
-        if (map == null) return;
-        for (Map.Entry<RenderType, BufferBuilder> entry : map.entrySet()) {
-            MeshData meshdata = entry.getValue().build();
-            if (meshdata == null) continue;
-//            RenderType renderType = entry.getKey();
-//            if (renderType.sortOnUpload()) {
-//                ByteBufferBuilder bytebufferbuilder = this.fixedBuffers.getOrDefault(renderType, this.sharedBuffer);
-//                meshdata.sortQuads(bytebufferbuilder, RenderSystem.getVertexSorting());
-//            }
-            entry.getKey().draw(meshdata);
+            for (Map.Entry<RenderType, BufferBuilder> entry : map.entrySet()) {
+                MeshData data = entry.getValue().build();
+                if (data == null) continue;
+                entry.getKey().draw(data);
+            }
+            return true; // 表示取消接下来的原版逻辑
         }
+        return false;
     }
 }

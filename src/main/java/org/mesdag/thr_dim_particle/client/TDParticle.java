@@ -23,14 +23,13 @@ import org.mesdag.particlestorm.api.IParticleComponent;
 import org.mesdag.particlestorm.data.component.ParticleMotionCollision;
 import org.mesdag.particlestorm.data.molang.VariableTable;
 import org.mesdag.particlestorm.particle.*;
-import org.mesdag.thr_dim_particle.mixed.IParticle;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.mesdag.particlestorm.particle.MolangParticleInstance.FULL_LIGHT;
 
-public class TDParticle extends Particle implements IMolangParticleInstance, IParticle {
+public class TDParticle extends Particle implements IMolangParticleInstance {
     protected final ParticlePreset preset;
     protected ParticleVariableTable vars;
 
@@ -58,7 +57,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance, IPa
     protected ParticleGroup particleGroup;
     protected int lastTimeline = 0;
 
-    protected ModelRenderer<?> renderer = ModelRenderer.DO_NOTHING;
+    public ModelRenderer<?> renderer = ModelRenderer.DO_NOTHING;
     public int argb = -1;
     public float[] renderSize = new float[3];
     public float[] renderSizeO = new float[3];
@@ -454,7 +453,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance, IPa
 
     @Override
     public ParticleRenderType getRenderType() {
-        return ParticleRenderType.CUSTOM;
+        return TDPClient.TDP_RENDER_TYPE;
     }
 
     @Override
@@ -465,15 +464,5 @@ public class TDParticle extends Particle implements IMolangParticleInstance, IPa
     @Override
     public Optional<ParticleGroup> getParticleGroup() {
         return Optional.ofNullable(particleGroup);
-    }
-
-    @Override
-    public void tdp$setRenderer(ModelRenderer<?> renderer) {
-        this.renderer = renderer;
-    }
-
-    @Override
-    public @Nullable ModelRenderer<?> tdp$getRenderer() {
-        return renderer;
     }
 }
