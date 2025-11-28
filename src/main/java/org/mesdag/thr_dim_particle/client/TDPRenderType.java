@@ -29,6 +29,7 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleSolidShaderInstance))
                             .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, false))
                             .setTransparencyState(RenderType.NO_TRANSPARENCY)
+                            .setOverlayState(RenderType.OVERLAY)
                             .setLightmapState(RenderType.LIGHTMAP)
                             .createCompositeState(false)
             ),
@@ -38,6 +39,7 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleCutoutShaderInstance))
                             .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, false))
                             .setTransparencyState(RenderType.NO_TRANSPARENCY)
+                            .setOverlayState(RenderType.OVERLAY)
                             .setLightmapState(RenderType.LIGHTMAP)
                             .createCompositeState(false)
             ),
@@ -47,6 +49,7 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleCutoutMippedShaderInstance))
                             .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, true))
                             .setTransparencyState(RenderType.NO_TRANSPARENCY)
+                            .setOverlayState(RenderType.OVERLAY)
                             .setLightmapState(RenderType.LIGHTMAP)
                             .createCompositeState(false)
             ),
@@ -56,6 +59,7 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleTranslucentShaderInstance))
                             .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, false))
                             .setTransparencyState(RenderType.TRANSLUCENT_TRANSPARENCY)
+                            .setOverlayState(RenderType.OVERLAY)
                             .setLightmapState(RenderType.LIGHTMAP)
                             .createCompositeState(false)
             )
