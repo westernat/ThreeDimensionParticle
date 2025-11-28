@@ -1,5 +1,6 @@
 package org.mesdag.thr_dim_particle.client;
 
+import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
@@ -366,7 +367,9 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     }
 
     @Override
-    public void render(VertexConsumer buffer, Camera camera, float partialTicks) {
+    public void render(VertexConsumer buffer, Camera camera, float partialTicks) {}
+
+    public void renderFast(BufferBuilder buffer, Camera camera, float partialTick) {
         PoseStack poseStack = new PoseStack();
 
         Vec3 cameraPos = camera.getPosition();
@@ -377,18 +380,18 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         );
 
         poseStack.scale(
-                Mth.lerp(partialTicks, renderSizeO[0], renderSize[0]),
-                Mth.lerp(partialTicks, renderSizeO[1], renderSize[1]),
-                Mth.lerp(partialTicks, renderSizeO[2], renderSize[2])
+                Mth.lerp(partialTick, renderSizeO[0], renderSize[0]),
+                Mth.lerp(partialTick, renderSizeO[1], renderSize[1]),
+                Mth.lerp(partialTick, renderSizeO[2], renderSize[2])
         ); // todo 居中
 
         if (preset.facingCameraMode != FaceCameraMode.DO_NOTHING) {
             Quaternionf quaternionf = new Quaternionf();
-            preset.facingCameraMode.setRotation(this, quaternionf, camera, partialTicks);
+            preset.facingCameraMode.setRotation(this, quaternionf, camera, partialTick);
             poseStack.mulPose(quaternionf);
         }
 
-        renderer.render(this, poseStack, buffer, camera, partialTicks);
+        renderer.render(this, poseStack, buffer, camera, partialTick);
     }
 
     @Override

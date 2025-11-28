@@ -1,14 +1,18 @@
 package org.mesdag.thr_dim_particle.client;
 
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.*;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.minecraft.CrashReport;
+import net.minecraft.CrashReportCategory;
+import net.minecraft.ReportedException;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.registries.Registries;
@@ -35,6 +39,8 @@ import org.mesdag.thr_dim_particle.TDP;
 import org.mesdag.thr_dim_particle.client.impl.TDParticleAppearance;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Queue;
 
 @Mod(value = TDP.MODID, dist = Dist.CLIENT)
 @EventBusSubscriber(modid = TDP.MODID, value = Dist.CLIENT)
@@ -212,6 +218,31 @@ public class TDPClient {
                 component.faceCameraMode().isPresent()
         ) {
             preset.facingCameraMode = FaceCameraMode.fromComponent(component.faceCameraMode().get());
+        }
+    }
+
+    public static void render(Queue<Particle> instance, Camera camera, float partialTick, Frustum frustum, ParticleRenderType particleRenderType) {
+        Map<RenderType, BufferBuilder> map = new Object2ObjectOpenHashMap<>();
+        for (Particle particle : instance) {
+            if (!frustum.isVisible(particle.getRenderBoundingBox(partialTick))) continue;
+            TDParticle tdp = (TDParticle) particle;
+            if (tdp.renderer == ModelRenderer.DO_NOTHING) continue;
+            try {
+                tdp.renderFast(map.computeIfAbsent(tdp.renderer.getRenderType(tdp),
+                        rt -> Tesselator.getInstance().begin(rt.mode, rt.format)
+                ), camera, partialTick);
+            } catch (Throwable throwable) {
+                CrashReport report = CrashReport.forThrowable(throwable, "Rendering Particle");
+                CrashReportCategory category = report.addCategory("Particle being rendered");
+                category.setDetail("Particle", particle::toString);
+                category.setDetail("Particle Type", particleRenderType::toString);
+                throw new ReportedException(report);
+            }
+        }
+        for (Map.Entry<RenderType, BufferBuilder> entry : map.entrySet()) {
+            MeshData data = entry.getValue().build();
+            if (data == null) continue;
+            entry.getKey().draw(data);
         }
     }
 }

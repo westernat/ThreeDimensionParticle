@@ -1,7 +1,7 @@
 package org.mesdag.thr_dim_particle.client.impl;
 
+import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.RenderType;
@@ -46,7 +46,7 @@ public class SimpleHardcodeModelRenderer implements HardcodeModel.Renderer<Hardc
     }
 
     @Override
-    public void render(TDParticle particle, PoseStack poseStack, VertexConsumer buffer, Camera camera, float partialTicks) {
+    public void render(TDParticle particle, PoseStack poseStack, BufferBuilder buffer, Camera camera, float partialTicks) {
         model.renderToBuffer(poseStack, buffer, particle.getLightColor(partialTicks), OverlayTexture.NO_OVERLAY, particle.argb);
     }
 }

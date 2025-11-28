@@ -1,19 +1,17 @@
 package org.mesdag.thr_dim_particle.client;
 
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.RandomSource;
+import net.neoforged.neoforge.client.model.IQuadTransformer;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.lwjgl.system.MemoryStack;
-
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
+import org.lwjgl.system.MemoryUtil;
 
 public class GeometryModel {
     protected RenderType renderType = TDPClient.getParticleSolidRenderType();
@@ -27,30 +25,56 @@ public class GeometryModel {
         this.renderType = renderType;
     }
 
-    public void renderToBuffer(PoseStack poseStack, VertexConsumer buffer, int packedLight, float r, float g, float b, float a) {
-        try (MemoryStack memoryStack = MemoryStack.stackPush()) {
-            ByteBuffer byteBuffer = memoryStack.malloc(DefaultVertexFormat.BLOCK.getVertexSize());
-            IntBuffer intBuffer = byteBuffer.asIntBuffer();
+    public void renderToBuffer(PoseStack poseStack, BufferBuilder buffer, int packedLight, float r, float g, float b, float a) {
+        Matrix4f pose = poseStack.last().pose();
+        Vector3f position = new Vector3f();
+        for (BakedQuad quad : model.getQuads(null, null, RandomSource.create(251128), ModelData.EMPTY, renderType)) {
+            int[] vertices = quad.getVertices();
+            int size = vertices.length / IQuadTransformer.STRIDE;
 
-            Matrix4f pose = poseStack.last().pose();
-            Vector3f position = new Vector3f();
-            for (BakedQuad quad : model.getQuads(null, null, RandomSource.create(251128), ModelData.EMPTY, renderType)) {
-                int[] vertices = quad.getVertices();
-                int i = vertices.length / 8;
+            for (int index = 0; index < size; index++) {
+                int start = index * IQuadTransformer.STRIDE;
+                position.set(
+                        Float.intBitsToFloat(vertices[start]),
+                        Float.intBitsToFloat(vertices[start + 1]),
+                        Float.intBitsToFloat(vertices[start + 2])
+                ).mulPosition(pose);
 
-                for (int j = 0; j < i; j++) {
-                    intBuffer.clear();
-                    intBuffer.put(vertices, j * 8, 8);
-                    pose.transformPosition(byteBuffer.getFloat(0), byteBuffer.getFloat(4), byteBuffer.getFloat(8), position);
-                    buffer.addVertex(position.x(), position.y(), position.z())
-                            .setColor((int) ((byteBuffer.get(12) & 255) * r), (int) ((byteBuffer.get(13) & 255) * g), (int) ((byteBuffer.get(14) & 255) * b), (int) ((byteBuffer.get(15) & 255) * a))
-                            .setUv(byteBuffer.getFloat(16), byteBuffer.getFloat(20))
-                            .setLight(buffer.applyBakedLighting(packedLight, byteBuffer))
-                            .setUv1(0, 0)
-                            .setNormal(0, 0, 0);
+                long p = buffer.beginVertex();
+                // position
+                MemoryUtil.memPutFloat(p, position.x);
+                MemoryUtil.memPutFloat(p + 4L, position.y);
+                MemoryUtil.memPutFloat(p + 8L, position.z);
+                // color & light
+                int color = vertices[start + 3];
+                color = FastColor.ABGR32.color(
+                        (int) ((color >>> 24) * a),
+                        (int) ((color & 0xFF) * b),
+                        (int) ((color >> 8 & 0xFF) * g),
+                        (int) ((color >> 16 & 0xFF) * r)
+                );
+                packedLight = applyBakedLighting(packedLight, vertices[start + IQuadTransformer.UV2]);
+                if (BufferBuilder.IS_LITTLE_ENDIAN) {
+                    MemoryUtil.memPutInt(p + 12L, color);
+                    MemoryUtil.memPutInt(p + 28L, packedLight);
+                } else {
+                    MemoryUtil.memPutInt(p + 12L, Integer.reverseBytes(color));
+                    MemoryUtil.memPutShort(p + 28L, (short) (packedLight & 0xFFFF));
+                    MemoryUtil.memPutShort(p + 30L, (short) (packedLight >> 16 & 0xFFFF));
                 }
+                // uv
+                MemoryUtil.memPutFloat(p + 16L, Float.intBitsToFloat(vertices[start + 4]));
+                MemoryUtil.memPutFloat(p + 20L, Float.intBitsToFloat(vertices[start + 5]));
             }
         }
+    }
+
+    private static int applyBakedLighting(int packedLight, int verticeLight) {
+        int bl = packedLight & 0xFFFF;
+        int sl = (packedLight >> 16) & 0xFFFF;
+        bl = Math.max(bl, verticeLight & 0xFFFF);
+        sl = Math.max(sl, (verticeLight >> 16) & 0xFFFF);
+        return bl | (sl << 16);
     }
 
     public interface Renderer<M extends GeometryModel> extends ModelRenderer<M> {
