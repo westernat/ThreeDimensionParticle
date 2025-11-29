@@ -22,6 +22,6 @@ public class SimpleGeometryModelRenderer implements GeometryModel.Renderer<Geome
 
     @Override
     public void render(TDParticle particle, PoseStack poseStack, BufferBuilder buffer, Camera camera, float partialTick) {
-        model.renderToBuffer(poseStack, buffer, particle.getLightColor(partialTick), particle.getRCol(), particle.getGCol(), particle.getBCol(), particle.getACol());
+        model.renderToBuffer(poseStack, buffer, particle.getLightColor(partialTick), particle.a, particle.r, particle.g, particle.b);
     }
 }

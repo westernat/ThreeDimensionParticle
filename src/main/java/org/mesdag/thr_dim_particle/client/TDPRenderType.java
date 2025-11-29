@@ -19,7 +19,7 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
             .add("Position", VertexFormatElement.POSITION)
             .add("Color", VertexFormatElement.COLOR)
             .add("UV0", VertexFormatElement.UV0)
-            .add("UV1", VertexFormatElement.UV1)
+            .add("UV1", VertexFormatElement.UV1) // 实际传入的值为模型光照
             .add("UV2", VertexFormatElement.UV2)
             .build();
     private static final ResourceLocation ATLAS = TextureAtlas.LOCATION_BLOCKS; // todo 换particle图集

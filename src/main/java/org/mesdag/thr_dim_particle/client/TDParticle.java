@@ -9,7 +9,6 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.particles.ParticleGroup;
-import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -59,7 +58,10 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     protected int lastTimeline = 0;
 
     public ModelRenderer<?> renderer = ModelRenderer.DO_NOTHING;
-    public int argb = -1;
+    public int a = 255;
+    public int r = 255;
+    public int g = 255;
+    public int b = 255;
     public float[] renderSize = new float[3];
     public float[] renderSizeO = new float[3];
     protected int maxFrame = 1;
@@ -289,28 +291,11 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
             super.setColor(red, green, blue);
             super.setAlpha(alpha);
 
-            int a = Mth.floor(alpha * 255);
-            int r = Mth.floor(rCol * 255);
-            int g = Mth.floor(gCol * 255);
-            int b = Mth.floor(bCol * 255);
-            this.argb = FastColor.ARGB32.color(a, r, g, b);
+            this.a = Mth.floor(alpha * 255);
+            this.r = Mth.floor(rCol * 255);
+            this.g = Mth.floor(gCol * 255);
+            this.b = Mth.floor(bCol * 255);
         }
-    }
-
-    public float getACol() {
-        return alpha;
-    }
-
-    public float getRCol() {
-        return rCol;
-    }
-
-    public float getGCol() {
-        return gCol;
-    }
-
-    public float getBCol() {
-        return bCol;
     }
 
     @Override
