@@ -358,17 +358,14 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         PoseStack poseStack = new PoseStack();
 
         Vec3 cameraPos = camera.getPosition();
-        poseStack.translate(
-                x - cameraPos.x(),
-                y - cameraPos.y(),
-                z - cameraPos.z()
-        );
-
-        poseStack.scale(
-                Mth.lerp(partialTick, renderSizeO[0], renderSize[0]),
-                Mth.lerp(partialTick, renderSizeO[1], renderSize[1]),
-                Mth.lerp(partialTick, renderSizeO[2], renderSize[2])
-        ); // todo 居中
+        float vx = (float) (x - cameraPos.x());
+        float vy = (float) (y - cameraPos.y());
+        float vz = (float) (z - cameraPos.z());
+        float sx = Mth.lerp(partialTick, renderSizeO[0], renderSize[0]);
+        float sy = Mth.lerp(partialTick, renderSizeO[1], renderSize[1]);
+        float sz = Mth.lerp(partialTick, renderSizeO[2], renderSize[2]);
+        poseStack.translate(vx - sx * 0.5F, vy - sy * 0.5F, vz - sz * 0.5F);
+        poseStack.scale(sx, sy, sz);
 
         if (preset.facingCameraMode != FaceCameraMode.DO_NOTHING) {
             Quaternionf quaternionf = new Quaternionf();
@@ -376,7 +373,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
             poseStack.mulPose(quaternionf);
         }
 
-        renderer.render(this, poseStack, buffer, camera, partialTick);
+        renderer.render(this, poseStack, buffer, vx, vy, vz, partialTick);
     }
 
     @Override

@@ -120,12 +120,15 @@ public class TDPClient {
         }
     }
 
-    public static void render(Queue<Particle> instance, Camera camera, float partialTick, Frustum frustum, ParticleRenderType particleRenderType) {
-        BufferBuilder[] builders = new BufferBuilder[4];
-        for (Particle particle : instance) {
-            if (!frustum.isVisible(particle.getRenderBoundingBox(partialTick))) continue;
+    private static final BufferBuilder[] builders = new BufferBuilder[4];
+
+//    public static void render(Queue<TDParticle> queue, Camera camera, float partialTick, Frustum frustum) {
+    public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum) {
+//        for (TDParticle tdp : queue) {
+        for (Particle particle : queue) {
             TDParticle tdp = (TDParticle) particle;
             if (tdp.renderer == ModelRenderer.DO_NOTHING) continue;
+            if (!frustum.isVisible(tdp.getRenderBoundingBox(partialTick))) continue;
             try {
                 TDPRenderType renderType = tdp.renderer.getRenderType(tdp);
                 BufferBuilder builder = builders[renderType.index];
@@ -136,14 +139,15 @@ public class TDPClient {
             } catch (Throwable throwable) {
                 CrashReport report = CrashReport.forThrowable(throwable, "Rendering Particle");
                 CrashReportCategory category = report.addCategory("Particle being rendered");
-                category.setDetail("Particle", particle::toString);
-                category.setDetail("Particle Type", particleRenderType::toString);
+                category.setDetail("Particle", tdp::toString);
+                category.setDetail("Particle Type", TDPClient.TDP_RENDER_TYPE::toString);
                 throw new ReportedException(report);
             }
         }
         for (int i = 0; i < 4; i++) {
             BufferBuilder builder = builders[i];
             if (builder == null) continue;
+            builders[i] = null;
             MeshData data = builder.build();
             if (data == null) continue;
             TDPRenderType.get(i).draw(data);

@@ -8,7 +8,6 @@ import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.client.model.IQuadTransformer;
 import org.joml.Math;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
 
 public class GeometryModel {
@@ -27,7 +26,7 @@ public class GeometryModel {
         this.renderType = renderType;
     }
 
-    public void renderToBuffer(PoseStack poseStack, BufferBuilder buffer, Vector3f lookVector, int packedLight, int a, int r, int g, int b) {
+    public void renderToBuffer(PoseStack poseStack, BufferBuilder buffer, float vx, float vy, float vz, int packedLight, int a, int r, int g, int b) {
         Matrix4f mat = poseStack.last().pose();
         rs.setSeed(251129);
         for (BakedQuad quad : model.getQuads(null, null, rs)) {
@@ -57,7 +56,8 @@ public class GeometryModel {
             x = p3t[0] - x;
             y = p3t[1] - y;
             z = p3t[2] - z;
-            if (lookVector.dot(vay * z - vaz * y, vaz * x - vax * z, vax * y - vay * x) >= 0) continue;
+//            if (vec.dot(vay * z - vaz * y, vaz * x - vax * z, vax * y - vay * x) >= 0) continue;
+            if (vx * (vay * z - vaz * y) + vy * (vaz * x - vax * z) + vz * (vax * y - vay * x) >= 0) continue;
 
             for (int index = 0; index < 4; index++) {
                 int start = starts[index];
