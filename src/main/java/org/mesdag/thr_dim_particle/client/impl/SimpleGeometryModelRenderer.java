@@ -1,9 +1,9 @@
 package org.mesdag.thr_dim_particle.client.impl;
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import org.joml.Matrix4f;
 import org.mesdag.thr_dim_particle.client.GeometryModel;
 import org.mesdag.thr_dim_particle.client.TDParticle;
 
@@ -20,7 +20,7 @@ public class SimpleGeometryModelRenderer implements GeometryModel.Renderer<Geome
     }
 
     @Override
-    public void render(TDParticle particle, PoseStack poseStack, BufferBuilder buffer, float vx, float vy, float vz, float partialTick) {
-        model.renderToBuffer(poseStack, buffer, vx, vy, vz, particle.getLightColor(partialTick), particle.a, particle.r, particle.g, particle.b);
+    public void render(TDParticle particle, Matrix4f pose, BufferBuilder buffer, float vx, float vy, float vz, float partialTick) {
+        model.renderToBuffer(pose, buffer, vx, vy, vz, particle.getLightColor(partialTick), particle.a, particle.r, particle.g, particle.b);
     }
 }

@@ -1,7 +1,6 @@
 package org.mesdag.thr_dim_particle.client;
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -15,6 +14,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.mesdag.particlestorm.api.IEventNode;
@@ -355,7 +355,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     public void render(VertexConsumer buffer, Camera camera, float partialTicks) {}
 
     public void renderFast(BufferBuilder buffer, Camera camera, float partialTick) {
-        PoseStack poseStack = new PoseStack();
+        Matrix4f pose = new Matrix4f();
 
         Vec3 cameraPos = camera.getPosition();
         float vx = (float) (x - cameraPos.x());
@@ -364,16 +364,16 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         float sx = Mth.lerp(partialTick, renderSizeO[0], renderSize[0]);
         float sy = Mth.lerp(partialTick, renderSizeO[1], renderSize[1]);
         float sz = Mth.lerp(partialTick, renderSizeO[2], renderSize[2]);
-        poseStack.translate(vx - sx * 0.5F, vy - sy * 0.5F, vz - sz * 0.5F);
-        poseStack.scale(sx, sy, sz);
+        pose.translate(vx - sx * 0.5F, vy - sy * 0.5F, vz - sz * 0.5F);
+        pose.scale(sx, sy, sz);
 
         if (preset.facingCameraMode != FaceCameraMode.DO_NOTHING) {
             Quaternionf quaternionf = new Quaternionf();
             preset.facingCameraMode.setRotation(this, quaternionf, camera, partialTick);
-            poseStack.mulPose(quaternionf);
+            pose.rotate(quaternionf);
         }
 
-        renderer.render(this, poseStack, buffer, vx, vy, vz, partialTick);
+        renderer.render(this, pose, buffer, vx, vy, vz, partialTick);
     }
 
     @Override

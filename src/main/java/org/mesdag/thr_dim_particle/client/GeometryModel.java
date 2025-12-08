@@ -1,12 +1,10 @@
 package org.mesdag.thr_dim_particle.client;
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.client.model.IQuadTransformer;
-import org.joml.Math;
 import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
 
@@ -26,8 +24,7 @@ public class GeometryModel {
         this.renderType = renderType;
     }
 
-    public void renderToBuffer(PoseStack poseStack, BufferBuilder buffer, float vx, float vy, float vz, int packedLight, int a, int r, int g, int b) {
-        Matrix4f mat = poseStack.last().pose();
+    public void renderToBuffer(Matrix4f pose, BufferBuilder buffer, float vx, float vy, float vz, int packedLight, int a, int r, int g, int b) {
         rs.setSeed(251129);
         for (BakedQuad quad : model.getQuads(null, null, rs)) {
             int[] vertices = quad.getVertices();
@@ -40,9 +37,9 @@ public class GeometryModel {
                 x = Float.intBitsToFloat(vertices[start]);
                 y = Float.intBitsToFloat(vertices[start + 1]);
                 z = Float.intBitsToFloat(vertices[start + 2]);
-                p3t[0] = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, Math.fma(mat.m20(), z, mat.m30())));
-                p3t[1] = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, Math.fma(mat.m21(), z, mat.m31())));
-                p3t[2] = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, Math.fma(mat.m22(), z, mat.m32())));
+                p3t[0] = pose.m00() * x + pose.m10() * y + pose.m20() * z + pose.m30();
+                p3t[1] = pose.m01() * x + pose.m11() * y + pose.m21() * z + pose.m31();
+                p3t[2] = pose.m02() * x + pose.m12() * y + pose.m22() * z + pose.m32();
             }
             p3t = pt4[0];
             x = p3t[0];
@@ -56,7 +53,6 @@ public class GeometryModel {
             x = p3t[0] - x;
             y = p3t[1] - y;
             z = p3t[2] - z;
-//            if (vec.dot(vay * z - vaz * y, vaz * x - vax * z, vax * y - vay * x) >= 0) continue;
             if (vx * (vay * z - vaz * y) + vy * (vaz * x - vax * z) + vz * (vax * y - vay * x) >= 0) continue;
 
             for (int index = 0; index < 4; index++) {
