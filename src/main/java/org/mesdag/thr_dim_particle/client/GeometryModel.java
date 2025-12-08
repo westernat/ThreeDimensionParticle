@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.client.model.IQuadTransformer;
+import org.joml.Math;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.system.MemoryUtil;
@@ -13,7 +14,8 @@ import org.lwjgl.system.MemoryUtil;
 public class GeometryModel {
     private static final int[] ma = new int[256 * 256];
     private static final RandomSource rs = RandomSource.create();
-    private static final Vector3f pt = new Vector3f();
+    private static final float[][] pt4 = new float[4][3];
+    private static final int[] starts = {0, 8, 16, 24};
     protected TDPRenderType renderType = TDPRenderType.get(0);
     protected final BakedModel model;
 
@@ -25,47 +27,68 @@ public class GeometryModel {
         this.renderType = renderType;
     }
 
-    public void renderToBuffer(PoseStack poseStack, BufferBuilder buffer, int packedLight, int a, int r, int g, int b) {
-        Matrix4f pose = poseStack.last().pose();
+    public void renderToBuffer(PoseStack poseStack, BufferBuilder buffer, Vector3f lookVector, int packedLight, int a, int r, int g, int b) {
+        Matrix4f mat = poseStack.last().pose();
         rs.setSeed(251129);
         for (BakedQuad quad : model.getQuads(null, null, rs)) {
             int[] vertices = quad.getVertices();
-            int size = vertices.length / IQuadTransformer.STRIDE;
+            float[] p3t;
+            float x, y, z;
 
-            for (int index = 0; index < size; index++) {
-                int start = index * IQuadTransformer.STRIDE;
-                pt.set(
-                        Float.intBitsToFloat(vertices[start]),
-                        Float.intBitsToFloat(vertices[start + 1]),
-                        Float.intBitsToFloat(vertices[start + 2])
-                ).mulPosition(pose);
+            for (int index = 0; index < 4; index++) {
+                int start = starts[index];
+                p3t = pt4[index];
+                x = Float.intBitsToFloat(vertices[start]);
+                y = Float.intBitsToFloat(vertices[start + 1]);
+                z = Float.intBitsToFloat(vertices[start + 2]);
+                p3t[0] = Math.fma(mat.m00(), x, Math.fma(mat.m10(), y, Math.fma(mat.m20(), z, mat.m30())));
+                p3t[1] = Math.fma(mat.m01(), x, Math.fma(mat.m11(), y, Math.fma(mat.m21(), z, mat.m31())));
+                p3t[2] = Math.fma(mat.m02(), x, Math.fma(mat.m12(), y, Math.fma(mat.m22(), z, mat.m32())));
+            }
+            p3t = pt4[0];
+            x = p3t[0];
+            y = p3t[1];
+            z = p3t[2];
+            p3t = pt4[1];
+            float vax = p3t[0] - x;
+            float vay = p3t[1] - y;
+            float vaz = p3t[2] - z;
+            p3t = pt4[2];
+            x = p3t[0] - x;
+            y = p3t[1] - y;
+            z = p3t[2] - z;
+            if (lookVector.dot(vay * z - vaz * y, vaz * x - vax * z, vax * y - vay * x) >= 0) continue;
 
-                long p = buffer.beginVertex();
+            for (int index = 0; index < 4; index++) {
+                int start = starts[index];
+                long ptr = buffer.beginVertex();
+
                 // position
-                MemoryUtil.memPutFloat(p, pt.x);
-                MemoryUtil.memPutFloat(p + 4L, pt.y);
-                MemoryUtil.memPutFloat(p + 8L, pt.z);
+                p3t = pt4[index];
+                MemoryUtil.memPutFloat(ptr, p3t[0]);
+                MemoryUtil.memPutFloat(ptr + 4L, p3t[1]);
+                MemoryUtil.memPutFloat(ptr + 8L, p3t[2]);
                 // color & light
                 int color = vertices[start + 3]; // argb格式
                 color = ma[((color >>> 24) << 8) + a] << 24 |
                         ma[((color >> 16 & 0xFF) << 8) + r] |
-                        ma[((color >> 8 & 0xFF) << 8 ) + g] << 8 |
+                        ma[((color >> 8 & 0xFF) << 8) + g] << 8 |
                         ma[((color & 0xFF) << 8) + b] << 16; // 需要abgr格式
                 if (BufferBuilder.IS_LITTLE_ENDIAN) {
-                    MemoryUtil.memPutInt(p + 12L, color);
-                    MemoryUtil.memPutInt(p + 24L, vertices[start + IQuadTransformer.UV2]);
-                    MemoryUtil.memPutInt(p + 28L, packedLight);
+                    MemoryUtil.memPutInt(ptr + 12L, color);
+                    MemoryUtil.memPutInt(ptr + 24L, vertices[start + IQuadTransformer.UV2]);
+                    MemoryUtil.memPutInt(ptr + 28L, packedLight);
                 } else {
-                    MemoryUtil.memPutInt(p + 12L, Integer.reverseBytes(color));
+                    MemoryUtil.memPutInt(ptr + 12L, Integer.reverseBytes(color));
                     color = vertices[start + IQuadTransformer.UV2];
-                    MemoryUtil.memPutShort(p + 24L, (short) (color & 0xFFFF));
-                    MemoryUtil.memPutShort(p + 26L, (short) (color >> 16 & 0xFFFF));
-                    MemoryUtil.memPutShort(p + 28L, (short) (packedLight & 0xFFFF));
-                    MemoryUtil.memPutShort(p + 30L, (short) (packedLight >> 16 & 0xFFFF));
+                    MemoryUtil.memPutShort(ptr + 24L, (short) (color & 0xFFFF));
+                    MemoryUtil.memPutShort(ptr + 26L, (short) (color >> 16 & 0xFFFF));
+                    MemoryUtil.memPutShort(ptr + 28L, (short) (packedLight & 0xFFFF));
+                    MemoryUtil.memPutShort(ptr + 30L, (short) (packedLight >> 16 & 0xFFFF));
                 }
                 // uv
-                MemoryUtil.memPutFloat(p + 16L, Float.intBitsToFloat(vertices[start + 4]));
-                MemoryUtil.memPutFloat(p + 20L, Float.intBitsToFloat(vertices[start + 5]));
+                MemoryUtil.memPutFloat(ptr + 16L, Float.intBitsToFloat(vertices[start + 4]));
+                MemoryUtil.memPutFloat(ptr + 20L, Float.intBitsToFloat(vertices[start + 5]));
             }
         }
     }
