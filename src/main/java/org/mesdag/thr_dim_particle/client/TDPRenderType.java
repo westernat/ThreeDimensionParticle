@@ -33,7 +33,6 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
                             .setTransparencyState(RenderType.NO_TRANSPARENCY)
                             .setOverlayState(RenderType.OVERLAY)
                             .setLightmapState(RenderType.LIGHTMAP)
-                            .setColorLogicState(OR_REVERSE_COLOR_LOGIC)
                             .createCompositeState(false)
             ),
             new TDPRenderType(1,
