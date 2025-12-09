@@ -1,7 +1,6 @@
 package org.mesdag.thr_dim_particle.client;
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.CrashReport;
@@ -20,8 +19,10 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
@@ -36,6 +37,7 @@ import org.mesdag.particlestorm.api.RegisterCustomParticleTypeEvent;
 import org.mesdag.particlestorm.particle.FaceCameraMode;
 import org.mesdag.particlestorm.particle.ParticlePreset;
 import org.mesdag.thr_dim_particle.TDP;
+import org.mesdag.thr_dim_particle.client.compat.IrisHelper;
 import org.mesdag.thr_dim_particle.client.impl.TDParticleAppearance;
 
 import java.io.IOException;
@@ -63,6 +65,15 @@ public class TDPClient {
     public TDPClient(ModContainer container) {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         RegisterTDPRendererEvent.start();
+    }
+
+    @SubscribeEvent
+    public static void fmlClientSetup(FMLClientSetupEvent event) {
+        event.enqueueWork(() -> {
+            if (ModList.get().isLoaded("iris")) {
+                IrisHelper.setAllowUnknownShaders();
+            }
+        });
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -103,10 +114,10 @@ public class TDPClient {
     @SubscribeEvent
     public static void registerShaders(RegisterShadersEvent event) throws IOException {
         ResourceProvider provider = event.getResourceProvider();
-        event.registerShader(new ShaderInstance(provider, TDP.asResource("particle_solid"), DefaultVertexFormat.NEW_ENTITY), instance -> particleSolidShaderInstance = instance);
-        event.registerShader(new ShaderInstance(provider, TDP.asResource("particle_cutout"), DefaultVertexFormat.NEW_ENTITY), instance -> particleCutoutShaderInstance = instance);
-        event.registerShader(new ShaderInstance(provider, TDP.asResource("particle_cutout_mipped"), DefaultVertexFormat.NEW_ENTITY), instance -> particleCutoutMippedShaderInstance = instance);
-        event.registerShader(new ShaderInstance(provider, TDP.asResource("particle_translucent"), DefaultVertexFormat.NEW_ENTITY), instance -> particleTranslucentShaderInstance = instance);
+        event.registerShader(new ShaderInstance(provider, TDP.asResource("particle_solid"), TDPRenderType.FORMAT), instance -> particleSolidShaderInstance = instance);
+        event.registerShader(new ShaderInstance(provider, TDP.asResource("particle_cutout"), TDPRenderType.FORMAT), instance -> particleCutoutShaderInstance = instance);
+        event.registerShader(new ShaderInstance(provider, TDP.asResource("particle_cutout_mipped"), TDPRenderType.FORMAT), instance -> particleCutoutMippedShaderInstance = instance);
+        event.registerShader(new ShaderInstance(provider, TDP.asResource("particle_translucent"), TDPRenderType.FORMAT), instance -> particleTranslucentShaderInstance = instance);
     }
 
     @SubscribeEvent
@@ -122,9 +133,7 @@ public class TDPClient {
 
     private static final BufferBuilder[] builders = new BufferBuilder[4];
 
-//    public static void render(Queue<TDParticle> queue, Camera camera, float partialTick, Frustum frustum) {
     public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum) {
-//        for (TDParticle tdp : queue) {
         for (Particle particle : queue) {
             TDParticle tdp = (TDParticle) particle;
             if (tdp.renderer == ModelRenderer.DO_NOTHING) continue;

@@ -5,7 +5,6 @@ import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FastColor;
 import org.joml.Matrix4f;
 import org.mesdag.thr_dim_particle.client.HardcodeModel;
 import org.mesdag.thr_dim_particle.client.TDParticle;
@@ -34,7 +33,7 @@ public class SimpleHardcodeModelRenderer implements HardcodeModel.Renderer<Hardc
     }
 
     @Override
-    public void render(TDParticle particle, Matrix4f pose, BufferBuilder buffer, float vx, float vy, float vz, float partialTicks) {
-        model.renderToBuffer(pose, buffer, particle.getLightColor(partialTicks), OverlayTexture.NO_OVERLAY, FastColor.ARGB32.color(particle.a, particle.r, particle.g, particle.b));
+    public void render(TDParticle particle, Matrix4f pose, BufferBuilder buffer, float vx, float vy, float vz) {
+        model.renderToBuffer(pose, buffer, particle.getLightColor(0), OverlayTexture.NO_OVERLAY, particle.argb);
     }
 }

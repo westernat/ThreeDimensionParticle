@@ -9,7 +9,6 @@ import org.joml.Matrix4f;
 import org.lwjgl.system.MemoryUtil;
 
 public class GeometryModel {
-    private static final int[] ma = new int[256 * 256];
     private static final RandomSource rs = RandomSource.create();
     private static final float[][] pt4 = new float[4][3];
     private static final int[] starts = {0, 8, 16, 24};
@@ -24,8 +23,8 @@ public class GeometryModel {
         this.renderType = renderType;
     }
 
-    public void renderToBuffer(Matrix4f pose, BufferBuilder buffer, float vx, float vy, float vz, int packedLight, int a, int r, int g, int b) {
-        rs.setSeed(251129);
+    public void renderToBuffer(TDParticle particle, Matrix4f pose, BufferBuilder buffer, float vx, float vy, float vz) {
+        rs.setSeed(251209);
         for (BakedQuad quad : model.getQuads(null, null, rs)) {
             int[] vertices = quad.getVertices();
             float[] p3t;
@@ -57,7 +56,9 @@ public class GeometryModel {
 
             for (int index = 0; index < 4; index++) {
                 int start = starts[index];
-                long ptr = buffer.beginVertex();
+                buffer.vertices++;
+                long ptr = buffer.buffer.reserve(buffer.vertexSize);
+                buffer.vertexPointer = ptr;
 
                 // position
                 p3t = pt4[index];
@@ -66,25 +67,24 @@ public class GeometryModel {
                 MemoryUtil.memPutFloat(ptr + 8L, p3t[2]);
                 // color & light
                 int color = vertices[start + 3]; // argb格式
-                color = ma[((color >>> 24) << 8) + a] << 24 |
-                        ma[((color >> 16 & 0xFF) << 8) + r] |
-                        ma[((color >> 8 & 0xFF) << 8) + g] << 8 |
-                        ma[((color & 0xFF) << 8) + b] << 16; // 需要abgr格式
                 if (BufferBuilder.IS_LITTLE_ENDIAN) {
-                    MemoryUtil.memPutInt(ptr + 12L, color);
-                    MemoryUtil.memPutInt(ptr + 24L, vertices[start + IQuadTransformer.UV2]);
-                    MemoryUtil.memPutInt(ptr + 28L, packedLight);
+                    // color
+                    MemoryUtil.memPutLong(ptr + 12L, ((long) color << 32) | (particle.argb & 0xFFFFFFFFL));
+                    MemoryUtil.memPutLong(ptr + 24L + 4L, ((long) vertices[start + IQuadTransformer.UV2] << 32) | (particle.light & 0xFFFFFFFFL));
                 } else {
-                    MemoryUtil.memPutInt(ptr + 12L, Integer.reverseBytes(color));
+                    // color
+                    MemoryUtil.memPutLong(ptr + 12L, Long.reverseBytes(((long) color << 32) | (particle.argb & 0xFFFFFFFFL)));
+                    // 借uv1存模型uv2
                     color = vertices[start + IQuadTransformer.UV2];
-                    MemoryUtil.memPutShort(ptr + 24L, (short) (color & 0xFFFF));
-                    MemoryUtil.memPutShort(ptr + 26L, (short) (color >> 16 & 0xFFFF));
-                    MemoryUtil.memPutShort(ptr + 28L, (short) (packedLight & 0xFFFF));
-                    MemoryUtil.memPutShort(ptr + 30L, (short) (packedLight >> 16 & 0xFFFF));
+                    MemoryUtil.memPutShort(ptr + 24L + 4L, (short) (color & 0xFFFF));
+                    MemoryUtil.memPutShort(ptr + 26L + 4L, (short) (color >> 16 & 0xFFFF));
+                    // 环境uv2
+                    MemoryUtil.memPutShort(ptr + 28L + 4L, (short) (particle.light & 0xFFFF));
+                    MemoryUtil.memPutShort(ptr + 30L + 4L, (short) (particle.light >> 16 & 0xFFFF));
                 }
-                // uv
-                MemoryUtil.memPutFloat(ptr + 16L, Float.intBitsToFloat(vertices[start + 4]));
-                MemoryUtil.memPutFloat(ptr + 20L, Float.intBitsToFloat(vertices[start + 5]));
+                // uv0
+                MemoryUtil.memPutInt(ptr + 16L + 4L, vertices[start + 4]);
+                MemoryUtil.memPutInt(ptr + 20L + 4L, vertices[start + 5]);
             }
         }
     }
@@ -93,14 +93,6 @@ public class GeometryModel {
         @Override
         default TDPRenderType getRenderType(TDParticle particle) {
             return getModel().renderType;
-        }
-    }
-
-    static {
-        for (int i = 0; i < 256; i++) {
-            for (int j = 0; j < 256; j++) {
-                ma[i * 256 + j] = (i * j) >> 8;
-            }
         }
     }
 }

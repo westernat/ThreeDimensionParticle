@@ -8,6 +8,7 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.particles.ParticleGroup;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -58,10 +59,8 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     protected int lastTimeline = 0;
 
     public ModelRenderer<?> renderer = ModelRenderer.DO_NOTHING;
-    public int a = 255;
-    public int r = 255;
-    public int g = 255;
-    public int b = 255;
+    public int argb = 0xFFFFFFFF;
+    public int light;
     public float[] renderSize = new float[3];
     public float[] renderSizeO = new float[3];
     protected int maxFrame = 1;
@@ -71,6 +70,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         super(level, x, y, z);
         this.friction = 1.0F;
         this.preset = particlePreset;
+        this.light = getLightColor(0);
 
         RandomSource random = level.getRandom();
         this.particleRandom1 = random.nextDouble();
@@ -291,10 +291,12 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
             super.setColor(red, green, blue);
             super.setAlpha(alpha);
 
-            this.a = Mth.floor(alpha * 255);
-            this.r = Mth.floor(rCol * 255);
-            this.g = Mth.floor(gCol * 255);
-            this.b = Mth.floor(bCol * 255);
+            this.argb = FastColor.ARGB32.color(
+                    Mth.floor(alpha * 255),
+                    Mth.floor(rCol * 255),
+                    Mth.floor(gCol * 255),
+                    Mth.floor(bCol * 255)
+            );
         }
     }
 
@@ -349,13 +351,16 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         for (IParticleComponent component : components) {
             component.update(this);
         }
+        this.light = getLightColor(0);
     }
 
     @Override
     public void render(VertexConsumer buffer, Camera camera, float partialTicks) {}
 
+    private static final Matrix4f pose = new Matrix4f();
+
     public void renderFast(BufferBuilder buffer, Camera camera, float partialTick) {
-        Matrix4f pose = new Matrix4f();
+        pose.identity();
 
         Vec3 cameraPos = camera.getPosition();
         float vx = (float) (x - cameraPos.x());
@@ -373,7 +378,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
             pose.rotate(quaternionf);
         }
 
-        renderer.render(this, pose, buffer, vx, vy, vz, partialTick);
+        renderer.render(this, pose, buffer, vx, vy, vz);
     }
 
     @Override

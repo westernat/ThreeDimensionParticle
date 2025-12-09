@@ -15,11 +15,13 @@ import java.util.Map;
 import static org.mesdag.thr_dim_particle.client.TDPClient.*;
 
 public final class TDPRenderType extends RenderType.CompositeRenderType {
-    private static final VertexFormat FORMAT = VertexFormat.builder()
+    static final VertexFormatElement COLOR1 = VertexFormatElement.register(VertexFormatElement.findNextId(), 0, VertexFormatElement.Type.UBYTE, VertexFormatElement.Usage.COLOR, 4);
+    static final VertexFormat FORMAT = VertexFormat.builder()
             .add("Position", VertexFormatElement.POSITION)
             .add("Color", VertexFormatElement.COLOR)
+            .add("Color1", COLOR1) // 用于正片叠底
             .add("UV0", VertexFormatElement.UV0)
-            .add("UV1", VertexFormatElement.UV1) // 实际传入的值为模型光照
+            .add("UV1", VertexFormatElement.UV1) // 实际传入的值为模型光照uv2
             .add("UV2", VertexFormatElement.UV2)
             .build();
     private static final ResourceLocation ATLAS = TextureAtlas.LOCATION_BLOCKS; // todo 换particle图集
@@ -31,6 +33,7 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
                             .setTransparencyState(RenderType.NO_TRANSPARENCY)
                             .setOverlayState(RenderType.OVERLAY)
                             .setLightmapState(RenderType.LIGHTMAP)
+                            .setColorLogicState(OR_REVERSE_COLOR_LOGIC)
                             .createCompositeState(false)
             ),
             new TDPRenderType(1,

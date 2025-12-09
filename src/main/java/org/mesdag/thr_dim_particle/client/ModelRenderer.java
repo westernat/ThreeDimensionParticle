@@ -8,7 +8,7 @@ public interface ModelRenderer<M> {
 
     TDPRenderType getRenderType(TDParticle particle);
 
-    void render(TDParticle particle, Matrix4f pose, BufferBuilder buffer, float vx, float vy, float vz, float partialTick);
+    void render(TDParticle particle, Matrix4f pose, BufferBuilder buffer, float vx, float vy, float vz);
 
     ModelRenderer<?> DO_NOTHING = new ModelRenderer<>() {
         @Override
@@ -22,6 +22,6 @@ public interface ModelRenderer<M> {
         }
 
         @Override
-        public void render(TDParticle particle, Matrix4f pose, BufferBuilder buffer, float vx, float vy, float vz, float partialTick) {}
+        public void render(TDParticle particle, Matrix4f pose, BufferBuilder buffer, float vx, float vy, float vz) {}
     };
 }
