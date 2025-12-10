@@ -140,12 +140,12 @@ dependencies {
         implementation(jarJar("org.mesdag:ParticleStorm:${particlestorm_version}"))
     }
 
-//    runtimeOnly "maven.modrinth:acceleratedrendering:1.0.7-1.21.1-alpha"
-    runtimeOnly "maven.modrinth:sodium:mc1.21.1-0.6.13-neoforge"
+    compileOnly "maven.modrinth:sodium:mc1.21.1-0.6.13-neoforge"
     compileOnly "maven.modrinth:iris:1.8.12+1.21.1-neoforge"
-    runtimeOnly "maven.modrinth:iris:1.8.12+1.21.1-neoforge"
-//    runtimeOnly "maven.modrinth:flw-vanillin:1.1.3"
-//    runtimeOnly "maven.modrinth:spark:1.10.124-neoforge-1.21.1"
+    if (false) {
+        runtimeOnly "maven.modrinth:sodium:mc1.21.1-0.6.13-neoforge"
+        runtimeOnly "maven.modrinth:iris:1.8.12+1.21.1-neoforge"
+    }
 }
 
 tasks.withType(ProcessResources).configureEach {

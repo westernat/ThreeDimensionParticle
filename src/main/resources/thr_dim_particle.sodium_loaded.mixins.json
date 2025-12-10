@@ -1,0 +1,23 @@
+{
+    "required": true,
+    "package": "org.mesdag.thr_dim_particle.mixin.sodium",
+    "compatibilityLevel": "JAVA_21",
+    "plugin": "org.mesdag.thr_dim_particle.mixin.sodium.SodiumLoadedMixinPlugin",
+    "mixins": [
+    ],
+    "client": [
+        "AnimationMetadataSectionMixin",
+        "AnimationMetadataSectionSerializerMixin",
+        "SpriteContentsMixin",
+        "SpriteContentsMixin$TickerMixin"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    },
+    "overwrites": {
+        "requireAnnotations": true
+    },
+    "mixinextras": {
+        "minVersion": "0.5.0"
+    }
+}
