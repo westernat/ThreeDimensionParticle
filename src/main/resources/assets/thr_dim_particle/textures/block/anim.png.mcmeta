@@ -1,0 +1,6 @@
+{
+	"animation": {
+		"frametime": 4,
+        "tdp_ignore_sodium_ticker_optimization": true
+	}
+}
