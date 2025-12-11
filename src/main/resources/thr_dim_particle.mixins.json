@@ -5,6 +5,7 @@
     "mixins": [
     ],
     "client": [
+        "client.BlockModel$DeserializerMixin",
         "client.MinecraftMixin",
         "client.ParticleEngineMixin"
     ],

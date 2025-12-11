@@ -12,8 +12,10 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
@@ -23,10 +25,7 @@ import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.event.ModelEvent;
-import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
-import net.neoforged.neoforge.client.event.RegisterShadersEvent;
+import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.registries.RegisterEvent;
@@ -39,6 +38,7 @@ import org.mesdag.particlestorm.particle.ParticlePreset;
 import org.mesdag.thr_dim_particle.TDP;
 import org.mesdag.thr_dim_particle.client.compat.IrisHelper;
 import org.mesdag.thr_dim_particle.client.impl.TDParticleAppearance;
+import org.mesdag.thr_dim_particle.client.impl.TestHardcodeModel;
 
 import java.io.IOException;
 import java.util.Queue;
@@ -57,10 +57,12 @@ public class TDPClient {
             return "TDP";
         }
     };
+    public static final ResourceLocation ATLAS_LOCATION = TDP.asResource("textures/atlas/particles.png");
     static ShaderInstance particleSolidShaderInstance;
     static ShaderInstance particleCutoutShaderInstance;
     static ShaderInstance particleCutoutMippedShaderInstance;
     static ShaderInstance particleTranslucentShaderInstance;
+    private static TextureAtlas atlas;
 
     public TDPClient(ModContainer container) {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
@@ -131,6 +133,22 @@ public class TDPClient {
         }
     }
 
+    @SubscribeEvent
+    public static void registerMaterialAtlasesEvent(RegisterMaterialAtlasesEvent event) {
+        event.register(ATLAS_LOCATION, TDP.asResource("particles"));
+    }
+
+    @SubscribeEvent
+    public static void registerTDPRenderer(RegisterTDPRendererEvent event) {
+        event.registerHardcode(
+                TDP.asResource("test_model2"),
+                TDP.asResource("tdp/test_hardcode"),
+                TestHardcodeModel.LAYER_LOCATION,
+                TestHardcodeModel::createBodyLayer,
+                () -> TDPRenderType.get(0)
+        );
+    }
+
     private static final BufferBuilder[] builders = new BufferBuilder[4];
 
     public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum) {
@@ -161,5 +179,12 @@ public class TDPClient {
             if (data == null) continue;
             TDPRenderType.get(i).draw(data);
         }
+    }
+
+    public static TextureAtlas getAtlas() {
+        if (atlas == null) {
+            atlas = Minecraft.getInstance().getModelManager().getAtlas(ATLAS_LOCATION);
+        }
+        return atlas;
     }
 }

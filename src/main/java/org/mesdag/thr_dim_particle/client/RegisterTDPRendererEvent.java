@@ -15,6 +15,7 @@ import net.neoforged.fml.event.IModBusEvent;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.MutableTriple;
 import org.jetbrains.annotations.Nullable;
+import org.mesdag.thr_dim_particle.TDP;
 import org.mesdag.thr_dim_particle.client.impl.SimpleGeometryModelRenderer;
 import org.mesdag.thr_dim_particle.client.impl.SimpleHardcodeModelRenderer;
 
@@ -29,30 +30,44 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
 
     private RegisterTDPRendererEvent() {}
 
-    public void registerHardcode(ModelType type, Function<EntityRendererProvider.Context, HardcodeModel.Renderer<?>> provider, @Nullable ModelLayerLocation layerLocation, @Nullable Supplier<LayerDefinition> supplier) {
-        if ((layerLocation == null) != (supplier == null)) {
+    public void registerHardcode(
+            ResourceLocation modelId,
+            Function<EntityRendererProvider.Context, HardcodeModel.Renderer<?>> provider,
+            @Nullable ModelLayerLocation layerLocation,
+            @Nullable Supplier<LayerDefinition> layerDefinition
+    ) {
+        if ((layerLocation == null) != (layerDefinition == null)) {
             throw new IllegalArgumentException("The layer definition must either be all null, or all non-null.");
         }
-        hardcodeCache.put(type, new ImmutableTriple<>(provider, layerLocation, supplier));
+        hardcodeCache.put(new ModelType(ModelType.Variant.HARDCODE, modelId), new ImmutableTriple<>(provider, layerLocation, layerDefinition));
     }
 
     /// To invoke this method, you should register {@link LayerDefinition} by your self
     ///
     /// @see net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterLayerDefinitions
-    public void registerHardcode(ModelType type, Function<EntityRendererProvider.Context, HardcodeModel.Renderer<?>> provider) {
-        registerHardcode(type, provider, null, null);
+    public void registerHardcode(
+            ResourceLocation modelId,
+            Function<EntityRendererProvider.Context, HardcodeModel.Renderer<?>> provider
+    ) {
+        registerHardcode(modelId, provider, null, null);
     }
 
-    public void registerHardcode(ModelType type, ResourceLocation textureLocation, ModelLayerLocation layerLocation, Supplier<LayerDefinition> supplier) {
-        registerHardcode(type, context -> new SimpleHardcodeModelRenderer(context, layerLocation, textureLocation), layerLocation, supplier);
+    public void registerHardcode(
+            ResourceLocation modelId,
+            ResourceLocation textureLocation,
+            ModelLayerLocation layerLocation,
+            Supplier<LayerDefinition> layerDefinition,
+            Supplier<TDPRenderType> renderType
+    ) {
+        registerHardcode(modelId, context -> new SimpleHardcodeModelRenderer(context, layerLocation, textureLocation, renderType.get()), layerLocation, layerDefinition);
     }
 
-    public void registerGeometry(ModelType type, Function<EntityRendererProvider.Context, GeometryModel.Renderer<?>> provider) {
-        geometryCache.put(type, new MutableTriple<>(provider, null, null));
+    public void registerGeometry(ResourceLocation modelId, Function<EntityRendererProvider.Context, GeometryModel.Renderer<?>> provider) {
+        geometryCache.put(new ModelType(ModelType.Variant.GEOMETRY, modelId), new MutableTriple<>(provider, null, null));
     }
 
-    public void registerGeometry(ModelType type, ResourceLocation modelId) {
-        geometryCache.put(type, new MutableTriple<>(null, modelId, ModelResourceLocation.standalone(modelId)));
+    public void registerGeometry(ResourceLocation modelId) {
+        geometryCache.put(new ModelType(ModelType.Variant.GEOMETRY, modelId), new MutableTriple<>(null, modelId, ModelResourceLocation.standalone(modelId)));
     }
 
     public static ModelRenderer<?> getRenderer(ResourceLocation type) {
@@ -66,6 +81,14 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
 
     public static void postEvent() {
         ModLoader.postEvent(new RegisterTDPRendererEvent());
+        ImmutableMap.Builder<ResourceLocation, ModelType> builder = ImmutableMap.builder();
+        for (ModelType type : hardcodeCache.keySet()) {
+            builder.put(type.modelId(), type);
+        }
+        for (ModelType type : geometryCache.keySet()) {
+            builder.put(type.modelId(), type);
+        }
+        ModelType.Loader.INSTANCE.builtinModelTypes = builder.build();
     }
 
     public static void registerLayerDefinitions(BiConsumer<ModelLayerLocation, Supplier<LayerDefinition>> registration) {
@@ -94,8 +117,9 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
             if (triple.middle == null || triple.right == null || !modelExistsChecker.test(triple.right)) continue;
             BlockModel blockModel = blockModelGetter.apply(ModelBakery.MODEL_LISTER.idToFile(triple.middle));
             if (blockModel == null) continue;
-            ResourceLocation renderTypeHint = blockModel.customData.getRenderTypeHint();
-            TDPRenderType renderType = renderTypeHint == null ? TDPRenderType.get(0) : TDPRenderType.get(renderTypeHint);
+            ResourceLocation hint = blockModel.customData.getRenderTypeHint();
+            if (hint == null || !TDP.MODID.equals(hint.getNamespace())) continue;
+            TDPRenderType renderType = TDPRenderType.get(hint.getPath());
             triple.left = context -> {
                 SimpleGeometryModelRenderer renderer = new SimpleGeometryModelRenderer(context, triple.right);
                 renderer.getModel().setRenderType(renderType);

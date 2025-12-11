@@ -47,7 +47,7 @@ public record ModelType(Variant variant, ResourceLocation modelId) {
 
     @NamedEnum
     public enum Variant implements StringRepresentable, IExtensibleEnum {
-        HARDCODE("hardcode"), // todo
+        HARDCODE("hardcode"),
         GEOMETRY("geometry"),
         GECKOLIB("geckolib"); // todo
 
@@ -78,6 +78,7 @@ public record ModelType(Variant variant, ResourceLocation modelId) {
         public static final Loader INSTANCE = new Loader();
         private static final FileToIdConverter MODEL_LISTER = FileToIdConverter.json("particle_models");
 
+        Map<ResourceLocation, ModelType> builtinModelTypes = ImmutableMap.of();
         private Map<ResourceLocation, ModelType> modelTypes = ImmutableMap.of();
 
         private Loader() {}
@@ -92,7 +93,7 @@ public record ModelType(Variant variant, ResourceLocation modelId) {
                     throw new IllegalStateException("Failed to load model for particle " + id, exception);
                 }
             }
-            this.modelTypes = builder.build();
+            this.modelTypes = builder.putAll(builtinModelTypes).build();
         }
 
         public Map<ResourceLocation, ModelType> getModelTypes() {

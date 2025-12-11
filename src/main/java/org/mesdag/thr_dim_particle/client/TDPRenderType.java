@@ -5,9 +5,6 @@ import com.mojang.blaze3d.vertex.VertexFormatElement;
 import net.minecraft.Util;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.resources.ResourceLocation;
-import org.mesdag.thr_dim_particle.TDP;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,12 +21,11 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
             .add("UV1", VertexFormatElement.UV1) // 实际传入的值为模型光照uv2
             .add("UV2", VertexFormatElement.UV2)
             .build();
-    private static final ResourceLocation ATLAS = TextureAtlas.LOCATION_BLOCKS; // todo 换particle图集
     private static final TDPRenderType[] TYPES = new TDPRenderType[]{
             new TDPRenderType(0, "tdp_particle_solid", FORMAT, VertexFormat.Mode.QUADS, 256, true, false,
                     RenderType.CompositeState.builder()
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleSolidShaderInstance))
-                            .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, false))
+                            .setTextureState(new RenderStateShard.TextureStateShard(ATLAS_LOCATION, false, false))
                             .setTransparencyState(RenderType.NO_TRANSPARENCY)
                             .setOverlayState(RenderType.OVERLAY)
                             .setLightmapState(RenderType.LIGHTMAP)
@@ -39,7 +35,7 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
                     "tdp_particle_cutout", FORMAT, VertexFormat.Mode.QUADS, 256, true, false,
                     RenderType.CompositeState.builder()
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleCutoutShaderInstance))
-                            .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, false))
+                            .setTextureState(new RenderStateShard.TextureStateShard(ATLAS_LOCATION, false, false))
                             .setTransparencyState(RenderType.NO_TRANSPARENCY)
                             .setOverlayState(RenderType.OVERLAY)
                             .setLightmapState(RenderType.LIGHTMAP)
@@ -49,7 +45,7 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
                     "tdp_particle_cutout_mipped", FORMAT, VertexFormat.Mode.QUADS, 256, true, false,
                     RenderType.CompositeState.builder()
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleCutoutMippedShaderInstance))
-                            .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, true))
+                            .setTextureState(new RenderStateShard.TextureStateShard(ATLAS_LOCATION, false, true))
                             .setTransparencyState(RenderType.NO_TRANSPARENCY)
                             .setOverlayState(RenderType.OVERLAY)
                             .setLightmapState(RenderType.LIGHTMAP)
@@ -59,18 +55,18 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
                     "tdp_particle_translucent", FORMAT, VertexFormat.Mode.QUADS, 256, true, true,
                     RenderType.CompositeState.builder()
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleTranslucentShaderInstance))
-                            .setTextureState(new RenderStateShard.TextureStateShard(ATLAS, false, false))
+                            .setTextureState(new RenderStateShard.TextureStateShard(ATLAS_LOCATION, false, false))
                             .setTransparencyState(RenderType.TRANSLUCENT_TRANSPARENCY)
                             .setOverlayState(RenderType.OVERLAY)
                             .setLightmapState(RenderType.LIGHTMAP)
                             .createCompositeState(false)
             )
     };
-    private static final Map<ResourceLocation, TDPRenderType> MAP = Util.make(new HashMap<>(), map -> {
-        map.put(TDP.asResource("solid"), TYPES[0]);
-        map.put(TDP.asResource("cutout"), TYPES[1]);
-        map.put(TDP.asResource("cutout_mipped"), TYPES[2]);
-        map.put(TDP.asResource("translucent"), TYPES[3]);
+    private static final Map<String, TDPRenderType> MAP = Util.make(new HashMap<>(), map -> {
+        map.put("solid", TYPES[0]);
+        map.put("cutout", TYPES[1]);
+        map.put("cutout_mipped", TYPES[2]);
+        map.put("translucent", TYPES[3]);
     });
 
     public final int index;
@@ -84,7 +80,7 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
         return TYPES[index];
     }
 
-    public static TDPRenderType get(ResourceLocation id) {
+    public static TDPRenderType get(String id) {
         return MAP.get(id);
     }
 }

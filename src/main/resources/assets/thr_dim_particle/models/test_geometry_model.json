@@ -4,8 +4,8 @@
 	"render_type": "thr_dim_particle:solid",
 	"texture_size": [48, 48],
 	"textures": {
-		"0": "thr_dim_particle:block/test",
-		"1": "thr_dim_particle:block/anim"
+		"0": "thr_dim_particle:tdp/test_geometry",
+		"1": "thr_dim_particle:tdp/anim"
 	},
 	"elements": [
 		{
