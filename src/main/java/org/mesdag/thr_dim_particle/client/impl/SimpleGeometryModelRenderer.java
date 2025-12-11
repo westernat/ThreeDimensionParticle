@@ -23,7 +23,7 @@ public class SimpleGeometryModelRenderer implements GeometryModel.Renderer<Geome
     }
 
     @Override
-    public TDPRenderType getRenderType(TDParticle particle) {
+    public TDPRenderType getRenderType() {
         return renderType;
     }
 

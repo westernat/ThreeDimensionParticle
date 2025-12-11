@@ -34,7 +34,7 @@
             "thr_dim_particle:appearance": {
                 "size": ["variable.size", "variable.size", "variable.size"],
                 "model_animation": {
-                    "type_frames": "thr_dim_particle:test_model2"
+                    "type_frames": "thr_dim_particle:test_model1"
                 }
             }
         }

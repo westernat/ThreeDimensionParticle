@@ -180,9 +180,9 @@ public class TDPClient {
         for (Particle particle : queue) {
             TDParticle tdp = (TDParticle) particle;
             if (tdp.renderer == ModelRenderer.DO_NOTHING) continue;
-            if (!frustum.isVisible(tdp.getRenderBoundingBox(partialTick))) continue;
+            if (!frustum.isVisible(tdp.renderBoundingBox)) continue;
             try {
-                TDPRenderType renderType = tdp.renderer.getRenderType(tdp);
+                TDPRenderType renderType = tdp.renderer.getRenderType();
                 BufferBuilder builder = builders[renderType.index];
                 if (builder == null) {
                     builders[renderType.index] = builder = Tesselator.getInstance().begin(renderType.mode, renderType.format);

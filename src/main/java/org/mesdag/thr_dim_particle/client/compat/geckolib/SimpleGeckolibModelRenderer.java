@@ -20,7 +20,7 @@ public class SimpleGeckolibModelRenderer implements GeckolibModel.Renderer<Gecko
     }
 
     @Override
-    public TDPRenderType getRenderType(TDParticle particle) {
+    public TDPRenderType getRenderType() {
         return renderType;
     }
 

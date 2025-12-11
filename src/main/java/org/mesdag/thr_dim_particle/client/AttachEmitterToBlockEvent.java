@@ -64,10 +64,7 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
         ObjectBooleanImmutablePair<WithBlockParticleEmitter> pair = emitters.get(pos);
         if (pair == null) {
             AttachData data = blockMap.get(block);
-            if (data == null) {
-                data = stateMap.get(state);
-            }
-            if (data == null) return true;
+            if (data == null && (data = stateMap.get(state)) == null) return true;
             WithBlockParticleEmitter emitter = data.apply(level, pos);
             PSGameClient.LOADER.addEmitter(emitter, false);
             emitters.put(pos.immutable(), pair = new ObjectBooleanImmutablePair<>(emitter, data.allowsVanilla));

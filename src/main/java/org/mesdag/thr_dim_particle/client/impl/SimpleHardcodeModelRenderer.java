@@ -29,7 +29,7 @@ public class SimpleHardcodeModelRenderer implements HardcodeModel.Renderer<Hardc
     }
 
     @Override
-    public TDPRenderType getRenderType(TDParticle particle) {
+    public TDPRenderType getRenderType() {
         return renderType;
     }
 

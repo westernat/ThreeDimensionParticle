@@ -13,6 +13,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
@@ -63,6 +64,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     public int light;
     public float[] renderSize = new float[3];
     public float[] renderSizeO = new float[3];
+    public AABB renderBoundingBox;
     protected int maxFrame = 1;
     protected int currentFrame = 0;
 
@@ -454,5 +456,11 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     @Override
     public Optional<ParticleGroup> getParticleGroup() {
         return Optional.ofNullable(particleGroup);
+    }
+
+    @Override
+    public void setBoundingBox(AABB bb) {
+        super.setBoundingBox(bb);
+        this.renderBoundingBox = getBoundingBox().inflate(1.0);
     }
 }
