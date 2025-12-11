@@ -17,15 +17,13 @@ public class HardcodeModel {
     private static final long fullModelColor = 0xFFFFFFFFL << 32;
     private static final long fullModelLight = 0xF000F0L << 24;
     protected final CompiledVertex[][] quads;
-    protected TDPRenderType renderType;
 
-    public HardcodeModel(ModelPart root, ResourceLocation textureLocation, TDPRenderType renderType) {
+    public HardcodeModel(ModelPart root, ResourceLocation textureLocation) {
         List<CompiledVertex[]> list = new ArrayList<>();
         PoseStack poseStack = new PoseStack();
         poseStack.scale(-1.0F, -1.0F, 1.0F);
         collectQuads(list, poseStack, root, TDPClient.getAtlas().getSprite(textureLocation));
         this.quads = list.toArray(new CompiledVertex[0][]);
-        this.renderType = renderType;
     }
 
     private static void collectQuads(List<CompiledVertex[]> list, PoseStack poseStack, ModelPart part, TextureAtlasSprite sprite) {
@@ -96,7 +94,7 @@ public class HardcodeModel {
                 if (BufferBuilder.IS_LITTLE_ENDIAN) {
                     // color
                     MemoryUtil.memPutLong(ptr + 12L, fullModelColor | (particle.argb & 0xFFFFFFFFL));
-                    // 环境uv2
+                    // uv2
                     MemoryUtil.memPutLong(ptr + 28L, fullModelLight | particle.light);
                 } else {
                     // color
@@ -114,12 +112,7 @@ public class HardcodeModel {
         }
     }
 
-    public interface Renderer<M extends HardcodeModel> extends ModelRenderer<M> {
-        @Override
-        default TDPRenderType getRenderType(TDParticle particle) {
-            return getModel().renderType;
-        }
-    }
+    public interface Renderer<M extends HardcodeModel> extends ModelRenderer<M> {}
 
     public record CompiledVertex(float x, float y, float z, float u, float v) {}
 }

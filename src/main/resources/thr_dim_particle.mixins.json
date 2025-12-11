@@ -6,6 +6,7 @@
     ],
     "client": [
         "client.BlockModel$DeserializerMixin",
+        "client.ClientLevelMixin",
         "client.MinecraftMixin",
         "client.ParticleEngineMixin"
     ],

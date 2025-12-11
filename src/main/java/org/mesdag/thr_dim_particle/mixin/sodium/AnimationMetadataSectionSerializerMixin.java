@@ -6,7 +6,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.client.resources.metadata.animation.AnimationMetadataSection;
 import net.minecraft.client.resources.metadata.animation.AnimationMetadataSectionSerializer;
 import net.minecraft.util.GsonHelper;
-import org.mesdag.thr_dim_particle.mixed.sodium.SodiumTickerOptimizationIgnorer;
+import org.mesdag.thr_dim_particle.client.compat.sodium.SodiumTickerOptimizationIgnorer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 

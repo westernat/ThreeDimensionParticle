@@ -1,4 +1,4 @@
-package org.mesdag.thr_dim_particle.client.compat;
+package org.mesdag.thr_dim_particle.client.compat.sodium;
 
 import net.irisshaders.iris.Iris;
 import net.irisshaders.iris.config.IrisConfig;

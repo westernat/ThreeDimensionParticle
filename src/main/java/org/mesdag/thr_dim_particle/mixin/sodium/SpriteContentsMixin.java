@@ -9,7 +9,7 @@ import net.minecraft.client.resources.metadata.animation.FrameSize;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceMetadata;
 import org.jetbrains.annotations.Nullable;
-import org.mesdag.thr_dim_particle.mixed.sodium.SodiumTickerOptimizationIgnorer;
+import org.mesdag.thr_dim_particle.client.compat.sodium.SodiumTickerOptimizationIgnorer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;

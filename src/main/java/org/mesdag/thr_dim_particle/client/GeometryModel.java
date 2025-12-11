@@ -13,7 +13,6 @@ import java.util.List;
 
 public class GeometryModel {
     private static final float[][] pt4 = new float[4][3];
-    protected TDPRenderType renderType = TDPRenderType.get(0);
     public final CompiledVertex[][] quads;
 
     public GeometryModel(BakedModel model) {
@@ -39,10 +38,6 @@ public class GeometryModel {
             list.add(quad);
         }
         this.quads = list.toArray(new CompiledVertex[0][]);
-    }
-
-    public void setRenderType(TDPRenderType renderType) {
-        this.renderType = renderType;
     }
 
     public void renderToBuffer(TDParticle particle, Matrix4f pose, BufferBuilder buffer, float vx, float vy, float vz) {
@@ -92,7 +87,7 @@ public class GeometryModel {
                 if (BufferBuilder.IS_LITTLE_ENDIAN) {
                     // color
                     MemoryUtil.memPutLong(ptr + 12L, vertex.c | (particle.argb & 0xFFFFFFFFL));
-                    // 环境uv2
+                    // uv2
                     MemoryUtil.memPutLong(ptr + 28L, vertex.l | (particle.light & 0xF000F0));
                 } else {
                     // color
@@ -111,12 +106,7 @@ public class GeometryModel {
         }
     }
 
-    public interface Renderer<M extends GeometryModel> extends ModelRenderer<M> {
-        @Override
-        default TDPRenderType getRenderType(TDParticle particle) {
-            return getModel().renderType;
-        }
-    }
+    public interface Renderer<M extends GeometryModel> extends ModelRenderer<M> {}
 
     /// @param x vertex x
     /// @param y vertex y

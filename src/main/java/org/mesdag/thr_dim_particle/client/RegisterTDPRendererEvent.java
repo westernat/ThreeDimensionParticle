@@ -120,11 +120,7 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
             ResourceLocation hint = blockModel.customData.getRenderTypeHint();
             if (hint == null || !TDP.MODID.equals(hint.getNamespace())) continue;
             TDPRenderType renderType = TDPRenderType.get(hint.getPath());
-            triple.left = context -> {
-                SimpleGeometryModelRenderer renderer = new SimpleGeometryModelRenderer(context, triple.right);
-                renderer.getModel().setRenderType(renderType);
-                return renderer;
-            };
+            triple.left = context -> new SimpleGeometryModelRenderer(context, triple.right, renderType);
         }
     }
 

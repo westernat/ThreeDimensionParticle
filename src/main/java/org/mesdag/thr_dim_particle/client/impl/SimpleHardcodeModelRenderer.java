@@ -11,18 +11,26 @@ import org.mesdag.thr_dim_particle.client.TDParticle;
 
 public class SimpleHardcodeModelRenderer implements HardcodeModel.Renderer<HardcodeModel> {
     protected final HardcodeModel model;
+    protected final TDPRenderType renderType;
 
     public SimpleHardcodeModelRenderer(
             EntityRendererProvider.Context context,
             ModelLayerLocation layerLocation,
             ResourceLocation textureLocation,
-            TDPRenderType renderType) {
-        this.model = new HardcodeModel(context.getModelSet().bakeLayer(layerLocation), textureLocation, renderType);
+            TDPRenderType renderType
+    ) {
+        this.model = new HardcodeModel(context.getModelSet().bakeLayer(layerLocation), textureLocation);
+        this.renderType = renderType;
     }
 
     @Override
     public HardcodeModel getModel() {
         return model;
+    }
+
+    @Override
+    public TDPRenderType getRenderType(TDParticle particle) {
+        return renderType;
     }
 
     @Override

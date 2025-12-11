@@ -1,4 +1,4 @@
-package org.mesdag.thr_dim_particle.mixed.sodium;
+package org.mesdag.thr_dim_particle.client.compat.sodium;
 
 public interface SodiumTickerOptimizationIgnorer {
     void tdp$setIgnored();

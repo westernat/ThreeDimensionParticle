@@ -29,6 +29,13 @@ repositories {
         name = "Modrinth"
         url = "https://api.modrinth.com/maven"
     }
+    maven {
+        name = 'GeckoLib'
+        url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content {
+            includeGroup("software.bernie.geckolib")
+        }
+    }
 }
 
 base {
@@ -142,10 +149,13 @@ dependencies {
 
     compileOnly "maven.modrinth:sodium:mc1.21.1-0.6.13-neoforge"
     compileOnly "maven.modrinth:iris:1.8.12+1.21.1-neoforge"
-    if (false) {
+    if (true) {
         runtimeOnly "maven.modrinth:sodium:mc1.21.1-0.6.13-neoforge"
         runtimeOnly "maven.modrinth:iris:1.8.12+1.21.1-neoforge"
     }
+
+    compileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
+    runtimeOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"
 }
 
 tasks.withType(ProcessResources).configureEach {

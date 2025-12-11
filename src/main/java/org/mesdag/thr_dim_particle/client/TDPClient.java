@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceProvider;
+import net.minecraft.world.level.block.Blocks;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -32,13 +33,16 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jetbrains.annotations.Nullable;
 import org.mesdag.particlestorm.api.IComponent;
 import org.mesdag.particlestorm.api.ParticlePresetLoadedEvent;
+import org.mesdag.particlestorm.api.RegisterCustomEmitterTypeEvent;
 import org.mesdag.particlestorm.api.RegisterCustomParticleTypeEvent;
+import org.mesdag.particlestorm.data.molang.MolangExp;
 import org.mesdag.particlestorm.particle.FaceCameraMode;
 import org.mesdag.particlestorm.particle.ParticlePreset;
 import org.mesdag.thr_dim_particle.TDP;
-import org.mesdag.thr_dim_particle.client.compat.IrisHelper;
+import org.mesdag.thr_dim_particle.client.compat.sodium.IrisHelper;
 import org.mesdag.thr_dim_particle.client.impl.TDParticleAppearance;
 import org.mesdag.thr_dim_particle.client.impl.TestHardcodeModel;
+import org.mesdag.thr_dim_particle.client.impl.WithBlockParticleEmitter;
 
 import java.io.IOException;
 import java.util.Queue;
@@ -75,6 +79,7 @@ public class TDPClient {
             if (ModList.get().isLoaded("iris")) {
                 IrisHelper.setAllowUnknownShaders();
             }
+            AttachEmitterToBlockEvent.postEvent();
         });
     }
 
@@ -90,6 +95,11 @@ public class TDPClient {
         event.register(TDP.TDP.get(), (emitter, particlePreset, level, x, y, z) ->
                 new TDParticle(particlePreset, level, x, y, z)
         );
+    }
+
+    @SubscribeEvent
+    public static void registerCustomEmitterType(RegisterCustomEmitterTypeEvent event) {
+        event.register(TDP.asResource("type"), WithBlockParticleEmitter::new);
     }
 
     @SubscribeEvent
@@ -147,6 +157,21 @@ public class TDPClient {
                 TestHardcodeModel::createBodyLayer,
                 () -> TDPRenderType.get(0)
         );
+    }
+
+    @SubscribeEvent
+    public static void attachEmitterToBlock(AttachEmitterToBlockEvent event) {
+        event.attach(Blocks.END_ROD, ResourceLocation.fromNamespaceAndPath("snowstorm", "loading"), MolangExp.EMPTY, false);
+    }
+
+    @SubscribeEvent
+    public static void clientTick$Post(ClientTickEvent.Post event) {
+        AttachEmitterToBlockEvent.tick();
+    }
+
+    @SubscribeEvent
+    public static void clientPlayerNetwork$LoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+        AttachEmitterToBlockEvent.clearEmitters();
     }
 
     private static final BufferBuilder[] builders = new BufferBuilder[4];

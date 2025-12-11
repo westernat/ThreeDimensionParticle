@@ -1,7 +1,7 @@
 package org.mesdag.thr_dim_particle.mixin.sodium;
 
 import net.minecraft.client.resources.metadata.animation.AnimationMetadataSection;
-import org.mesdag.thr_dim_particle.mixed.sodium.SodiumTickerOptimizationIgnorer;
+import org.mesdag.thr_dim_particle.client.compat.sodium.SodiumTickerOptimizationIgnorer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
