@@ -10,13 +10,13 @@
 				"per_render_expression": "variable.size=1*(1-variable.particle_age/variable.particle_lifetime);"
 			},
 			"minecraft:emitter_rate_instant": {
-				"num_particles": 30
+				"num_particles": "0.4687501278 * math.pow((v.radius + (math.abs(v.radius - 4) - v.radius + 4) / 2 - 3), 3)"
 			},
 			"minecraft:emitter_lifetime_once": {
 				"active_time": 1
 			},
 			"minecraft:emitter_shape_sphere": {
-				"radius": 1,
+				"radius": "v.radius + (math.abs(v.radius - 4) - v.radius + 4) / 2 - 3",
 				"direction": ["math.random(-50,50)", 30, "math.random(-50,50)"]
 			},
 			"minecraft:particle_lifetime_expression": {
@@ -51,6 +51,14 @@
 				"size": ["variable.size", "variable.size", "variable.size"],
 				"model_animation": {
 					"type_frames": "thr_dim_particle:bomb_smoke_0"
+				},
+				"direction": {
+					"mode": "custom_direction",
+					"custom_direction": [
+						"1 * v.particle_random_1 + (v.particle_age / v.particle_lifetime * (v.particle_random_3 - 0.5))",
+						"1 * v.particle_random_2 + (v.particle_age / v.particle_lifetime * (v.particle_random_2 - 0.5))",
+						"1 * v.particle_random_3 + (v.particle_age / v.particle_lifetime * (v.particle_random_1 - 0.5))"
+					]
 				}
 			}
 		}
