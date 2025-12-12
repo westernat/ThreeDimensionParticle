@@ -87,7 +87,7 @@ public record TDParticleAppearance(
     }
 
     private void doInit(TDParticle particle) {
-        if (faceCameraMode.isPresent() && faceCameraMode.get().isDirection()) {
+        if (faceCameraMode.isEmpty() || faceCameraMode.get().isDirection()) {
             if (direction.mode() == Direction.Mode.CUSTOM_DIRECTION) {
                 float[] values = direction.customDirection().calculate(particle);
                 particle.setXRot(values[0]);

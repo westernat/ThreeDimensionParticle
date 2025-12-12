@@ -29,6 +29,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.*;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jetbrains.annotations.Nullable;
 import org.mesdag.particlestorm.api.IComponent;
@@ -69,7 +71,11 @@ public class TDPClient {
     private static TextureAtlas atlas;
     private static ParticleBuffer[] buffers;
 
+    public static final ResourceLocation EXPLOSION_PARTICLE = ResourceLocation.fromNamespaceAndPath("tdp", "bomb_smoke");
+
     public TDPClient(ModContainer container) {
+        ClientConfigs.register(container);
+        container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         RegisterTDPRendererEvent.start();
     }
 
