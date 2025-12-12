@@ -359,6 +359,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     public void render(VertexConsumer buffer, Camera camera, float partialTicks) {}
 
     private static final Matrix4f pose = new Matrix4f();
+    private static final Quaternionf quat = new Quaternionf();
 
     public void renderFast(ParticleBuffer buffer, Camera camera, float partialTick) {
         pose.identity();
@@ -367,16 +368,11 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         float vx = (float) (Mth.lerp(partialTick, xo, x) - cameraPos.x());
         float vy = (float) (Mth.lerp(partialTick, yo, y) - cameraPos.y());
         float vz = (float) (Mth.lerp(partialTick, zo, z) - cameraPos.z());
-        float sx = Mth.lerp(partialTick, renderSizeO[0], renderSize[0]);
-        float sy = Mth.lerp(partialTick, renderSizeO[1], renderSize[1]);
-        float sz = Mth.lerp(partialTick, renderSizeO[2], renderSize[2]);
-        pose.translate(vx - sx * 0.5F, vy - sy * 0.5F, vz - sz * 0.5F);
-        pose.scale(sx, sy, sz);
+        pose.translate(vx, vy, vz);
 
         if (preset.facingCameraMode != FaceCameraMode.DO_NOTHING) {
-            Quaternionf quaternionf = new Quaternionf();
-            preset.facingCameraMode.setRotation(this, quaternionf, camera, partialTick);
-            pose.rotate(quaternionf);
+            preset.facingCameraMode.setRotation(this, quat, camera, partialTick);
+            pose.rotate(quat);
         }
         if (xRot != 0 || yRot != 0 || roll != 0) {
             pose.rotateZYX(
@@ -385,6 +381,12 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
                     Mth.lerp(partialTick, xRotO, xRot)
             );
         }
+
+        float sx = Mth.lerp(partialTick, renderSizeO[0], renderSize[0]);
+        float sy = Mth.lerp(partialTick, renderSizeO[1], renderSize[1]);
+        float sz = Mth.lerp(partialTick, renderSizeO[2], renderSize[2]);
+        pose.translate(sx * -0.5F, sy * -0.5F, sz * -0.5F);
+        pose.scale(sx, sy, sz);
 
         renderer.render(this, pose, buffer, vx, vy, vz);
     }
