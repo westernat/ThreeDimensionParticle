@@ -378,6 +378,13 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
             preset.facingCameraMode.setRotation(this, quaternionf, camera, partialTick);
             pose.rotate(quaternionf);
         }
+        if (xRot != 0 || yRot != 0 || roll != 0) {
+            pose.rotateZYX(
+                    Mth.lerp(partialTick, oRoll, roll),
+                    Mth.lerp(partialTick, yRotO, yRot),
+                    Mth.lerp(partialTick, xRotO, xRot)
+            );
+        }
 
         renderer.render(this, pose, buffer, vx, vy, vz);
     }

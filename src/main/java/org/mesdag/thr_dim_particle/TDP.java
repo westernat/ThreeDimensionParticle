@@ -4,7 +4,6 @@ import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.mesdag.particlestorm.ParticleStorm;
@@ -22,7 +21,7 @@ public class TDP {
     private static final DeferredRegister<ParticleType<?>> REGISTER = DeferredRegister.create(Registries.PARTICLE_TYPE, MODID);
     public static final Supplier<ParticleType<MolangParticleOption>> TDP = ParticleStorm.registerParticleType(REGISTER, "tdp");
 
-    public TDP(IEventBus eventBus, ModContainer container) {
+    public TDP(IEventBus eventBus) {
         REGISTER.register(eventBus);
     }
 
