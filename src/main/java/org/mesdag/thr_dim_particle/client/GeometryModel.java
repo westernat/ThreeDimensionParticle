@@ -41,17 +41,14 @@ public class GeometryModel {
     }
 
     public void renderToBuffer(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz) {
-        CompiledVertex vertex;
-        float[] p3t;
-        float x, y, z;
         l:
         for (CompiledVertex[] quad : quads) {
             for (int i = 0; i < 4; i++) {
-                vertex = quad[i];
-                x = vertex.x;
-                y = vertex.y;
-                z = vertex.z;
-                p3t = pt4[i];
+                CompiledVertex vertex = quad[i];
+                float x = vertex.x;
+                float y = vertex.y;
+                float z = vertex.z;
+                float[] p3t = pt4[i];
                 p3t[0] = pose.m00() * x + pose.m10() * y + pose.m20() * z + pose.m30();
                 p3t[1] = pose.m01() * x + pose.m11() * y + pose.m21() * z + pose.m31();
                 p3t[2] = pose.m02() * x + pose.m12() * y + pose.m22() * z + pose.m32();
@@ -73,12 +70,11 @@ public class GeometryModel {
             }
 
             for (int i = 0; i < 4; i++) {
-                vertex = quad[i];
-                buffer.vertices++;
-                long ptr = buffer.buffer.reserve(TDPRenderType.VERTEX_SIZE);
+                CompiledVertex vertex = quad[i];
+                long ptr = buffer.reserve();
 
                 // position
-                p3t = pt4[i];
+                float[] p3t = pt4[i];
                 MemoryUtil.memPutFloat(ptr, p3t[0]);
                 MemoryUtil.memPutFloat(ptr + 4L, p3t[1]);
                 MemoryUtil.memPutFloat(ptr + 8L, p3t[2]);

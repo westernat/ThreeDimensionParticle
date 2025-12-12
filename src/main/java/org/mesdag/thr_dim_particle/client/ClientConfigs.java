@@ -12,7 +12,7 @@ public final class ClientConfigs {
     private static ModConfigSpec.BooleanValue EXPLOSION;
     private static ModConfigSpec.ConfigValue<String> EXPLOSION_PARTICLE;
 
-    public static int emitterLimit = 1000;
+    public static int emitterLimit = 50;
     public static int fpsThreshold = 30;
     public static boolean explosion = false;
     public static @Nullable ResourceLocation explosionParticle;
@@ -20,7 +20,7 @@ public final class ClientConfigs {
     public static void register(ModContainer container) {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
-        EMITTER_LIMIT = builder.defineInRange("emitterLimit", 0, 1000, 10000);
+        EMITTER_LIMIT = builder.defineInRange("emitterLimit", 0, 20, 1000);
         FPS_THRESHOLD = builder.defineInRange("fpsThreshold", 30, 10, 260);
         EXPLOSION = builder.define("explosion", true);
         EXPLOSION_PARTICLE = builder.define("explosionParticle", "tdp:bomb_smoke");

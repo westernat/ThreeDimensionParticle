@@ -35,10 +35,6 @@
                 "size": ["variable.size", "variable.size", "variable.size"],
                 "model_animation": {
                     "type_frames": "thr_dim_particle:test_model1"
-                },
-                "direction": {
-                    "mode": "custom_direction",
-                    "custom_direction": [0.5, 0.5, 45]
                 }
             }
         }

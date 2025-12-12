@@ -48,17 +48,14 @@ public class HardcodeModel {
     }
 
     public void renderToBuffer(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz) {
-        CompiledVertex vertex;
-        float[] p3t;
-        float x, y, z;
         l:
         for (CompiledVertex[] quad : quads) {
             for (int i = 0; i < 4; i++) {
-                vertex = quad[i];
-                x = vertex.x;
-                y = vertex.y;
-                z = vertex.z;
-                p3t = pt4[i];
+                CompiledVertex vertex = quad[i];
+                float x = vertex.x;
+                float y = vertex.y;
+                float z = vertex.z;
+                float[] p3t = pt4[i];
                 p3t[0] = pose.m00() * x + pose.m10() * y + pose.m20() * z + pose.m30();
                 p3t[1] = pose.m01() * x + pose.m11() * y + pose.m21() * z + pose.m31();
                 p3t[2] = pose.m02() * x + pose.m12() * y + pose.m22() * z + pose.m32();
@@ -80,33 +77,32 @@ public class HardcodeModel {
             }
 
             for (int i = 0; i < 4; i++) {
-                vertex = quad[i];
-                buffer.vertices++;
-                long ptr = buffer.buffer.reserve(TDPRenderType.VERTEX_SIZE);
+                CompiledVertex vertex = quad[i];
+                long ptr = buffer.reserve();
 
                 // position
-                p3t = pt4[i];
-                MemoryUtil.memPutFloat(ptr, p3t[0]);
-                MemoryUtil.memPutFloat(ptr + 4L, p3t[1]);
-                MemoryUtil.memPutFloat(ptr + 8L, p3t[2]);
+                float[] p3t = pt4[i];
+                MemoryUtil.memPutFloat(ptr + ParticleBuffer.POS_X, p3t[0]);
+                MemoryUtil.memPutFloat(ptr + ParticleBuffer.POS_Y, p3t[1]);
+                MemoryUtil.memPutFloat(ptr + ParticleBuffer.POS_Z, p3t[2]);
                 // color & light
                 if (BufferBuilder.IS_LITTLE_ENDIAN) {
                     // color
-                    MemoryUtil.memPutLong(ptr + 12L, fullModelColor | (particle.abgr & 0xFFFFFFFFL));
+                    MemoryUtil.memPutLong(ptr + ParticleBuffer.COLOR, fullModelColor | (particle.abgr & 0xFFFFFFFFL));
                     // uv2
-                    MemoryUtil.memPutLong(ptr + 28L, fullModelLight | particle.light);
+                    MemoryUtil.memPutLong(ptr + ParticleBuffer.MODEL_LIGHT, fullModelLight | particle.light);
                 } else {
                     // color
-                    MemoryUtil.memPutLong(ptr + 12L, Long.reverseBytes(fullModelColor | (particle.abgr & 0xFFFFFFFFL)));
+                    MemoryUtil.memPutLong(ptr + ParticleBuffer.COLOR, Long.reverseBytes(fullModelColor | (particle.abgr & 0xFFFFFFFFL)));
                     // 借uv1存模型uv2
-                    MemoryUtil.memPutInt(ptr + 28L, 0); // 模型光照为0
+                    MemoryUtil.memPutInt(ptr + ParticleBuffer.MODEL_LIGHT, 0); // 模型光照为0
                     // 环境uv2
-                    MemoryUtil.memPutShort(ptr + 32L, (short) (particle.light & 0xFFFF));
-                    MemoryUtil.memPutShort(ptr + 34L, (short) (particle.light >> 16 & 0xFFFF));
+                    MemoryUtil.memPutShort(ptr + ParticleBuffer.ENV_LIGHT, (short) (particle.light & 0xFFFF));
+                    MemoryUtil.memPutShort(ptr + ParticleBuffer.ENV_LIGHT + ParticleBuffer.S, (short) (particle.light >> 16 & 0xFFFF));
                 }
                 // uv0
-                MemoryUtil.memPutFloat(ptr + 20L, vertex.u);
-                MemoryUtil.memPutFloat(ptr + 24L, vertex.v);
+                MemoryUtil.memPutFloat(ptr + ParticleBuffer.U, vertex.u);
+                MemoryUtil.memPutFloat(ptr + ParticleBuffer.V, vertex.v);
             }
         }
     }

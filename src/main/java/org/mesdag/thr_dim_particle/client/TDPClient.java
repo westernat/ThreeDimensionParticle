@@ -52,6 +52,7 @@ import org.mesdag.thr_dim_particle.client.impl.TestHardcodeModel;
 import org.mesdag.thr_dim_particle.client.impl.WithBlockParticleEmitter;
 
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.Queue;
 
 @Mod(value = TDP.MODID, dist = Dist.CLIENT)
@@ -197,6 +198,7 @@ public class TDPClient {
     @SubscribeEvent
     public static void clientTick$Post(ClientTickEvent.Post event) {
         AttachEmitterToBlockEvent.tick();
+        emitters.removeIf(ParticleEmitter::isRemoved);
     }
 
     @SubscribeEvent
@@ -226,7 +228,6 @@ public class TDPClient {
         for (int i = 0; i < 4; i++) {
             buffer = buffers[i];
             MeshData data = buffer.storeMesh();
-            buffer.vertices = 0;
             if (data == null) continue;
             TDPRenderType.get(i).draw(data);
         }
@@ -239,9 +240,18 @@ public class TDPClient {
         return atlas;
     }
 
-    public static void addEmitter(Level level, Vec3 pos, ResourceLocation particle) {
-        if (Minecraft.getInstance().getFps() > ClientConfigs.fpsThreshold) {
-            PSGameClient.LOADER.addEmitter(new ParticleEmitter(level, pos, particle), false);
+    static final ArrayDeque<ParticleEmitter> emitters = new ArrayDeque<>();
+
+    public static void addEmitter(Level level, Vec3 pos, ResourceLocation particle, MolangExp expression) {
+        if (ableToAddEmitter()) {
+            ParticleEmitter emitter = new ParticleEmitter(level, pos, particle, expression);
+            PSGameClient.LOADER.addEmitter(emitter, false);
+            emitters.add(emitter);
         }
+    }
+
+    public static boolean ableToAddEmitter() {
+        return Minecraft.fps > ClientConfigs.fpsThreshold &&
+                AttachEmitterToBlockEvent.emitters.size() + emitters.size() < ClientConfigs.emitterLimit;
     }
 }
