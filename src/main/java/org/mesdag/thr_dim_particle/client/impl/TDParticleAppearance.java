@@ -6,6 +6,10 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
+import net.minecraft.util.random.Weight;
+import net.minecraft.util.random.WeightedEntry;
+import net.minecraft.util.random.WeightedRandomList;
 import org.mesdag.particlestorm.api.IMolangParticleInstance;
 import org.mesdag.particlestorm.api.IParticleComponent;
 import org.mesdag.particlestorm.data.DuplicateFieldDecoder;
@@ -51,35 +55,33 @@ public record TDParticleAppearance(
 
     @Override
     public void update(IMolangParticleInstance instance) {
-        if (instance instanceof TDParticle particle) {
-            doInit(particle);
-            if (particle.getMaxFrame() <= 0) return;
-            if (modelAnimation.stretchToLifetime) {
-                modelAnimation.setCurrentModel(particle);
-                particle.setCurrentFrame(particle.getMaxFrame() * particle.getAge() / particle.getLifetime());
-                return;
-            }
-            float gameTime = (float) (int) (particle.getLevel().getGameTime() & 0b11111111);
-            if (gameTime % (particle.getLevel().tickRateManager().tickrate() / modelAnimation.framesPerSecond) < 1.0F) {
-                modelAnimation.setCurrentModel(particle);
-                int currentFrame = particle.getCurrentFrame() + 1;
-                if (currentFrame < particle.getMaxFrame()) {
-                    particle.setCurrentFrame(currentFrame);
-                } else {
-                    particle.setCurrentFrame(modelAnimation.loop ? 0 : particle.getMaxFrame() - 1);
-                }
+        TDParticle particle = (TDParticle) instance;
+        doInit(particle);
+        if (particle.getMaxFrame() <= 0) return;
+        if (modelAnimation.stretchToLifetime) {
+            modelAnimation.setCurrentModel(particle);
+            particle.setCurrentFrame(particle.getMaxFrame() * particle.getAge() / particle.getLifetime());
+            return;
+        }
+        float gameTime = (float) (int) (particle.getLevel().getGameTime() & 0b11111111);
+        if (gameTime % (particle.getLevel().tickRateManager().tickrate() / modelAnimation.framesPerSecond) < 1.0F) {
+            modelAnimation.setCurrentModel(particle);
+            int currentFrame = particle.getCurrentFrame() + 1;
+            if (currentFrame < particle.getMaxFrame()) {
+                particle.setCurrentFrame(currentFrame);
+            } else {
+                particle.setCurrentFrame(modelAnimation.loop ? 0 : particle.getMaxFrame() - 1);
             }
         }
     }
 
     @Override
     public void apply(IMolangParticleInstance instance) {
-        if (instance instanceof TDParticle particle) {
-            doInit(particle);
-            particle.renderSizeO = particle.renderSize;
-            modelAnimation.setCurrentModel(particle);
-            particle.setMaxFrame(modelAnimation.typeFrames.size());
-        }
+        TDParticle particle = (TDParticle) instance;
+        doInit(particle);
+        particle.renderSizeO = particle.renderSize;
+        modelAnimation.setCurrentModel(particle);
+        particle.setMaxFrame(modelAnimation.typeFrames.size());
     }
 
     private void doInit(TDParticle particle) {
@@ -101,10 +103,10 @@ public record TDParticleAppearance(
         return true;
     }
 
-    public record ModelAnimation(List<ResourceLocation> typeFrames, float framesPerSecond, boolean stretchToLifetime, boolean loop) {
+    public record ModelAnimation(List<WeightedModel> typeFrames, float framesPerSecond, boolean stretchToLifetime, boolean loop) {
         public static final ModelAnimation EMPTY = new ModelAnimation(List.of(), 1, false, false);
         public static final Codec<ModelAnimation> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                Codec.either(ResourceLocation.CODEC.listOf(), ResourceLocation.CODEC).xmap(
+                Codec.either(WeightedModel.CODEC.listOf(), WeightedModel.CODEC).xmap(
                         either -> either.map(Function.identity(), List::of),
                         list -> list.size() == 1 ? Either.right(list.getFirst()) : Either.left(list)
                 ).fieldOf("type_frames").forGetter(ModelAnimation::typeFrames),
@@ -114,7 +116,56 @@ public record TDParticleAppearance(
         ).apply(instance, ModelAnimation::new));
 
         public void setCurrentModel(TDParticle particle) {
-            particle.renderer = RegisterTDPRendererEvent.getRenderer(typeFrames.get(particle.getCurrentFrame()));
+            ResourceLocation model = typeFrames.get(particle.getCurrentFrame()).get(particle.getLevel().random);
+            particle.renderer = RegisterTDPRendererEvent.getRenderer(model);
+        }
+    }
+
+    public static class WeightedModel extends WeightedRandomList<WeightedModelEntry> {
+        public static final Codec<WeightedModel> DIRECT_CODEC = WeightedModelEntry.CODEC.listOf().xmap(WeightedModel::new, WeightedRandomList::unwrap);
+        public static final Codec<WeightedModel> CODEC = Codec.either(DIRECT_CODEC, ResourceLocation.CODEC).xmap(
+                either -> either.map(Function.identity(), WeightedModel::new),
+                model -> model.singleton ? Either.right(model.defaultModel) : Either.left(model)
+        );
+
+        private final boolean singleton;
+        private final ResourceLocation defaultModel;
+
+        public WeightedModel(List<WeightedModelEntry> entries) {
+            super(entries);
+            int size = entries.size();
+            if (size == 0) {
+                throw new IllegalArgumentException("Empty models is not allowed!");
+            }
+            this.singleton = size == 1;
+            this.defaultModel = entries.getFirst().modelType;
+        }
+
+        public WeightedModel(ResourceLocation modelType) {
+            this(List.of(new WeightedModelEntry(modelType)));
+        }
+
+        public ResourceLocation get(RandomSource random) {
+            if (singleton) {
+                return defaultModel;
+            }
+            return super.getRandom(random).map(WeightedModelEntry::modelType).orElse(defaultModel);
+        }
+    }
+
+    public record WeightedModelEntry(ResourceLocation modelType, Weight weight) implements WeightedEntry {
+        public static final Codec<WeightedModelEntry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                ResourceLocation.CODEC.fieldOf("model_type").forGetter(WeightedModelEntry::modelType),
+                Weight.CODEC.fieldOf("weight").forGetter(WeightedModelEntry::weight)
+        ).apply(instance, WeightedModelEntry::new));
+
+        public WeightedModelEntry(ResourceLocation modelType) {
+            this(modelType, Weight.ONE);
+        }
+
+        @Override
+        public Weight getWeight() {
+            return weight;
         }
     }
 }
