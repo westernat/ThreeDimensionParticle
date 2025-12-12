@@ -1,5 +1,6 @@
 package org.mesdag.thr_dim_particle.client;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;
@@ -182,6 +183,9 @@ public class TDPClient {
 
     public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum) {
         ParticleBuffer buffer;
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.depthMask(true);
         for (Particle particle : queue) {
             TDParticle tdp = (TDParticle) particle;
             if (tdp.renderer == ModelRenderer.DO_NOTHING) continue;

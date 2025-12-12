@@ -364,9 +364,9 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         pose.identity();
 
         Vec3 cameraPos = camera.getPosition();
-        float vx = (float) (x - cameraPos.x());
-        float vy = (float) (y - cameraPos.y());
-        float vz = (float) (z - cameraPos.z());
+        float vx = (float) (Mth.lerp(partialTick, xo, x) - cameraPos.x());
+        float vy = (float) (Mth.lerp(partialTick, yo, y) - cameraPos.y());
+        float vz = (float) (Mth.lerp(partialTick, zo, z) - cameraPos.z());
         float sx = Mth.lerp(partialTick, renderSizeO[0], renderSize[0]);
         float sy = Mth.lerp(partialTick, renderSizeO[1], renderSize[1]);
         float sz = Mth.lerp(partialTick, renderSizeO[2], renderSize[2]);
