@@ -47,7 +47,7 @@ public class HardcodeModel {
         poseStack.popPose();
     }
 
-    public void renderToBuffer(TDParticle particle, Matrix4f pose, BufferBuilder buffer, float vx, float vy, float vz) {
+    public void renderToBuffer(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz) {
         CompiledVertex vertex;
         float[] p3t;
         float x, y, z;
@@ -82,8 +82,7 @@ public class HardcodeModel {
             for (int i = 0; i < 4; i++) {
                 vertex = quad[i];
                 buffer.vertices++;
-                long ptr = buffer.buffer.reserve(buffer.vertexSize);
-                buffer.vertexPointer = ptr;
+                long ptr = buffer.buffer.reserve(TDPRenderType.VERTEX_SIZE);
 
                 // position
                 p3t = pt4[i];
@@ -93,12 +92,12 @@ public class HardcodeModel {
                 // color & light
                 if (BufferBuilder.IS_LITTLE_ENDIAN) {
                     // color
-                    MemoryUtil.memPutLong(ptr + 12L, fullModelColor | (particle.argb & 0xFFFFFFFFL));
+                    MemoryUtil.memPutLong(ptr + 12L, fullModelColor | (particle.abgr & 0xFFFFFFFFL));
                     // uv2
                     MemoryUtil.memPutLong(ptr + 28L, fullModelLight | particle.light);
                 } else {
                     // color
-                    MemoryUtil.memPutLong(ptr + 12L, Long.reverseBytes(fullModelColor | (particle.argb & 0xFFFFFFFFL)));
+                    MemoryUtil.memPutLong(ptr + 12L, Long.reverseBytes(fullModelColor | (particle.abgr & 0xFFFFFFFFL)));
                     // 借uv1存模型uv2
                     MemoryUtil.memPutInt(ptr + 28L, 0); // 模型光照为0
                     // 环境uv2

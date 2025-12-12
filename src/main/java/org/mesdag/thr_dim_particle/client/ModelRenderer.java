@@ -1,6 +1,5 @@
 package org.mesdag.thr_dim_particle.client;
 
-import com.mojang.blaze3d.vertex.BufferBuilder;
 import org.joml.Matrix4f;
 
 public interface ModelRenderer<M> {
@@ -8,7 +7,7 @@ public interface ModelRenderer<M> {
 
     TDPRenderType getRenderType();
 
-    void render(TDParticle particle, Matrix4f pose, BufferBuilder buffer, float vx, float vy, float vz);
+    void render(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz);
 
     ModelRenderer<?> DO_NOTHING = new ModelRenderer<>() {
         @Override
@@ -22,6 +21,6 @@ public interface ModelRenderer<M> {
         }
 
         @Override
-        public void render(TDParticle particle, Matrix4f pose, BufferBuilder buffer, float vx, float vy, float vz) {}
+        public void render(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz) {}
     };
 }

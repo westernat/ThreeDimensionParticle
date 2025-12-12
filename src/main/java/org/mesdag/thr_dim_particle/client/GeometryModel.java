@@ -40,7 +40,7 @@ public class GeometryModel {
         this.quads = list.toArray(new CompiledVertex[0][]);
     }
 
-    public void renderToBuffer(TDParticle particle, Matrix4f pose, BufferBuilder buffer, float vx, float vy, float vz) {
+    public void renderToBuffer(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz) {
         CompiledVertex vertex;
         float[] p3t;
         float x, y, z;
@@ -75,8 +75,7 @@ public class GeometryModel {
             for (int i = 0; i < 4; i++) {
                 vertex = quad[i];
                 buffer.vertices++;
-                long ptr = buffer.buffer.reserve(buffer.vertexSize);
-                buffer.vertexPointer = ptr;
+                long ptr = buffer.buffer.reserve(TDPRenderType.VERTEX_SIZE);
 
                 // position
                 p3t = pt4[i];
@@ -86,12 +85,12 @@ public class GeometryModel {
                 // color & light
                 if (BufferBuilder.IS_LITTLE_ENDIAN) {
                     // color
-                    MemoryUtil.memPutLong(ptr + 12L, vertex.c | (particle.argb & 0xFFFFFFFFL));
+                    MemoryUtil.memPutLong(ptr + 12L, vertex.c | (particle.abgr & 0xFFFFFFFFL));
                     // uv2
                     MemoryUtil.memPutLong(ptr + 28L, vertex.l | (particle.light & 0xF000F0));
                 } else {
                     // color
-                    MemoryUtil.memPutLong(ptr + 12L, Long.reverseBytes(vertex.c | (particle.argb & 0xFFFFFFFFL)));
+                    MemoryUtil.memPutLong(ptr + 12L, Long.reverseBytes(vertex.c | (particle.abgr & 0xFFFFFFFFL)));
                     // 借uv1存模型uv2
                     MemoryUtil.memPutShort(ptr + 28L, vertex.a);
                     MemoryUtil.memPutShort(ptr + 30L, vertex.b);

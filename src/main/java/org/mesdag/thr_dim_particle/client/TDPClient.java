@@ -174,7 +174,8 @@ public class TDPClient {
         AttachEmitterToBlockEvent.clearEmitters();
     }
 
-    private static final BufferBuilder[] builders = new BufferBuilder[4];
+    //    private static final BufferBuilder[] builders = new BufferBuilder[4];
+    private static final ParticleBuffer[] buffers = new ParticleBuffer[4];
 
     public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum) {
         for (Particle particle : queue) {
@@ -183,11 +184,11 @@ public class TDPClient {
             if (!frustum.isVisible(tdp.renderBoundingBox)) continue;
             try {
                 TDPRenderType renderType = tdp.renderer.getRenderType();
-                BufferBuilder builder = builders[renderType.index];
-                if (builder == null) {
-                    builders[renderType.index] = builder = Tesselator.getInstance().begin(renderType.mode, renderType.format);
+                ParticleBuffer buffer = buffers[renderType.index];
+                if (buffer == null) {
+                    buffers[renderType.index] = buffer = new ParticleBuffer();
                 }
-                tdp.renderFast(builder, camera, partialTick);
+                tdp.renderFast(buffer, camera, partialTick);
             } catch (Throwable throwable) {
                 CrashReport report = CrashReport.forThrowable(throwable, "Rendering Particle");
                 CrashReportCategory category = report.addCategory("Particle being rendered");
@@ -197,10 +198,10 @@ public class TDPClient {
             }
         }
         for (int i = 0; i < 4; i++) {
-            BufferBuilder builder = builders[i];
-            if (builder == null) continue;
-            builders[i] = null;
-            MeshData data = builder.build();
+            ParticleBuffer buffer = buffers[i];
+            if (buffer == null) continue;
+            MeshData data = buffer.storeMesh();
+            buffer.vertices = 0;
             if (data == null) continue;
             TDPRenderType.get(i).draw(data);
         }

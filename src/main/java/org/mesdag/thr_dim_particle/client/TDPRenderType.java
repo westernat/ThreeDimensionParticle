@@ -21,6 +21,7 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
             .add("UV1", VertexFormatElement.UV1) // 实际传入的值为模型光照uv2
             .add("UV2", VertexFormatElement.UV2)
             .build();
+    static final int VERTEX_SIZE = FORMAT.getVertexSize();
     private static final TDPRenderType[] TYPES = new TDPRenderType[]{
             new TDPRenderType(0, "tdp_particle_solid", FORMAT, VertexFormat.Mode.QUADS, 256, true, false,
                     RenderType.CompositeState.builder()

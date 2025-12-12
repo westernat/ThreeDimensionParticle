@@ -1,6 +1,5 @@
 package org.mesdag.thr_dim_particle.client;
 
-import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -60,7 +59,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     protected int lastTimeline = 0;
 
     public ModelRenderer<?> renderer = ModelRenderer.DO_NOTHING;
-    public int argb = 0xFFFFFFFF;
+    public int abgr = 0xFFFFFFFF;
     public int light;
     public float[] renderSize = new float[3];
     public float[] renderSizeO = new float[3];
@@ -293,11 +292,11 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
             super.setColor(red, green, blue);
             super.setAlpha(alpha);
 
-            this.argb = FastColor.ARGB32.color(
+            this.abgr = FastColor.ABGR32.color(
                     Mth.floor(alpha * 255),
-                    Mth.floor(rCol * 255),
+                    Mth.floor(bCol * 255),
                     Mth.floor(gCol * 255),
-                    Mth.floor(bCol * 255)
+                    Mth.floor(rCol * 255)
             );
         }
     }
@@ -361,7 +360,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
 
     private static final Matrix4f pose = new Matrix4f();
 
-    public void renderFast(BufferBuilder buffer, Camera camera, float partialTick) {
+    public void renderFast(ParticleBuffer buffer, Camera camera, float partialTick) {
         pose.identity();
 
         Vec3 cameraPos = camera.getPosition();
