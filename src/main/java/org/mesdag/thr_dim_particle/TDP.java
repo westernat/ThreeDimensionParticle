@@ -29,4 +29,8 @@ public class TDP {
     public static ResourceLocation asResource(String path) {
         return ResourceLocation.fromNamespaceAndPath(MODID, path);
     }
+
+    public static void errorGetParticle(String type) {
+        LOGGER.warn("Error get {} particle", type);
+    }
 }

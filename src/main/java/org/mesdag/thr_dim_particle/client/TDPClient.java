@@ -19,7 +19,9 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceProvider;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -27,18 +29,21 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jetbrains.annotations.Nullable;
+import org.mesdag.particlestorm.PSGameClient;
 import org.mesdag.particlestorm.api.IComponent;
 import org.mesdag.particlestorm.api.ParticlePresetLoadedEvent;
 import org.mesdag.particlestorm.api.RegisterCustomEmitterTypeEvent;
 import org.mesdag.particlestorm.api.RegisterCustomParticleTypeEvent;
 import org.mesdag.particlestorm.data.molang.MolangExp;
 import org.mesdag.particlestorm.particle.FaceCameraMode;
+import org.mesdag.particlestorm.particle.ParticleEmitter;
 import org.mesdag.particlestorm.particle.ParticlePreset;
 import org.mesdag.thr_dim_particle.TDP;
 import org.mesdag.thr_dim_particle.client.compat.sodium.IrisHelper;
@@ -71,8 +76,6 @@ public class TDPClient {
     private static TextureAtlas atlas;
     private static ParticleBuffer[] buffers;
 
-    public static final ResourceLocation EXPLOSION_PARTICLE = ResourceLocation.fromNamespaceAndPath("tdp", "bomb_smoke");
-
     public TDPClient(ModContainer container) {
         ClientConfigs.register(container);
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
@@ -94,6 +97,20 @@ public class TDPClient {
                     new ParticleBuffer(buffer)
             };
         });
+    }
+
+    @SubscribeEvent
+    public static void modConfig$Loading(ModConfigEvent.Loading event) {
+        if (TDP.MODID.equals(event.getConfig().getModId())) {
+            ClientConfigs.onLoad();
+        }
+    }
+
+    @SubscribeEvent
+    public static void modConfig$Reloading(ModConfigEvent.Reloading event) {
+        if (TDP.MODID.equals(event.getConfig().getModId())) {
+            ClientConfigs.onLoad();
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -220,5 +237,11 @@ public class TDPClient {
             atlas = Minecraft.getInstance().getModelManager().getAtlas(ATLAS_LOCATION);
         }
         return atlas;
+    }
+
+    public static void addEmitter(Level level, Vec3 pos, ResourceLocation particle) {
+        if (Minecraft.getInstance().getFps() > ClientConfigs.fpsThreshold) {
+            PSGameClient.LOADER.addEmitter(new ParticleEmitter(level, pos, particle), false);
+        }
     }
 }
