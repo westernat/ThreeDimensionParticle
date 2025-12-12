@@ -9,21 +9,30 @@ import org.jetbrains.annotations.Nullable;
 public final class ClientConfigs {
     private static ModConfigSpec.IntValue EMITTER_LIMIT;
     private static ModConfigSpec.IntValue FPS_THRESHOLD;
+    private static ModConfigSpec.BooleanValue ALLOWS_VANILLA_PARTICLE_WHEN_REACH_LIMIT;
     private static ModConfigSpec.BooleanValue EXPLOSION;
     private static ModConfigSpec.ConfigValue<String> EXPLOSION_PARTICLE;
 
     public static int emitterLimit = 50;
     public static int fpsThreshold = 30;
+    public static boolean allowsVanillaParticleWhenReachLimit = false;
+
     public static boolean explosion = false;
     public static @Nullable ResourceLocation explosionParticle;
 
     public static void register(ModContainer container) {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
+        builder.push("Emitter");
         EMITTER_LIMIT = builder.defineInRange("emitterLimit", 50, 20, 1000);
         FPS_THRESHOLD = builder.defineInRange("fpsThreshold", 30, 10, 260);
+        ALLOWS_VANILLA_PARTICLE_WHEN_REACH_LIMIT = builder.define("allowsVanillaParticleWhenReachLimit", false);
+        builder.pop();
+
+        builder.push("Particle");
         EXPLOSION = builder.define("explosion", true);
         EXPLOSION_PARTICLE = builder.define("explosionParticle", "tdp:bomb_smoke");
+        builder.pop();
 
         container.registerConfig(ModConfig.Type.CLIENT, builder.build());
     }
@@ -31,6 +40,8 @@ public final class ClientConfigs {
     public static void onLoad() {
         emitterLimit = EMITTER_LIMIT.get();
         fpsThreshold = FPS_THRESHOLD.get();
+        allowsVanillaParticleWhenReachLimit = ALLOWS_VANILLA_PARTICLE_WHEN_REACH_LIMIT.get();
+
         explosion = EXPLOSION.get();
         explosionParticle = ResourceLocation.tryParse(EXPLOSION_PARTICLE.get());
     }

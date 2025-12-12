@@ -1,5 +1,6 @@
 package org.mesdag.thr_dim_particle.client;
 
+import com.mojang.datafixers.util.Function3;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectBooleanImmutablePair;
 import net.minecraft.core.BlockPos;
@@ -35,17 +36,17 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
     public void attach(BlockState state, boolean allowsVanilla, BiFunction<Level, BlockPos, WithBlockParticleEmitter> factory) {
         stateMap.put(state, new AttachData(defaultParticle, MolangExp.EMPTY, false, allowsVanilla) {
             @Override
-            public WithBlockParticleEmitter apply(Level level, BlockPos pos) {
+            public WithBlockParticleEmitter apply(Level level, BlockPos pos, BlockState state) {
                 return factory.apply(level, pos);
             }
         });
     }
 
-    public void attach(Block block, boolean allowsVanilla, BiFunction<Level, BlockPos, WithBlockParticleEmitter> factory) {
+    public void attach(Block block, boolean allowsVanilla, Function3<Level, BlockPos, BlockState, WithBlockParticleEmitter> factory) {
         blockMap.put(block, new AttachData(defaultParticle, MolangExp.EMPTY, true, allowsVanilla) {
             @Override
-            public WithBlockParticleEmitter apply(Level level, BlockPos pos) {
-                return factory.apply(level, pos);
+            public WithBlockParticleEmitter apply(Level level, BlockPos pos, BlockState state) {
+                return factory.apply(level, pos, state);
             }
         });
     }
@@ -54,19 +55,27 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
         stateMap.put(state, new AttachData(particleId, expression, false, allowsVanilla));
     }
 
+    public void attach(BlockState state, ResourceLocation particleId, Function3<Level, BlockPos, BlockState, MolangExp> expression, boolean allowsVanilla) {
+        stateMap.put(state, new AttachData(particleId, expression, false, allowsVanilla));
+    }
+
     public void attach(Block block, ResourceLocation particleId, MolangExp expression, boolean allowsVanilla) {
+        blockMap.put(block, new AttachData(particleId, expression, true, allowsVanilla));
+    }
+
+    public void attach(Block block, ResourceLocation particleId, Function3<Level, BlockPos, BlockState, MolangExp> expression, boolean allowsVanilla) {
         blockMap.put(block, new AttachData(particleId, expression, true, allowsVanilla));
     }
 
     static final Map<BlockPos, ObjectBooleanImmutablePair<WithBlockParticleEmitter>> emitters = new Object2ObjectOpenHashMap<>();
 
     public static boolean attachTo(Block block, BlockState state, Level level, BlockPos pos) {
-        if (!TDPClient.ableToAddEmitter()) return true;
+        if (!TDPClient.ableToAddEmitter()) return ClientConfigs.allowsVanillaParticleWhenReachLimit;
         ObjectBooleanImmutablePair<WithBlockParticleEmitter> pair = emitters.get(pos);
         if (pair == null) {
             AttachData data = blockMap.get(block);
             if (data == null && (data = stateMap.get(state)) == null) return true;
-            WithBlockParticleEmitter emitter = data.apply(level, pos);
+            WithBlockParticleEmitter emitter = data.apply(level, pos, state);
             PSGameClient.LOADER.addEmitter(emitter, false);
             emitters.put(pos.immutable(), pair = new ObjectBooleanImmutablePair<>(emitter, data.allowsVanilla));
         }
@@ -82,22 +91,26 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
         emitters.clear();
     }
 
-    public static class AttachData implements BiFunction<Level, BlockPos, WithBlockParticleEmitter> {
+    public static class AttachData implements Function3<Level, BlockPos, BlockState, WithBlockParticleEmitter> {
         public final ResourceLocation particleId;
-        public final MolangExp expression;
+        public final Function3<Level, BlockPos, BlockState, MolangExp> expression;
         public final boolean ignoreSameBlock;
         public final boolean allowsVanilla;
 
-        public AttachData(ResourceLocation particleId, MolangExp expression, boolean ignoreSameBlock, boolean allowsVanilla) {
+        public AttachData(ResourceLocation particleId, Function3<Level, BlockPos, BlockState, MolangExp> expression, boolean ignoreSameBlock, boolean allowsVanilla) {
             this.particleId = particleId;
             this.expression = expression;
             this.ignoreSameBlock = ignoreSameBlock;
             this.allowsVanilla = allowsVanilla;
         }
 
+        public AttachData(ResourceLocation particleId, MolangExp expression, boolean ignoreSameBlock, boolean allowsVanilla) {
+            this(particleId, (level, pos, state) -> expression, ignoreSameBlock, allowsVanilla);
+        }
+
         @Override
-        public WithBlockParticleEmitter apply(Level level, BlockPos pos) {
-            return new WithBlockParticleEmitter(level, pos.getCenter(), particleId, expression, ignoreSameBlock);
+        public WithBlockParticleEmitter apply(Level level, BlockPos pos, BlockState state) {
+            return new WithBlockParticleEmitter(level, pos.getCenter(), particleId, expression.apply(level, pos, state), ignoreSameBlock);
         }
     }
 }

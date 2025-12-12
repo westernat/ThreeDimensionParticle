@@ -51,8 +51,7 @@ public abstract class ExplosionMixin {
                 TDP.errorGetParticle("explosion");
                 return true;
             }
-            TDPClient.addEmitter(level, new Vec3(x, y, z), ClientConfigs.explosionParticle, new MolangExp("variable.radius=" + radius));
-            return false;
+            return TDPClient.addEmitter(level, new Vec3(x, y, z), ClientConfigs.explosionParticle, new MolangExp("variable.radius=" + radius));
         }
         return original;
     }

@@ -20,7 +20,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
@@ -48,7 +47,6 @@ import org.mesdag.particlestorm.particle.ParticlePreset;
 import org.mesdag.thr_dim_particle.TDP;
 import org.mesdag.thr_dim_particle.client.compat.sodium.IrisHelper;
 import org.mesdag.thr_dim_particle.client.impl.TDParticleAppearance;
-import org.mesdag.thr_dim_particle.client.impl.TestHardcodeModel;
 import org.mesdag.thr_dim_particle.client.impl.WithBlockParticleEmitter;
 
 import java.io.IOException;
@@ -181,23 +179,24 @@ public class TDPClient {
 
     @SubscribeEvent
     public static void registerTDPRenderer(RegisterTDPRendererEvent event) {
-        event.registerHardcode(
-                TDP.asResource("test_model2"),
-                TDP.asResource("tdp/test_hardcode"),
-                TestHardcodeModel.LAYER_LOCATION,
-                TestHardcodeModel::createBodyLayer,
-                () -> TDPRenderType.get(0)
-        );
+//        event.registerHardcode(
+//                TDP.asResource("test_model2"),
+//                TDP.asResource("tdp/test_hardcode"),
+//                TestHardcodeModel.LAYER_LOCATION,
+//                TestHardcodeModel::createBodyLayer,
+//                () -> TDPRenderType.get(0)
+//        );
     }
 
     @SubscribeEvent
     public static void attachEmitterToBlock(AttachEmitterToBlockEvent event) {
-        event.attach(Blocks.END_ROD, ResourceLocation.fromNamespaceAndPath("snowstorm", "loading"), MolangExp.EMPTY, false);
+//        event.attach(Blocks.END_ROD, ResourceLocation.fromNamespaceAndPath("snowstorm", "loading"), MolangExp.EMPTY, false);
     }
 
     @SubscribeEvent
     public static void clientTick$Post(ClientTickEvent.Post event) {
         AttachEmitterToBlockEvent.tick();
+        if (emitters.isEmpty()) return;
         emitters.removeIf(ParticleEmitter::isRemoved);
     }
 
@@ -240,14 +239,16 @@ public class TDPClient {
         return atlas;
     }
 
-    static final ArrayDeque<ParticleEmitter> emitters = new ArrayDeque<>();
+    static final ArrayDeque<ParticleEmitter> emitters = new ArrayDeque<>(64);
 
-    public static void addEmitter(Level level, Vec3 pos, ResourceLocation particle, MolangExp expression) {
+    public static boolean addEmitter(Level level, Vec3 pos, ResourceLocation particle, MolangExp expression) {
         if (ableToAddEmitter()) {
             ParticleEmitter emitter = new ParticleEmitter(level, pos, particle, expression);
             PSGameClient.LOADER.addEmitter(emitter, false);
             emitters.add(emitter);
+            return false;
         }
+        return ClientConfigs.allowsVanillaParticleWhenReachLimit;
     }
 
     public static boolean ableToAddEmitter() {
