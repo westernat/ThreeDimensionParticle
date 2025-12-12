@@ -5,15 +5,45 @@
 			"identifier": "tdp:bomb_smoke",
 			"type": "thr_dim_particle:tdp"
 		},
+		"events": {
+			"bomb_round": {
+				"particle_effect": {
+					"effect": "tdp:bomb_round",
+					"type": "emitter"
+				}
+			},
+			"bomb_spark": {
+				"particle_effect": {
+					"effect": "tdp:bomb_spark",
+					"type": "emitter"
+				}
+			},
+			"bomb_fire": {
+				"particle_effect": {
+					"effect": "tdp:bomb_fire",
+					"type": "emitter"
+				}
+			},
+			"bomb_glitter": {
+				"particle_effect": {
+					"effect": "tdp:bomb_glitter",
+					"type": "emitter"
+				}
+			}
+		},
 		"components": {
+			"minecraft:emitter_lifetime_events": {
+				"creation_event": ["bomb_round", "bomb_spark", "bomb_fire", "bomb_glitter"]
+			},
 			"minecraft:emitter_initialization": {
 				"per_update_expression": "v;"
 			},
-			"minecraft:emitter_rate_instant": {
-				"num_particles": 100
+			"minecraft:emitter_rate_steady": {
+				"spawn_rate": 500,
+				"max_particles": 500
 			},
 			"minecraft:emitter_lifetime_once": {
-				"active_time": 1
+				"active_time": 0.2
 			},
 			"minecraft:emitter_local_space": {
 				"position": true,
@@ -30,7 +60,7 @@
 				"rotation": "math.random(-180, 180)",
 				"rotation_rate": "math.random(-180, 180)"
 			},
-			"minecraft:particle_initial_speed": "math.random(5,7)",
+			"minecraft:particle_initial_speed": "math.random(0.1,15)",
 			"minecraft:particle_motion_dynamic": {
 				"linear_acceleration": [0, 1, 0],
 				"linear_drag_coefficient": 4
