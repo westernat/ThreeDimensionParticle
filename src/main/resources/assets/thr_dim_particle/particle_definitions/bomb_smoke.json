@@ -35,9 +35,6 @@
 			"minecraft:emitter_lifetime_events": {
 				"creation_event": ["bomb_round", "bomb_spark", "bomb_fire", "bomb_glitter"]
 			},
-			"minecraft:emitter_initialization": {
-				"per_update_expression": "v;"
-			},
 			"minecraft:emitter_rate_steady": {
 				"spawn_rate": 500,
 				"max_particles": 500

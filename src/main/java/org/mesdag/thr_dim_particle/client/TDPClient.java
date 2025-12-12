@@ -1,6 +1,7 @@
 package org.mesdag.thr_dim_particle.client;
 
 import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.CrashReport;
@@ -27,8 +28,6 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.*;
-import net.neoforged.neoforge.client.gui.ConfigurationScreen;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jetbrains.annotations.Nullable;
 import org.mesdag.particlestorm.api.IComponent;
@@ -67,9 +66,9 @@ public class TDPClient {
     static ShaderInstance particleCutoutMippedShaderInstance;
     static ShaderInstance particleTranslucentShaderInstance;
     private static TextureAtlas atlas;
+    private static ParticleBuffer[] buffers;
 
     public TDPClient(ModContainer container) {
-        container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         RegisterTDPRendererEvent.start();
     }
 
@@ -80,6 +79,13 @@ public class TDPClient {
                 IrisHelper.setAllowUnknownShaders();
             }
             AttachEmitterToBlockEvent.postEvent();
+            ByteBufferBuilder buffer = Tesselator.getInstance().buffer;
+            buffers = new ParticleBuffer[]{
+                    new ParticleBuffer(buffer),
+                    new ParticleBuffer(buffer),
+                    new ParticleBuffer(buffer),
+                    new ParticleBuffer(buffer)
+            };
         });
     }
 
@@ -174,21 +180,14 @@ public class TDPClient {
         AttachEmitterToBlockEvent.clearEmitters();
     }
 
-    //    private static final BufferBuilder[] builders = new BufferBuilder[4];
-    private static final ParticleBuffer[] buffers = new ParticleBuffer[4];
-
     public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum) {
+        ParticleBuffer buffer;
         for (Particle particle : queue) {
             TDParticle tdp = (TDParticle) particle;
             if (tdp.renderer == ModelRenderer.DO_NOTHING) continue;
             if (!frustum.isVisible(tdp.renderBoundingBox)) continue;
             try {
-                TDPRenderType renderType = tdp.renderer.getRenderType();
-                ParticleBuffer buffer = buffers[renderType.index];
-                if (buffer == null) {
-                    buffers[renderType.index] = buffer = new ParticleBuffer();
-                }
-                tdp.renderFast(buffer, camera, partialTick);
+                tdp.renderFast(buffers[tdp.renderer.getRenderType().index], camera, partialTick);
             } catch (Throwable throwable) {
                 CrashReport report = CrashReport.forThrowable(throwable, "Rendering Particle");
                 CrashReportCategory category = report.addCategory("Particle being rendered");
@@ -198,8 +197,7 @@ public class TDPClient {
             }
         }
         for (int i = 0; i < 4; i++) {
-            ParticleBuffer buffer = buffers[i];
-            if (buffer == null) continue;
+            buffer = buffers[i];
             MeshData data = buffer.storeMesh();
             buffer.vertices = 0;
             if (data == null) continue;
