@@ -57,20 +57,21 @@ public record TDParticleAppearance(
     public void update(IMolangParticleInstance instance) {
         TDParticle particle = (TDParticle) instance;
         doInit(particle);
-        if (particle.getMaxFrame() <= 0) return;
+        int maxFrame = particle.getMaxFrame();
+        if (maxFrame <= 0) return;
         if (modelAnimation.stretchToLifetime) {
             modelAnimation.setCurrentModel(particle);
-            particle.setCurrentFrame(particle.getMaxFrame() * particle.getAge() / particle.getLifetime());
+            particle.setCurrentFrame(Mth.clamp(maxFrame * particle.getAge() / particle.getLifetime(), 0, maxFrame - 1));
             return;
         }
         float gameTime = (float) (int) (particle.getLevel().getGameTime() & 0b11111111);
         if (gameTime % (particle.getLevel().tickRateManager().tickrate() / modelAnimation.framesPerSecond) < 1.0F) {
             modelAnimation.setCurrentModel(particle);
             int currentFrame = particle.getCurrentFrame() + 1;
-            if (currentFrame < particle.getMaxFrame()) {
+            if (currentFrame < maxFrame) {
                 particle.setCurrentFrame(currentFrame);
             } else {
-                particle.setCurrentFrame(modelAnimation.loop ? 0 : particle.getMaxFrame() - 1);
+                particle.setCurrentFrame(modelAnimation.loop ? 0 : maxFrame - 1);
             }
         }
     }
