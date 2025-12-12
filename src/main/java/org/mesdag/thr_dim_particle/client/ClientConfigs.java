@@ -20,7 +20,7 @@ public final class ClientConfigs {
     public static void register(ModContainer container) {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
-        EMITTER_LIMIT = builder.defineInRange("emitterLimit", 0, 20, 1000);
+        EMITTER_LIMIT = builder.defineInRange("emitterLimit", 50, 20, 1000);
         FPS_THRESHOLD = builder.defineInRange("fpsThreshold", 30, 10, 260);
         EXPLOSION = builder.define("explosion", true);
         EXPLOSION_PARTICLE = builder.define("explosionParticle", "tdp:bomb_smoke");
