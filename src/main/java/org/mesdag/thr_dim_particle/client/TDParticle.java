@@ -375,10 +375,10 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
             pose.rotate(quat);
         }
         if (xRot != 0 || yRot != 0 || roll != 0) {
-            pose.rotateZYX(
-                    Mth.lerp(partialTick, oRoll, roll),
+            pose.rotateXYZ(
+                    Mth.lerp(partialTick, xRotO, xRot),
                     Mth.lerp(partialTick, yRotO, yRot),
-                    Mth.lerp(partialTick, xRotO, xRot)
+                    Mth.lerp(partialTick, oRoll, roll)
             );
         }
 

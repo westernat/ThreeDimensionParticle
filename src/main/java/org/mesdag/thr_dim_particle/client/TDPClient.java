@@ -40,7 +40,7 @@ import org.mesdag.particlestorm.api.IComponent;
 import org.mesdag.particlestorm.api.ParticlePresetLoadedEvent;
 import org.mesdag.particlestorm.api.RegisterCustomEmitterTypeEvent;
 import org.mesdag.particlestorm.api.RegisterCustomParticleTypeEvent;
-import org.mesdag.particlestorm.data.molang.MolangExp;
+import org.mesdag.particlestorm.data.molang.compiler.value.Variable;
 import org.mesdag.particlestorm.particle.FaceCameraMode;
 import org.mesdag.particlestorm.particle.ParticleEmitter;
 import org.mesdag.particlestorm.particle.ParticlePreset;
@@ -241,9 +241,17 @@ public class TDPClient {
 
     static final ArrayDeque<ParticleEmitter> emitters = new ArrayDeque<>(64);
 
-    public static boolean addEmitter(Level level, Vec3 pos, ResourceLocation particle, MolangExp expression) {
+    public static boolean addEmitter(Level level, Vec3 pos, ResourceLocation particle, Variable... variables) {
         if (ableToAddEmitter()) {
-            ParticleEmitter emitter = new ParticleEmitter(level, pos, particle, expression);
+            ParticleEmitter emitter = new ParticleEmitter(level, pos, particle) {
+                @Override
+                protected void createVars() {
+                    super.createVars();
+                    for (Variable var : variables) {
+                        vars.table.put(var.name(), var);
+                    }
+                }
+            };
             PSGameClient.LOADER.addEmitter(emitter, false);
             emitters.add(emitter);
             return false;

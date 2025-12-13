@@ -10,6 +10,7 @@ public final class ClientConfigs {
     private static ModConfigSpec.IntValue EMITTER_LIMIT;
     private static ModConfigSpec.IntValue FPS_THRESHOLD;
     private static ModConfigSpec.BooleanValue ALLOWS_VANILLA_PARTICLE_WHEN_REACH_LIMIT;
+
     private static ModConfigSpec.BooleanValue EXPLOSION;
     private static ModConfigSpec.ConfigValue<String> EXPLOSION_PARTICLE;
 

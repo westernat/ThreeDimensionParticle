@@ -7,10 +7,10 @@
 		},
 		"components": {
 			"minecraft:particle_initialization": {
-				"per_render_expression": "variable.size=1*(1-variable.particle_age/variable.particle_lifetime);"
+				"per_render_expression": "v.ratio=v.particle_age/v.particle_lifetime;variable.size=1*(1-v.ratio);"
 			},
 			"minecraft:emitter_rate_instant": {
-				"num_particles": "30 * math.pow((v.radius + (math.abs(v.radius - 4) - v.radius + 4) / 2 - 3), 3)"
+				"num_particles": "30 * math.pow((v.radius + (math.abs(v.radius - 4) - v.radius + 4) / 2 - 3), 2)"
 			},
 			"minecraft:emitter_lifetime_once": {
 				"active_time": 1
@@ -38,7 +38,7 @@
 			},
 			"minecraft:particle_appearance_tinting": {
 				"color": {
-					"interpolant": "v.particle_age / v.particle_lifetime",
+					"interpolant": "v.ratio",
 					"gradient": {
 						"0.0": "#ffffffff",
 						"0.3": "#FFFF5F00",
@@ -55,9 +55,9 @@
 				"direction": {
 					"mode": "custom_direction",
 					"custom_direction": [
-						"1 * v.particle_random_1 + (v.particle_age / v.particle_lifetime * (v.particle_random_3 - 0.5))",
-						"1 * v.particle_random_2 + (v.particle_age / v.particle_lifetime * (v.particle_random_2 - 0.5))",
-						"1 * v.particle_random_3 + (v.particle_age / v.particle_lifetime * (v.particle_random_1 - 0.5))"
+						"1 * v.particle_random_1 + (v.ratio * (v.particle_random_3 - 0.5))",
+						"1 * v.particle_random_2 + (v.ratio * (v.particle_random_2 - 0.5))",
+						"1 * v.particle_random_3 + (v.ratio * (v.particle_random_1 - 0.5))"
 					]
 				}
 			}

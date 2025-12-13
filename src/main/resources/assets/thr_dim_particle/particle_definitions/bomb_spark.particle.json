@@ -14,10 +14,10 @@
 				"rotation": true
 			},
 			"minecraft:emitter_rate_instant": {
-				"num_particles": "100 * math.pow((v.radius + (math.abs(v.radius - 4) - v.radius + 4) / 2 - 3), 3)"
+				"num_particles": "30 * math.pow((v.radius + (math.abs(v.radius - 4) - v.radius + 4) / 2 - 3), 2)"
 			},
 			"minecraft:emitter_lifetime_once": {
-				"active_time": 1
+				"active_time": 0.05
 			},
 			"minecraft:emitter_shape_sphere": {
 				"radius": "v.radius + (math.abs(v.radius - 4) - v.radius + 4) / 2 - 3",

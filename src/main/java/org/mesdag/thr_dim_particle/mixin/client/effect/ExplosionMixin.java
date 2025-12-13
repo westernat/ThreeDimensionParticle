@@ -7,7 +7,7 @@ import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import org.mesdag.particlestorm.data.molang.MolangExp;
+import org.mesdag.particlestorm.data.molang.compiler.value.Variable;
 import org.mesdag.thr_dim_particle.TDP;
 import org.mesdag.thr_dim_particle.client.ClientConfigs;
 import org.mesdag.thr_dim_particle.client.TDPClient;
@@ -51,7 +51,7 @@ public abstract class ExplosionMixin {
                 TDP.errorGetParticle("explosion");
                 return true;
             }
-            return TDPClient.addEmitter(level, new Vec3(x, y, z), ClientConfigs.explosionParticle, new MolangExp("variable.radius=" + radius));
+            return TDPClient.addEmitter(level, new Vec3(x, y, z), ClientConfigs.explosionParticle, new Variable("variable.radius", radius));
         }
         return original;
     }
