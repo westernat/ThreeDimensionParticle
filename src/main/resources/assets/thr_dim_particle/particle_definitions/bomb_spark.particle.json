@@ -14,7 +14,7 @@
 				"rotation": true
 			},
 			"minecraft:emitter_rate_instant": {
-				"num_particles": "1.562500426 * math.pow((v.radius + (math.abs(v.radius - 4) - v.radius + 4) / 2 - 3), 3)"
+				"num_particles": "100 * math.pow((v.radius + (math.abs(v.radius - 4) - v.radius + 4) / 2 - 3), 3)"
 			},
 			"minecraft:emitter_lifetime_once": {
 				"active_time": 1

@@ -10,7 +10,7 @@
 				"per_render_expression": "variable.size=1*(1-variable.particle_age/variable.particle_lifetime);"
 			},
 			"minecraft:emitter_rate_instant": {
-				"num_particles": "0.4687501278 * math.pow((v.radius + (math.abs(v.radius - 4) - v.radius + 4) / 2 - 3), 3)"
+				"num_particles": "30 * math.pow((v.radius + (math.abs(v.radius - 4) - v.radius + 4) / 2 - 3), 3)"
 			},
 			"minecraft:emitter_lifetime_once": {
 				"active_time": 1
