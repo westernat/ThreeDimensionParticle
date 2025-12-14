@@ -23,7 +23,7 @@ public class HardcodeModel {
         PoseStack poseStack = new PoseStack();
         poseStack.scale(-1.0F, -1.0F, 1.0F);
         collectQuads(list, poseStack, root, TDPClient.getAtlas().getSprite(textureLocation));
-        this.quads = list.toArray(new CompiledVertex[0][]);
+        this.quads = list.toArray(new CompiledVertex[0][0]);
     }
 
     private static void collectQuads(List<CompiledVertex[]> list, PoseStack poseStack, ModelPart part, TextureAtlasSprite sprite) {
@@ -98,7 +98,7 @@ public class HardcodeModel {
                     MemoryUtil.memPutInt(ptr + ParticleBuffer.MODEL_LIGHT, 0); // 模型光照为0
                     // 环境uv2
                     MemoryUtil.memPutShort(ptr + ParticleBuffer.ENV_LIGHT, (short) (particle.light & 0xFFFF));
-                    MemoryUtil.memPutShort(ptr + ParticleBuffer.ENV_LIGHT + ParticleBuffer.S, (short) (particle.light >> 16 & 0xFFFF));
+                    MemoryUtil.memPutShort(ptr + ParticleBuffer.ENV_LIGHT_S, (short) (particle.light >> 16 & 0xFFFF));
                 }
                 // uv0
                 MemoryUtil.memPutFloat(ptr + ParticleBuffer.U, vertex.u);

@@ -7,12 +7,13 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import javax.annotation.Nullable;
 
 public class ParticleBuffer {
-    public static final byte B = 1;
-    public static final byte Z = 1;
-    public static final byte S = 2;
-    public static final byte I = 4;
-    public static final byte F = 4;
-    public static final byte J = 8;
+    protected static final byte B = 1;
+    protected static final byte Z = 1;
+    protected static final byte S = 2;
+    protected static final byte I = 4;
+    protected static final byte F = 4;
+    protected static final byte J = 8;
+    protected static final byte D = 8;
 
     public static final long POS_X = 0;
     public static final long POS_Y = POS_X + F;
@@ -21,7 +22,9 @@ public class ParticleBuffer {
     public static final long U = COLOR + I + I;
     public static final long V = U + F;
     public static final long MODEL_LIGHT = V + F;
+    public static final long MODEL_LIGHT_S = MODEL_LIGHT + S;
     public static final long ENV_LIGHT = MODEL_LIGHT + I;
+    public static final long ENV_LIGHT_S = ENV_LIGHT + S;
 
     protected int vertices;
     protected final ByteBufferBuilder buffer;
@@ -46,8 +49,12 @@ public class ParticleBuffer {
         if (result == null) {
             return null;
         }
-        int count = VertexFormat.Mode.QUADS.indexCount(vertices);
-        VertexFormat.IndexType indexType = VertexFormat.IndexType.least(vertices);
-        return new MeshData(result, new MeshData.DrawState(TDPRenderType.FORMAT, vertices, count, VertexFormat.Mode.QUADS, indexType));
+        return new MeshData(result, new MeshData.DrawState(
+                TDPRenderType.FORMAT,
+                vertices,
+                vertices / 4 * 6, /// @see VertexFormat.Mode#indexCount
+                VertexFormat.Mode.QUADS,
+                VertexFormat.IndexType.least(vertices)
+        ));
     }
 }

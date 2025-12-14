@@ -37,7 +37,7 @@ public class GeometryModel {
             }
             list.add(quad);
         }
-        this.quads = list.toArray(new CompiledVertex[0][]);
+        this.quads = list.toArray(new CompiledVertex[0][0]);
     }
 
     public void renderToBuffer(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz) {
@@ -81,18 +81,18 @@ public class GeometryModel {
                 // color & light
                 if (BufferBuilder.IS_LITTLE_ENDIAN) {
                     // color
-                    MemoryUtil.memPutLong(ptr + 12L, vertex.c | (particle.abgr & 0xFFFFFFFFL));
+                    MemoryUtil.memPutLong(ptr + ParticleBuffer.COLOR, vertex.c | (particle.abgr & 0xFFFFFFFFL));
                     // uv2
-                    MemoryUtil.memPutLong(ptr + 28L, vertex.l | (particle.light & 0xF000F0));
+                    MemoryUtil.memPutLong(ptr + ParticleBuffer.MODEL_LIGHT, vertex.l | (particle.light & 0xF000F0));
                 } else {
                     // color
-                    MemoryUtil.memPutLong(ptr + 12L, Long.reverseBytes(vertex.c | (particle.abgr & 0xFFFFFFFFL)));
+                    MemoryUtil.memPutLong(ptr + ParticleBuffer.COLOR, Long.reverseBytes(vertex.c | (particle.abgr & 0xFFFFFFFFL)));
                     // 借uv1存模型uv2
-                    MemoryUtil.memPutShort(ptr + 28L, vertex.a);
-                    MemoryUtil.memPutShort(ptr + 30L, vertex.b);
+                    MemoryUtil.memPutShort(ptr + ParticleBuffer.MODEL_LIGHT, vertex.a);
+                    MemoryUtil.memPutShort(ptr + ParticleBuffer.MODEL_LIGHT_S, vertex.b);
                     // 环境uv2
-                    MemoryUtil.memPutShort(ptr + 32L, (short) (particle.light & 0xFFFF));
-                    MemoryUtil.memPutShort(ptr + 34L, (short) (particle.light >> 16 & 0xFFFF));
+                    MemoryUtil.memPutShort(ptr + ParticleBuffer.ENV_LIGHT, (short) (particle.light & 0xFFFF));
+                    MemoryUtil.memPutShort(ptr + ParticleBuffer.ENV_LIGHT_S, (short) (particle.light >> 16 & 0xFFFF));
                 }
                 // uv0
                 MemoryUtil.memPutInt(ptr + 20L, vertex.u);
