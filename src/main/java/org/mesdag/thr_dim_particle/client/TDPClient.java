@@ -206,7 +206,6 @@ public class TDPClient {
     }
 
     public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum) {
-        ParticleBuffer buffer;
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.depthMask(true);
@@ -225,8 +224,7 @@ public class TDPClient {
             }
         }
         for (int i = 0; i < 4; i++) {
-            buffer = buffers[i];
-            MeshData data = buffer.storeMesh();
+            MeshData data = buffers[i].storeMesh();
             if (data == null) continue;
             TDPRenderType.get(i).draw(data);
         }
