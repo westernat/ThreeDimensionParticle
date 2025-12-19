@@ -3,6 +3,7 @@ package org.mesdag.thr_dim_particle.client;
 import com.mojang.datafixers.util.Function3;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectBooleanImmutablePair;
+import net.minecraft.client.Camera;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
@@ -15,6 +16,7 @@ import org.mesdag.particlestorm.PSGameClient;
 import org.mesdag.particlestorm.data.molang.MolangExp;
 import org.mesdag.thr_dim_particle.client.impl.WithBlockParticleEmitter;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.function.BiFunction;
 
@@ -88,9 +90,16 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
         return pair.rightBoolean();
     }
 
-    public static void tick() {
+    public static void tick(Camera camera) {
         if (emitters.isEmpty()) return;
-        emitters.values().removeIf(pair -> pair.left().isRemoved());
+        Iterator<ObjectBooleanImmutablePair<WithBlockParticleEmitter>> iterator = emitters.values().iterator();
+        while (iterator.hasNext()) {
+            WithBlockParticleEmitter emitter = iterator.next().left();
+            if (TDPClient.shouldRemoveEmitter(camera, emitter)) {
+                emitter.remove();
+                iterator.remove();
+            }
+        }
     }
 
     public static void clearEmitters() {

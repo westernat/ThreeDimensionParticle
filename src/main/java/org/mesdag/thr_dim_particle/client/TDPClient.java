@@ -20,6 +20,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceProvider;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EndRodBlock;
@@ -56,6 +57,7 @@ import org.mesdag.thr_dim_particle.client.impl.WithBlockParticleEmitter;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.Iterator;
 import java.util.Queue;
 
 @Mod(value = TDP.MODID, dist = Dist.CLIENT)
@@ -208,9 +210,11 @@ public class TDPClient {
 
     @SubscribeEvent
     public static void clientTick$Post(ClientTickEvent.Post event) {
-        AttachEmitterToBlockEvent.tick();
-        if (emitters.isEmpty()) return;
-        emitters.removeIf(ParticleEmitter::isRemoved);
+        Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+        if (camera.isInitialized()) {
+            AttachEmitterToBlockEvent.tick(camera);
+            tick(camera);
+        }
     }
 
     @SubscribeEvent
@@ -252,6 +256,18 @@ public class TDPClient {
 
     static final ArrayDeque<ParticleEmitter> emitters = new ArrayDeque<>(64);
 
+    private static void tick(Camera camera) {
+        if (emitters.isEmpty()) return;
+        Iterator<ParticleEmitter> iterator = emitters.iterator();
+        while (iterator.hasNext()) {
+            ParticleEmitter emitter = iterator.next();
+            if (shouldRemoveEmitter(camera, emitter)) {
+                emitter.remove();
+                iterator.remove();
+            }
+        }
+    }
+
     public static boolean addEmitter(Level level, Vec3 pos, ResourceLocation particle, Variable... variables) {
         if (ableToAddEmitter()) {
             ParticleEmitter emitter = new ParticleEmitter(level, pos, particle) {
@@ -273,6 +289,25 @@ public class TDPClient {
     public static boolean ableToAddEmitter() {
         return Minecraft.fps > ClientConfigs.fpsThreshold &&
                 AttachEmitterToBlockEvent.emitters.size() + emitters.size() < ClientConfigs.emitterLimit;
+    }
+
+    public static boolean shouldRemoveEmitter(Camera camera, ParticleEmitter emitter) {
+        if (emitter.isRemoved()) return true;
+        if (emitter.level.getGameTime() % ClientConfigs.emitterAutoRemoveIntervalTick != 0) {
+            return false;
+        }
+        double v = camera.getPosition().distanceToSqr(emitter.getPosition());
+        if (v < Mth.square(ClientConfigs.emitterAutoRemoveMinimumDistance)) return false;
+        v = Math.sqrt(v) - ClientConfigs.emitterAutoRemoveMinimumDistance;
+        double c = 0;
+        do {
+            c += ClientConfigs.emitterAutoRemoveAttenuationCoefficient;
+            if (emitter.level.random.nextDouble() < c) {
+                return true;
+            }
+            v -= ClientConfigs.emitterAutoRemoveAttenuationDistance;
+        } while (v > 0 && c < 1);
+        return false;
     }
 
     public static ResourceLocation asParticle(String path) {
