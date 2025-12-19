@@ -70,10 +70,12 @@ public final class ClientConfigs {
         public @Nullable ResourceLocation particle;
         private @Nullable List<AttachEmitterToBlockEvent.AttachData> associated;
 
+        private final String configPath;
         private final ModConfigSpec.BooleanValue ENABLE;
         private final ModConfigSpec.ConfigValue<String> PARTICLE;
 
         public ParticleConfig(ModConfigSpec.Builder builder, String configPath, String particlePath) {
+            this.configPath = configPath;
             this.ENABLE = builder.define(configPath, true);
             this.PARTICLE = builder.define(configPath + "Particle", "tdp:" + particlePath);
         }
@@ -91,9 +93,9 @@ public final class ClientConfigs {
 
         private void updateAssociated() {
             if (associated == null) return;
-            ResourceLocation id = enable ? particle : null;
+            boolean disabled = !enable;
             for (AttachEmitterToBlockEvent.AttachData data : associated) {
-                data.particleId = id;
+                data.disabled = disabled;
             }
             if (particle == null || !Minecraft.getInstance().isSameThread()) return;
             for (ObjectBooleanImmutablePair<WithBlockParticleEmitter> pair : AttachEmitterToBlockEvent.emitters.values()) {
@@ -102,6 +104,13 @@ public final class ClientConfigs {
                     emitter.remove();
                 }
             }
+        }
+
+        @Override
+        public String toString() {
+            return "ParticleConfig{" +
+                    "configPath='" + configPath + '\'' +
+                    '}';
         }
     }
 }
