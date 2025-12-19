@@ -45,13 +45,13 @@ public abstract class ExplosionMixin {
     @Expression("spawnParticles")
     @ModifyExpressionValue(method = "finalizeExplosion", at = @At("MIXINEXTRAS:EXPRESSION"))
     private boolean takeOverParticle(boolean original) {
-        if (original && tdp$success && ClientConfigs.explosion) {
-            if (ClientConfigs.explosionParticle == null) {
+        if (original && tdp$success && ClientConfigs.explosion.enable) {
+            if (ClientConfigs.explosion.particle == null) {
                 tdp$success = false;
                 TDP.errorGetParticle("explosion");
                 return true;
             }
-            return TDPClient.addEmitter(level, new Vec3(x, y, z), ClientConfigs.explosionParticle, new Variable("variable.radius", radius));
+            return TDPClient.addEmitter(level, new Vec3(x, y, z), ClientConfigs.explosion.particle, new Variable("variable.radius", radius));
         }
         return original;
     }

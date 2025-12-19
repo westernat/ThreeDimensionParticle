@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.bus.api.Event;
 import net.neoforged.fml.ModLoader;
 import net.neoforged.fml.event.IModBusEvent;
+import org.jetbrains.annotations.Nullable;
 import org.mesdag.particlestorm.PSGameClient;
 import org.mesdag.particlestorm.data.molang.MolangExp;
 import org.mesdag.thr_dim_particle.client.impl.WithBlockParticleEmitter;
@@ -22,8 +23,8 @@ import java.util.function.BiFunction;
 
 public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
     private static ResourceLocation defaultParticle;
-    private static Map<BlockState, AttachData> stateMap;
-    private static Map<Block, AttachData> blockMap;
+    static Map<BlockState, AttachData> stateMap;
+    static Map<Block, AttachData> blockMap;
 
     private AttachEmitterToBlockEvent() {}
 
@@ -35,38 +36,50 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
         defaultParticle = null;
     }
 
-    public void attach(BlockState state, boolean allowsVanilla, BiFunction<Level, BlockPos, WithBlockParticleEmitter> factory) {
-        stateMap.put(state, new AttachData(defaultParticle, MolangExp.EMPTY, false, allowsVanilla) {
+    public AttachData attach(BlockState state, boolean allowsVanilla, BiFunction<Level, BlockPos, WithBlockParticleEmitter> factory) {
+        AttachData data = new AttachData(defaultParticle, MolangExp.EMPTY, false, allowsVanilla) {
             @Override
             public WithBlockParticleEmitter apply(Level level, BlockPos pos, BlockState state) {
                 return factory.apply(level, pos);
             }
-        });
+        };
+        stateMap.put(state, data);
+        return data;
     }
 
-    public void attach(Block block, boolean allowsVanilla, Function3<Level, BlockPos, BlockState, WithBlockParticleEmitter> factory) {
-        blockMap.put(block, new AttachData(defaultParticle, MolangExp.EMPTY, true, allowsVanilla) {
+    public AttachData attach(Block block, boolean allowsVanilla, Function3<Level, BlockPos, BlockState, WithBlockParticleEmitter> factory) {
+        AttachData data = new AttachData(defaultParticle, MolangExp.EMPTY, true, allowsVanilla) {
             @Override
             public WithBlockParticleEmitter apply(Level level, BlockPos pos, BlockState state) {
                 return factory.apply(level, pos, state);
             }
-        });
+        };
+        blockMap.put(block, data);
+        return data;
     }
 
-    public void attach(BlockState state, ResourceLocation particleId, MolangExp expression, boolean allowsVanilla) {
-        stateMap.put(state, new AttachData(particleId, expression, false, allowsVanilla));
+    public AttachData attach(BlockState state, ResourceLocation particleId, MolangExp expression, boolean allowsVanilla) {
+        AttachData data = new AttachData(particleId, expression, false, allowsVanilla);
+        stateMap.put(state, data);
+        return data;
     }
 
-    public void attach(BlockState state, ResourceLocation particleId, Function3<Level, BlockPos, BlockState, MolangExp> expression, boolean allowsVanilla) {
-        stateMap.put(state, new AttachData(particleId, expression, false, allowsVanilla));
+    public AttachData attach(BlockState state, ResourceLocation particleId, Function3<Level, BlockPos, BlockState, MolangExp> expression, boolean allowsVanilla) {
+        AttachData data = new AttachData(particleId, expression, false, allowsVanilla);
+        stateMap.put(state, data);
+        return data;
     }
 
-    public void attach(Block block, ResourceLocation particleId, MolangExp expression, boolean allowsVanilla) {
-        blockMap.put(block, new AttachData(particleId, expression, true, allowsVanilla));
+    public AttachData attach(Block block, ResourceLocation particleId, MolangExp expression, boolean allowsVanilla) {
+        AttachData data = new AttachData(particleId, expression, true, allowsVanilla);
+        blockMap.put(block, data);
+        return data;
     }
 
-    public void attach(Block block, ResourceLocation particleId, Function3<Level, BlockPos, BlockState, MolangExp> expression, boolean allowsVanilla) {
-        blockMap.put(block, new AttachData(particleId, expression, true, allowsVanilla));
+    public AttachData attach(Block block, ResourceLocation particleId, Function3<Level, BlockPos, BlockState, MolangExp> expression, boolean allowsVanilla) {
+        AttachData data = new AttachData(particleId, expression, true, allowsVanilla);
+        blockMap.put(block, data);
+        return data;
     }
 
     static final Map<BlockPos, ObjectBooleanImmutablePair<WithBlockParticleEmitter>> emitters = new Object2ObjectOpenHashMap<>();
@@ -84,6 +97,7 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
             AttachData data = blockMap.get(block);
             if (data == null && (data = stateMap.get(state)) == null) return true;
             WithBlockParticleEmitter emitter = data.apply(level, pos, state);
+            if (emitter == null) return data.allowsVanilla;
             PSGameClient.LOADER.addEmitter(emitter, false);
             emitters.put(pos.immutable(), pair = new ObjectBooleanImmutablePair<>(emitter, data.allowsVanilla));
         }
@@ -106,8 +120,8 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
         emitters.clear();
     }
 
-    public static class AttachData implements Function3<Level, BlockPos, BlockState, WithBlockParticleEmitter> {
-        public final ResourceLocation particleId;
+    public static class AttachData implements Function3<Level, BlockPos, BlockState, @Nullable WithBlockParticleEmitter> {
+        public @Nullable ResourceLocation particleId;
         public final Function3<Level, BlockPos, BlockState, MolangExp> expression;
         public final boolean ignoreSameBlock;
         public final boolean allowsVanilla;
@@ -123,8 +137,10 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
             this(particleId, (level, pos, state) -> expression, ignoreSameBlock, allowsVanilla);
         }
 
+        /// Returns null means skip add emitter
         @Override
-        public WithBlockParticleEmitter apply(Level level, BlockPos pos, BlockState state) {
+        public @Nullable WithBlockParticleEmitter apply(Level level, BlockPos pos, BlockState state) {
+            if (particleId == null) return null;
             return new WithBlockParticleEmitter(level, pos.getCenter(), particleId, expression.apply(level, pos, state), ignoreSameBlock);
         }
     }

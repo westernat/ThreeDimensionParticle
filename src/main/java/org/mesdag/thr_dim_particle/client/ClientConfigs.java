@@ -1,10 +1,15 @@
 package org.mesdag.thr_dim_particle.client;
 
+import it.unimi.dsi.fastutil.objects.ObjectBooleanImmutablePair;
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.jetbrains.annotations.Nullable;
+import org.mesdag.thr_dim_particle.client.impl.WithBlockParticleEmitter;
+
+import java.util.List;
 
 public final class ClientConfigs {
     private static ModConfigSpec.IntValue EMITTER_LIMIT;
@@ -15,9 +20,6 @@ public final class ClientConfigs {
     private static ModConfigSpec.IntValue EMITTER_AUTO_REMOVE_ATTENUATION_DISTANCE;
     private static ModConfigSpec.DoubleValue EMITTER_AUTO_REMOVE_ATTENUATION_COEFFICIENT;
 
-    private static ModConfigSpec.BooleanValue EXPLOSION;
-    private static ModConfigSpec.ConfigValue<String> EXPLOSION_PARTICLE;
-
     public static int emitterLimit = 50;
     public static int fpsThreshold = 30;
     public static boolean allowsVanillaParticleWhenReachLimit = false;
@@ -26,8 +28,8 @@ public final class ClientConfigs {
     public static int emitterAutoRemoveAttenuationDistance = 16;
     public static double emitterAutoRemoveAttenuationCoefficient = 0.25;
 
-    public static boolean explosion = false;
-    public static @Nullable ResourceLocation explosionParticle;
+    public static ParticleConfig explosion;
+    public static ParticleConfig endRod;
 
     public static void register(ModContainer container) {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -43,8 +45,8 @@ public final class ClientConfigs {
         builder.pop();
 
         builder.push("Particle");
-        EXPLOSION = builder.define("explosion", true);
-        EXPLOSION_PARTICLE = builder.define("explosionParticle", "tdp:bomb_smoke");
+        explosion = new ParticleConfig(builder, "explosion", "bomb_smoke");
+        endRod = new ParticleConfig(builder, "endRod", "end_rod");
         builder.pop();
 
         container.registerConfig(ModConfig.Type.CLIENT, builder.build());
@@ -59,7 +61,47 @@ public final class ClientConfigs {
         emitterAutoRemoveAttenuationDistance = EMITTER_AUTO_REMOVE_ATTENUATION_DISTANCE.get();
         emitterAutoRemoveAttenuationCoefficient = EMITTER_AUTO_REMOVE_ATTENUATION_COEFFICIENT.get();
 
-        explosion = EXPLOSION.get();
-        explosionParticle = ResourceLocation.tryParse(EXPLOSION_PARTICLE.get());
+        explosion.onLoad();
+        endRod.onLoad();
+    }
+
+    public static class ParticleConfig {
+        public boolean enable = true;
+        public @Nullable ResourceLocation particle;
+        private @Nullable List<AttachEmitterToBlockEvent.AttachData> associated;
+
+        private final ModConfigSpec.BooleanValue ENABLE;
+        private final ModConfigSpec.ConfigValue<String> PARTICLE;
+
+        public ParticleConfig(ModConfigSpec.Builder builder, String configPath, String particlePath) {
+            this.ENABLE = builder.define(configPath, true);
+            this.PARTICLE = builder.define(configPath + "Particle", "tdp:" + particlePath);
+        }
+
+        public void onLoad() {
+            this.enable = ENABLE.get();
+            this.particle = ResourceLocation.tryParse(PARTICLE.get());
+            updateAssociated();
+        }
+
+        public void initAssociated(List<AttachEmitterToBlockEvent.AttachData> associated) {
+            this.associated = associated;
+            updateAssociated();
+        }
+
+        private void updateAssociated() {
+            if (associated == null) return;
+            ResourceLocation id = enable ? particle : null;
+            for (AttachEmitterToBlockEvent.AttachData data : associated) {
+                data.particleId = id;
+            }
+            if (particle == null || !Minecraft.getInstance().isSameThread()) return;
+            for (ObjectBooleanImmutablePair<WithBlockParticleEmitter> pair : AttachEmitterToBlockEvent.emitters.values()) {
+                WithBlockParticleEmitter emitter = pair.left();
+                if (particle.equals(emitter.particleId)) {
+                    emitter.remove();
+                }
+            }
+        }
     }
 }

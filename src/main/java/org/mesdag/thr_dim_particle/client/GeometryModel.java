@@ -108,8 +108,8 @@ public class GeometryModel {
     /// @param z vertex z
     /// @param c model color
     /// @param l model light
-    /// @param a little endian light A
-    /// @param b little endian light B
+    /// @param a big endian light A
+    /// @param b big endian light B
     /// @param u vertex u
     /// @param v vertex v
     public record CompiledVertex(float x, float y, float z, long c, long l, short a, short b, int u, int v) {}

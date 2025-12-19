@@ -57,9 +57,7 @@ import org.mesdag.thr_dim_particle.client.impl.TDParticleAppearance;
 import org.mesdag.thr_dim_particle.client.impl.WithBlockParticleEmitter;
 
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Iterator;
-import java.util.Queue;
+import java.util.*;
 
 @Mod(value = TDP.MODID, dist = Dist.CLIENT)
 @EventBusSubscriber(modid = TDP.MODID, value = Dist.CLIENT)
@@ -198,15 +196,17 @@ public class TDPClient {
 
     @SubscribeEvent
     public static void attachEmitterToBlock(AttachEmitterToBlockEvent event) {
-        BlockState endRod = Blocks.END_ROD.defaultBlockState();
-        ResourceLocation endRodParticle = asParticle("end_rod");
+        BlockState blockState = Blocks.END_ROD.defaultBlockState();
+        ResourceLocation particle = asParticle("end_rod");
+        List<AttachEmitterToBlockEvent.AttachData> associated = new ArrayList<>();
         for (Direction facing : EndRodBlock.FACING.getPossibleValues()) {
-            event.attach(endRod.setValue(EndRodBlock.FACING, facing), endRodParticle, (level, pos, state) -> new MolangExp(
+            associated.add(event.attach(blockState.setValue(EndRodBlock.FACING, facing), particle, (level, pos, state) -> new MolangExp(
                     "v.x=" + facing.getStepX() + ';' +
                             "v.y=" + facing.getStepY() + ';' +
                             "v.z=" + facing.getStepZ()
-            ), false);
+            ), false));
         }
+        ClientConfigs.endRod.initAssociated(associated);
     }
 
     @SubscribeEvent
