@@ -26,6 +26,7 @@ import java.util.function.*;
 public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
     private static Map<ModelType, ImmutableTriple<Function<EntityRendererProvider.Context, HardcodeModel.Renderer<?>>, @Nullable ModelLayerLocation, @Nullable Supplier<LayerDefinition>>> hardcodeCache;
     private static Map<ModelType, MutableTriple<@Nullable Function<EntityRendererProvider.Context, GeometryModel.Renderer<?>>, @Nullable ResourceLocation, @Nullable ModelResourceLocation>> geometryCache;
+    private static Map<ModelType, Function<EntityRendererProvider.Context, ModelRenderer<?>>> customCache;
     private static Map<ModelType, ModelRenderer<?>> map;
 
     private RegisterTDPRendererEvent() {}
@@ -45,10 +46,7 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
     /// To invoke this method, you should register {@link LayerDefinition} by your self
     ///
     /// @see net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterLayerDefinitions
-    public void registerHardcode(
-            ResourceLocation modelId,
-            Function<EntityRendererProvider.Context, HardcodeModel.Renderer<?>> provider
-    ) {
+    public void registerHardcode(ResourceLocation modelId, Function<EntityRendererProvider.Context, HardcodeModel.Renderer<?>> provider) {
         registerHardcode(modelId, provider, null, null);
     }
 
@@ -70,6 +68,10 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
         geometryCache.put(new ModelType(ModelType.Variant.GEOMETRY, modelId), new MutableTriple<>(null, modelId, ModelResourceLocation.standalone(modelId)));
     }
 
+    public void registerCustom(ResourceLocation modelId, Function<EntityRendererProvider.Context, ModelRenderer<?>> provider) {
+        customCache.put(new ModelType(ModelType.Variant.GECKOLIB, modelId), provider);
+    }
+
     public static ModelRenderer<?> getRenderer(ResourceLocation type) {
         return map.getOrDefault(ModelType.Loader.INSTANCE.getModelTypes().get(type), ModelRenderer.DO_NOTHING);
     }
@@ -77,6 +79,7 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
     public static void start() {
         hardcodeCache = new HashMap<>();
         geometryCache = new HashMap<>();
+        customCache = new HashMap<>();
     }
 
     public static void postEvent() {
@@ -146,6 +149,10 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
             builder.put(entry.getKey(), provider.apply(context));
         }
         geometryCache = null;
+        for (var entry : customCache.entrySet()) {
+            builder.put(entry.getKey(), entry.getValue().apply(context));
+        }
+        customCache = null;
         map = builder.build();
     }
 }

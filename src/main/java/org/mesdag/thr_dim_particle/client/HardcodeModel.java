@@ -30,12 +30,13 @@ public class HardcodeModel {
         poseStack.pushPose();
         part.translateAndRotate(poseStack);
         Vector3f pos = new Vector3f();
+        Matrix4f pose = poseStack.last().pose();
         for (ModelPart.Cube cube : part.cubes) {
             for (ModelPart.Polygon polygon : cube.polygons) {
                 CompiledVertex[] vertices = new CompiledVertex[4];
                 for (int i = 0; i < 4; i++) {
                     ModelPart.Vertex vertex = polygon.vertices[i];
-                    vertex.pos.mulPosition(poseStack.last().pose(), pos).div(16);
+                    vertex.pos.mulPosition(pose, pos).div(16);
                     vertices[i] = new CompiledVertex(pos.x, pos.y, pos.z, sprite.getU(vertex.u), sprite.getV(vertex.v));
                 }
                 list.add(vertices);

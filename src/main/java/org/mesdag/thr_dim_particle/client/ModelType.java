@@ -49,7 +49,7 @@ public record ModelType(Variant variant, ResourceLocation modelId) {
     public enum Variant implements StringRepresentable, IExtensibleEnum {
         HARDCODE("hardcode"),
         GEOMETRY("geometry"),
-        GECKOLIB("geckolib"); // todo
+        GECKOLIB("geckolib");
 
         public static final Codec<Variant> CODEC = StringRepresentable.fromEnum(Variant::values);
 

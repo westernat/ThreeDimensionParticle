@@ -97,13 +97,15 @@ public final class ClientConfigs {
             for (AttachEmitterToBlockEvent.AttachData data : associated) {
                 data.disabled = disabled;
             }
-            if (particle == null || !Minecraft.getInstance().isSameThread()) return;
-            for (ObjectBooleanImmutablePair<WithBlockParticleEmitter> pair : AttachEmitterToBlockEvent.emitters.values()) {
-                WithBlockParticleEmitter emitter = pair.left();
-                if (particle.equals(emitter.particleId)) {
-                    emitter.remove();
+            if (particle == null) return;
+            Minecraft.getInstance().execute(() -> {
+                for (ObjectBooleanImmutablePair<WithBlockParticleEmitter> pair : AttachEmitterToBlockEvent.emitters.values()) {
+                    WithBlockParticleEmitter emitter = pair.left();
+                    if (particle.equals(emitter.particleId)) {
+                        emitter.remove();
+                    }
                 }
-            }
+            });
         }
 
         @Override
