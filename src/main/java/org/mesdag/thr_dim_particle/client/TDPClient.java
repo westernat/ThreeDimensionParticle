@@ -16,10 +16,14 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.EndRodBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
@@ -40,6 +44,7 @@ import org.mesdag.particlestorm.api.IComponent;
 import org.mesdag.particlestorm.api.ParticlePresetLoadedEvent;
 import org.mesdag.particlestorm.api.RegisterCustomEmitterTypeEvent;
 import org.mesdag.particlestorm.api.RegisterCustomParticleTypeEvent;
+import org.mesdag.particlestorm.data.molang.MolangExp;
 import org.mesdag.particlestorm.data.molang.compiler.value.Variable;
 import org.mesdag.particlestorm.particle.FaceCameraMode;
 import org.mesdag.particlestorm.particle.ParticleEmitter;
@@ -190,7 +195,15 @@ public class TDPClient {
 
     @SubscribeEvent
     public static void attachEmitterToBlock(AttachEmitterToBlockEvent event) {
-//        event.attach(Blocks.END_ROD, ResourceLocation.fromNamespaceAndPath("snowstorm", "loading"), MolangExp.EMPTY, false);
+        BlockState endRod = Blocks.END_ROD.defaultBlockState();
+        ResourceLocation endRodParticle = asParticle("end_rod");
+        for (Direction facing : EndRodBlock.FACING.getPossibleValues()) {
+            event.attach(endRod.setValue(EndRodBlock.FACING, facing), endRodParticle, (level, pos, state) -> new MolangExp(
+                    "v.x=" + facing.getStepX() + ';' +
+                            "v.y=" + facing.getStepY() + ';' +
+                            "v.z=" + facing.getStepZ()
+            ), false);
+        }
     }
 
     @SubscribeEvent
@@ -260,5 +273,9 @@ public class TDPClient {
     public static boolean ableToAddEmitter() {
         return Minecraft.fps > ClientConfigs.fpsThreshold &&
                 AttachEmitterToBlockEvent.emitters.size() + emitters.size() < ClientConfigs.emitterLimit;
+    }
+
+    public static ResourceLocation asParticle(String path) {
+        return ResourceLocation.fromNamespaceAndPath("tdp", path);
     }
 }

@@ -19,9 +19,9 @@
 			},
 			"minecraft:emitter_shape_point": {
 				"offset": [
-					"math.random(-0.2 * math.abs(v.y + v.z),0.2 * math.abs(v.y + v.z)) + (-0.5 * v.x)",
-					"math.random(-0.2 * math.abs(v.x + v.z),0.2 * math.abs(v.x + v.z)) + (-0.5 * v.y)",
-					"math.random(-0.2 * math.abs(v.x + v.y),0.2 * math.abs(v.x + v.y)) + (-0.5 * v.z)"
+					"math.random(-v.yz,v.yz) - 0.5*v.x",
+					"math.random(-v.xz,v.xz) - 0.5*v.y",
+					"math.random(-v.xy,v.xy) - 0.5*v.z"
 				],
 				"direction": ["v.x", "v.y", "v.z"]
 			},
@@ -31,19 +31,19 @@
 			"minecraft:particle_initial_speed": 1,
 			"minecraft:particle_motion_dynamic": {},
 			"minecraft:particle_initialization": {
-				"per_render_expression": "variable.size = 1 - v.particle_age / v.particle_lifetime"
+				"per_render_expression": "variable.ratio=v.particle_age/v.particle_lifetime;v.yz=0.2*math.abs(v.y+v.z);v.xz=0.2*math.abs(v.x+v.z);v.xy=0.2*math.abs(v.x+v.y)"
 			},
 			"thr_dim_particle:appearance": {
-				"size": ["variable.size", "variable.size", "variable.size"],
+				"size": ["1-variable.ratio", "1-variable.ratio", "1-variable.ratio"],
 				"model_animation": {
 					"type_frames": "thr_dim_particle:end_rod"
 				},
 				"direction": {
 					"mode": "custom_direction",
 					"custom_direction": [
-						"v.particle_random_1 + (v.particle_age / v.particle_lifetime * (v.particle_random_3 - 0.5) * 10)",
-						"v.particle_random_2 + (v.particle_age / v.particle_lifetime * (v.particle_random_2 - 0.5) * 10)",
-						"v.particle_random_3 + (v.particle_age / v.particle_lifetime * (v.particle_random_1 - 0.5) * 10)"
+						"v.particle_random_1 + (v.ratio * (v.particle_random_3 - 0.5) * 10)",
+						"v.particle_random_2 + (v.ratio * (v.particle_random_2 - 0.5) * 10)",
+						"v.particle_random_3 + (v.ratio * (v.particle_random_1 - 0.5) * 10)"
 					]
 				}
 			}
