@@ -6,9 +6,9 @@
     ],
     "client": [
         "client.BlockModel$DeserializerMixin",
-        "client.ClientLevelMixin",
         "client.MinecraftMixin",
         "client.ParticleEngineMixin",
+        "client.effect.ClientLevelMixin",
         "client.effect.ExplosionMixin"
     ],
     "injectors": {

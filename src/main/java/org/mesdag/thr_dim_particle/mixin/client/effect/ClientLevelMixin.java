@@ -1,4 +1,4 @@
-package org.mesdag.thr_dim_particle.mixin.client;
+package org.mesdag.thr_dim_particle.mixin.client.effect;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.client.multiplayer.ClientLevel;

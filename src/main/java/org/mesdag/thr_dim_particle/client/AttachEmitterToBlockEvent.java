@@ -70,7 +70,13 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
     static final Map<BlockPos, ObjectBooleanImmutablePair<WithBlockParticleEmitter>> emitters = new Object2ObjectOpenHashMap<>();
 
     public static boolean attachTo(Block block, BlockState state, Level level, BlockPos pos) {
-        if (!TDPClient.ableToAddEmitter()) return ClientConfigs.allowsVanillaParticleWhenReachLimit;
+        if (!TDPClient.ableToAddEmitter()) {
+            ObjectBooleanImmutablePair<WithBlockParticleEmitter> pair = emitters.remove(pos);
+            if (pair != null) {
+                pair.left().remove();
+            }
+            return ClientConfigs.allowsVanillaParticleWhenReachLimit;
+        }
         ObjectBooleanImmutablePair<WithBlockParticleEmitter> pair = emitters.get(pos);
         if (pair == null) {
             AttachData data = blockMap.get(block);
