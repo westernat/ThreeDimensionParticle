@@ -10,6 +10,7 @@ import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.renderer.ShaderInstance;
@@ -210,10 +211,14 @@ public class TDPClient {
 
     @SubscribeEvent
     public static void clientTick$Post(ClientTickEvent.Post event) {
-        Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
-        if (camera.isInitialized()) {
-            AttachEmitterToBlockEvent.tick(camera);
-            tick(camera);
+        Minecraft minecraft = Minecraft.getInstance();
+        ClientLevel level = minecraft.level;
+        if (level != null && level.getGameTime() % ClientConfigs.emitterAutoRemoveIntervalTick == 0) {
+            Camera camera = minecraft.gameRenderer.getMainCamera();
+            if (camera.isInitialized()) {
+                AttachEmitterToBlockEvent.tick(camera);
+                tick(camera);
+            }
         }
     }
 
@@ -293,9 +298,6 @@ public class TDPClient {
 
     public static boolean shouldRemoveEmitter(Camera camera, ParticleEmitter emitter) {
         if (emitter.isRemoved()) return true;
-        if (emitter.level.getGameTime() % ClientConfigs.emitterAutoRemoveIntervalTick != 0) {
-            return false;
-        }
         double v = camera.getPosition().distanceToSqr(emitter.getPosition());
         if (v < Mth.square(ClientConfigs.emitterAutoRemoveMinimumDistance)) return false;
         v = Math.sqrt(v) - ClientConfigs.emitterAutoRemoveMinimumDistance;
