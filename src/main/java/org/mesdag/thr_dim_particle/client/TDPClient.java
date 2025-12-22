@@ -3,7 +3,6 @@ package org.mesdag.thr_dim_particle.client;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
-import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
@@ -236,7 +235,7 @@ public class TDPClient {
             if (tdp.renderer == ModelRenderer.DO_NOTHING) continue;
             if (!frustum.isVisible(tdp.renderBoundingBox)) continue;
             try {
-                tdp.renderFast(buffers[tdp.renderer.getRenderType().index], camera, partialTick);
+                tdp.render(buffers[tdp.renderer.getRenderType().index], camera, partialTick);
             } catch (Throwable throwable) {
                 CrashReport report = CrashReport.forThrowable(throwable, "Rendering Particle");
                 CrashReportCategory category = report.addCategory("Particle being rendered");
@@ -246,9 +245,9 @@ public class TDPClient {
             }
         }
         for (int i = 0; i < 4; i++) {
-            MeshData data = buffers[i].storeMesh();
-            if (data == null) continue;
-            TDPRenderType.get(i).draw(data);
+            if (buffers[i].storeMesh()) {
+                TDPRenderType.get(i).draw();
+            }
         }
     }
 

@@ -1,11 +1,8 @@
 package org.mesdag.thr_dim_particle.client;
 
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
-import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.VertexFormat;
 
-import javax.annotation.Nullable;
-
+/// @see com.mojang.blaze3d.vertex.BufferBuilder
 public class ParticleBuffer {
     protected static final byte B = 1;
     protected static final byte Z = 1;
@@ -28,33 +25,49 @@ public class ParticleBuffer {
 
     protected int vertices;
     protected final ByteBufferBuilder buffer;
+    protected long lastPtr;
 
     public ParticleBuffer(ByteBufferBuilder buffer) {
         this.buffer = buffer;
     }
 
+    public long pushPtr(int bytes) {
+        buffer.ensureCapacity(buffer.writeOffset + bytes);
+        return this.lastPtr = buffer.pointer + buffer.writeOffset;
+    }
+
+    public void popPtr(long currentPtr) {
+        int bytes = (int) (currentPtr - lastPtr);
+        this.vertices += bytes / TDPRenderType.VERTEX_SIZE;
+        buffer.writeOffset += bytes;
+    }
+
     public long reserve() {
-        this.vertices++;
+        ++this.vertices;
         return buffer.reserve(TDPRenderType.VERTEX_SIZE);
     }
 
-    @Nullable
-    public MeshData storeMesh() {
+    public static final SimpleData DATA = new SimpleData();
+
+    public boolean storeMesh() {
         if (this.vertices == 0) {
-            return null;
+            return false;
         }
         int vertices = this.vertices;
         this.vertices = 0;
         ByteBufferBuilder.Result result = buffer.build();
         if (result == null) {
-            return null;
+            return false;
         }
-        return new MeshData(result, new MeshData.DrawState(
-                TDPRenderType.FORMAT,
-                vertices,
-                vertices / 4 * 6, /// @see VertexFormat.Mode#indexCount
-                VertexFormat.Mode.QUADS,
-                VertexFormat.IndexType.least(vertices)
-        ));
+        DATA.result = result;
+        DATA.vertices = vertices;
+        return true;
+    }
+
+    public static class SimpleData {
+        private SimpleData() {}
+
+        public ByteBufferBuilder.Result result;
+        public int vertices;
     }
 }

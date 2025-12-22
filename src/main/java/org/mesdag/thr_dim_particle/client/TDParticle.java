@@ -355,13 +355,15 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         this.light = getLightColor(0);
     }
 
+    /// @see TDParticle#render(ParticleBuffer, Camera, float)
+    /// @deprecated
     @Override
     public void render(VertexConsumer buffer, Camera camera, float partialTicks) {}
 
     private static final Matrix4f pose = new Matrix4f();
     private static final Quaternionf quat = new Quaternionf();
 
-    public void renderFast(ParticleBuffer buffer, Camera camera, float partialTick) {
+    public void render(ParticleBuffer buffer, Camera camera, float partialTick) {
         pose.identity();
 
         Vec3 cameraPos = camera.getPosition();
