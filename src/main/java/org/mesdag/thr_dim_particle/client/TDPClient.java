@@ -17,15 +17,18 @@ import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EndRodBlock;
 import net.minecraft.world.level.block.NetherPortalBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
@@ -58,6 +61,7 @@ import org.mesdag.thr_dim_particle.client.impl.WithBlockParticleEmitter;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 
 @Mod(value = TDP.MODID, dist = Dist.CLIENT)
 @EventBusSubscriber(modid = TDP.MODID, value = Dist.CLIENT)
@@ -196,27 +200,18 @@ public class TDPClient {
 
     @SubscribeEvent
     public static void attachEmitterToBlock(AttachEmitterToBlockEvent event) {
-        BlockState blockState = Blocks.END_ROD.defaultBlockState();
-        ResourceLocation particle = asParticle("end_rod");
-        List<AttachEmitterToBlockEvent.AttachData> associated = new ArrayList<>();
-        for (Direction facing : EndRodBlock.FACING.getPossibleValues()) {
-            associated.add(event.attach(blockState.setValue(EndRodBlock.FACING, facing), particle, (level, pos, state) -> new MolangExp(
-                    "v.x=" + facing.getStepX() + ';' +
-                            "v.y=" + facing.getStepY() + ';' +
-                            "v.z=" + facing.getStepZ()
-            ), false));
-        }
-        ClientConfigs.endRod.initAssociated(associated);
+        simpleAttach(event, Blocks.END_ROD, EndRodBlock.FACING, facing -> "v.x=" + facing.getStepX() + ";v.y=" + facing.getStepY() + ";v.z=" + facing.getStepZ(), ClientConfigs.endRod);
+        simpleAttach(event, Blocks.NETHER_PORTAL, NetherPortalBlock.AXIS, axis -> "v.x=" + (axis == Direction.Axis.X ? 1 : 0), ClientConfigs.netherPortal);
+    }
 
-        blockState = Blocks.NETHER_PORTAL.defaultBlockState();
-        particle = asParticle("nether_portal");
-        associated = new ArrayList<>();
-        for (Direction.Axis axis : NetherPortalBlock.AXIS.getPossibleValues()) {
-            associated.add(event.attach(blockState.setValue(NetherPortalBlock.AXIS, axis), particle, (level, pos, state) -> new MolangExp(
-                    "v.x=" + (axis == Direction.Axis.X ? 1 : 0)
-            ), false));
+    private static <T extends Comparable<T>> void simpleAttach(AttachEmitterToBlockEvent event, Block block, Property<T> property, Function<T, String> expStr, ClientConfigs.ParticleConfig config) {
+        BlockState blockState = block.defaultBlockState();
+        ResourceLocation particle = asParticle(BuiltInRegistries.BLOCK.getKey(block).getPath());
+        List<AttachEmitterToBlockEvent.AttachData> associated = new ArrayList<>();
+        for (T t : property.getPossibleValues()) {
+            associated.add(event.attach(blockState.setValue(property, t), particle, (level, pos, state) -> new MolangExp(expStr.apply(t)), false));
         }
-        ClientConfigs.netherPortal.initAssociated(associated);
+        config.initAssociated(associated);
     }
 
     @SubscribeEvent
@@ -237,16 +232,25 @@ public class TDPClient {
         AttachEmitterToBlockEvent.clearEmitters();
     }
 
-    public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum) {
+    public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum, boolean isSolid) {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.depthMask(true);
         for (Particle particle : queue) {
             TDParticle tdp = (TDParticle) particle;
-            if (tdp.renderer == ModelRenderer.DO_NOTHING) continue;
-            if (!frustum.isVisible(tdp.renderBoundingBox)) continue;
+            if (tdp.rendered) {
+                tdp.rendered = false;
+                continue;
+            } else if (isSolid) {
+                if (tdp.translucent) continue;
+            } else if (!tdp.translucent) {
+                continue;
+            } else if (!frustum.isVisible(tdp.renderBoundingBox)) {
+                continue;
+            }
             try {
-                tdp.render(buffers[tdp.renderer.getRenderType().index], camera, partialTick);
+                tdp.rendered = true;
+                tdp.render(buffers[tdp.typeIndex], camera, partialTick);
             } catch (Throwable throwable) {
                 CrashReport report = CrashReport.forThrowable(throwable, "Rendering Particle");
                 CrashReportCategory category = report.addCategory("Particle being rendered");

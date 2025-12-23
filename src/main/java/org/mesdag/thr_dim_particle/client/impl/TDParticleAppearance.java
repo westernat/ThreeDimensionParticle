@@ -16,6 +16,7 @@ import org.mesdag.particlestorm.data.DuplicateFieldDecoder;
 import org.mesdag.particlestorm.data.molang.FloatMolangExp3;
 import org.mesdag.particlestorm.data.molang.MolangExp;
 import org.mesdag.thr_dim_particle.TDP;
+import org.mesdag.thr_dim_particle.client.ModelRenderer;
 import org.mesdag.thr_dim_particle.client.RegisterTDPRendererEvent;
 import org.mesdag.thr_dim_particle.client.TDParticle;
 
@@ -119,7 +120,15 @@ public record TDParticleAppearance(
 
         public void setCurrentModel(TDParticle particle) {
             ResourceLocation model = typeFrames.get(particle.getCurrentFrame()).get(particle.getLevel().random);
-            particle.renderer = RegisterTDPRendererEvent.getRenderer(model);
+            ModelRenderer<?> renderer = RegisterTDPRendererEvent.getRenderer(model);
+            particle.renderer = renderer;
+            particle.typeIndex = getRenderState(renderer);
+            particle.translucent = particle.typeIndex == 3;
+        }
+
+        private static int getRenderState(ModelRenderer<?> renderer) {
+            if (renderer == ModelRenderer.DO_NOTHING) return -1;
+            return renderer.getRenderType().index;
         }
     }
 
