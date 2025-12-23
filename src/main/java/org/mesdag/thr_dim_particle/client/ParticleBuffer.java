@@ -16,12 +16,8 @@ public class ParticleBuffer {
     public static final long POS_Y = POS_X + F;
     public static final long POS_Z = POS_Y + F;
     public static final long COLOR = POS_Z + F;
-    public static final long U = COLOR + I + I;
-    public static final long V = U + F;
-    public static final long MODEL_LIGHT = V + F;
-    public static final long MODEL_LIGHT_S = MODEL_LIGHT + S;
-    public static final long ENV_LIGHT = MODEL_LIGHT + I;
-    public static final long ENV_LIGHT_S = ENV_LIGHT + S;
+    public static final long UV = COLOR + I + I;
+    public static final long LIGHT = UV + F + F;
 
     protected int vertices;
     protected final ByteBufferBuilder buffer;
