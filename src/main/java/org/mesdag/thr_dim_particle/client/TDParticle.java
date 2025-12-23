@@ -59,8 +59,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     protected int lastTimeline = 0;
 
     public ModelRenderer<?> renderer = ModelRenderer.DO_NOTHING;
-    public int typeIndex = -1; // -1:skip,[0,3]:index
-    public boolean rendered = false;
+    public ParticleBuffer buffer;
     public boolean translucent = false;
     public int abgr = 0xFFFFFFFF;
     public int light;

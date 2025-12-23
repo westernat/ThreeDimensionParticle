@@ -1,6 +1,6 @@
 package org.mesdag.thr_dim_particle.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.Tesselator;
@@ -29,6 +29,7 @@ import net.minecraft.world.level.block.EndRodBlock;
 import net.minecraft.world.level.block.NetherPortalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
@@ -44,6 +45,8 @@ import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL14;
 import org.mesdag.particlestorm.PSGameClient;
 import org.mesdag.particlestorm.api.IComponent;
 import org.mesdag.particlestorm.api.ParticlePresetLoadedEvent;
@@ -83,7 +86,7 @@ public class TDPClient {
     static ShaderInstance particleCutoutMippedShaderInstance;
     static ShaderInstance particleTranslucentShaderInstance;
     private static TextureAtlas atlas;
-    private static ParticleBuffer[] buffers;
+    public static ParticleBuffer[] buffers;
 
     public TDPClient(ModContainer container) {
         ClientConfigs.register(container);
@@ -233,24 +236,36 @@ public class TDPClient {
     }
 
     public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum, boolean isSolid) {
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.depthMask(true);
+        GlStateManager.BlendState blend = GlStateManager.BLEND;
+        blend.mode.enable();
+        if (770 != blend.srcRgb || 771 != blend.dstRgb || 1 != blend.srcAlpha || 0 != blend.dstAlpha) {
+            blend.srcRgb = 770;
+            blend.dstRgb = 771;
+            blend.srcAlpha = 1;
+            blend.dstAlpha = 0;
+            GL14.glBlendFuncSeparate(770, 771, 1, 0);
+        }
+        if (!GlStateManager.DEPTH.mask) {
+            GlStateManager.DEPTH.mask = true;
+            GL11.glDepthMask(true);
+        }
         for (Particle particle : queue) {
             TDParticle tdp = (TDParticle) particle;
-            if (tdp.rendered) {
-                tdp.rendered = false;
+            ParticleBuffer buffer = tdp.buffer;
+            if (buffer == null) {
                 continue;
             } else if (isSolid) {
                 if (tdp.translucent) continue;
             } else if (!tdp.translucent) {
                 continue;
-            } else if (!frustum.isVisible(tdp.renderBoundingBox)) {
-                continue;
+            } else {
+                AABB aabb = tdp.renderBoundingBox;
+                if (!frustum.cubeInFrustum(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ)) {
+                    continue;
+                }
             }
             try {
-                tdp.rendered = true;
-                tdp.render(buffers[tdp.typeIndex], camera, partialTick);
+                tdp.render(buffer, camera, partialTick);
             } catch (Throwable throwable) {
                 CrashReport report = CrashReport.forThrowable(throwable, "Rendering Particle");
                 CrashReportCategory category = report.addCategory("Particle being rendered");
