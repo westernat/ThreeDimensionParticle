@@ -57,7 +57,7 @@ public class HardcodeModel {
         }
     }
 
-    public void l(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz) {
+    private void l(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz) {
         float m00 = pose.m00(), m10 = pose.m10(), m20 = pose.m20(), m30 = pose.m30(),
                 m01 = pose.m01(), m11 = pose.m11(), m21 = pose.m21(), m31 = pose.m31(),
                 m02 = pose.m02(), m12 = pose.m12(), m22 = pose.m22(), m32 = pose.m32();
@@ -121,7 +121,7 @@ public class HardcodeModel {
         MemoryUtil.memPutLong(ptr + ParticleBuffer.LIGHT, fullModelLight | l);
     }
 
-    public void b(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz) {
+    private void b(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz) {
         float m00 = pose.m00(), m10 = pose.m10(), m20 = pose.m20(), m30 = pose.m30(),
                 m01 = pose.m01(), m11 = pose.m11(), m21 = pose.m21(), m31 = pose.m31(),
                 m02 = pose.m02(), m12 = pose.m12(), m22 = pose.m22(), m32 = pose.m32();
