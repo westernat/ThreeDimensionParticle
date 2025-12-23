@@ -109,10 +109,7 @@ neoForge {
                     // 忽略无效指令，避免有的人没安装 JetBrain Runtime 无法启动游戏
                     "-XX:+IgnoreUnrecognizedVMOptions",
                     // 启用 JetBrain Runtime 热重载功能
-                    "-XX:+AllowEnhancedClassRedefinition",
-                    // 启用FMA指令
-                    "-XX:+UseFMA",
-                    "-XX:UseAVX=2"
+                    "-XX:+AllowEnhancedClassRedefinition"
             ])
             if (isRunningInIdea) {
                 systemProperty "terminal.jline", "true"

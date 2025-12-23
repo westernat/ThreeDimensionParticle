@@ -58,23 +58,23 @@ public class GeometryModel {
             float x = vertex0.x;
             float y = vertex0.y;
             float z = vertex0.z;
-            float x0 = Math.fma(m00, x, Math.fma(m10, y, Math.fma(m20, z, m30)));
-            float y0 = Math.fma(m01, x, Math.fma(m11, y, Math.fma(m21, z, m31)));
-            float z0 = Math.fma(m02, x, Math.fma(m12, y, Math.fma(m22, z, m32)));
+            float x0 = m00 * x + m10 * y + m20 * z + m30;
+            float y0 = m01 * x + m11 * y + m21 * z + m31;
+            float z0 = m02 * x + m12 * y + m22 * z + m32;
             CompiledVertex vertex1 = quad[1];
             x = vertex1.x;
             y = vertex1.y;
             z = vertex1.z;
-            float x1 = Math.fma(m00, x, Math.fma(m10, y, Math.fma(m20, z, m30)));
-            float y1 = Math.fma(m01, x, Math.fma(m11, y, Math.fma(m21, z, m31)));
-            float z1 = Math.fma(m02, x, Math.fma(m12, y, Math.fma(m22, z, m32)));
+            float x1 = m00 * x + m10 * y + m20 * z + m30;
+            float y1 = m01 * x + m11 * y + m21 * z + m31;
+            float z1 = m02 * x + m12 * y + m22 * z + m32;
             CompiledVertex vertex2 = quad[2];
             x = vertex2.x;
             y = vertex2.y;
             z = vertex2.z;
-            float x2 = Math.fma(m00, x, Math.fma(m10, y, Math.fma(m20, z, m30)));
-            float y2 = Math.fma(m01, x, Math.fma(m11, y, Math.fma(m21, z, m31)));
-            float z2 = Math.fma(m02, x, Math.fma(m12, y, Math.fma(m22, z, m32)));
+            float x2 = m00 * x + m10 * y + m20 * z + m30;
+            float y2 = m01 * x + m11 * y + m21 * z + m31;
+            float z2 = m02 * x + m12 * y + m22 * z + m32;
 
             float x01 = x1 - x0;
             float y01 = y1 - y0;
@@ -82,21 +82,21 @@ public class GeometryModel {
             float x02 = x2 - x0;
             float y02 = y2 - y0;
             float z02 = z2 - z0;
-            if (Math.fma(vx, Math.fma(y01, z02, -z01 * y02), Math.fma(vy, Math.fma(z01, x02, -x01 * z02), vz * Math.fma(x01, y02, -y01 * x02))) < 0) { // 背面剔除
-                CompiledVertex vertex3 = quad[3];
-                x = vertex3.x;
-                y = vertex3.y;
-                z = vertex3.z;
-                float x3 = Math.fma(m00, x, Math.fma(m10, y, Math.fma(m20, z, m30)));
-                float y3 = Math.fma(m01, x, Math.fma(m11, y, Math.fma(m21, z, m31)));
-                float z3 = Math.fma(m02, x, Math.fma(m12, y, Math.fma(m22, z, m32)));
+            if (vx * (y01 * z02 - z01 * y02) + vy * (z01 * x02 - x01 * z02) + vz * (x01 * y02 - y01 * x02) >= 0) continue; // 背面剔除
 
-                l(vertex0, ptr, x0, y0, z0, c, l);
-                l(vertex1, ptr += TDPRenderType.VERTEX_SIZE, x1, y1, z1, c, l);
-                l(vertex2, ptr += TDPRenderType.VERTEX_SIZE, x2, y2, z2, c, l);
-                l(vertex3, ptr += TDPRenderType.VERTEX_SIZE, x3, y3, z3, c, l);
-                ptr += TDPRenderType.VERTEX_SIZE;
-            }
+            CompiledVertex vertex3 = quad[3];
+            x = vertex3.x;
+            y = vertex3.y;
+            z = vertex3.z;
+            float x3 = m00 * x + m10 * y + m20 * z + m30;
+            float y3 = m01 * x + m11 * y + m21 * z + m31;
+            float z3 = m02 * x + m12 * y + m22 * z + m32;
+
+            l(vertex0, ptr, x0, y0, z0, c, l);
+            l(vertex1, ptr += TDPRenderType.VERTEX_SIZE, x1, y1, z1, c, l);
+            l(vertex2, ptr += TDPRenderType.VERTEX_SIZE, x2, y2, z2, c, l);
+            l(vertex3, ptr += TDPRenderType.VERTEX_SIZE, x3, y3, z3, c, l);
+            ptr += TDPRenderType.VERTEX_SIZE;
         }
         buffer.popPtr(ptr);
     }
