@@ -24,6 +24,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EndRodBlock;
+import net.minecraft.world.level.block.NetherPortalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
@@ -206,6 +207,16 @@ public class TDPClient {
             ), false));
         }
         ClientConfigs.endRod.initAssociated(associated);
+
+        blockState = Blocks.NETHER_PORTAL.defaultBlockState();
+        particle = asParticle("nether_portal");
+        associated = new ArrayList<>();
+        for (Direction.Axis axis : NetherPortalBlock.AXIS.getPossibleValues()) {
+            associated.add(event.attach(blockState.setValue(NetherPortalBlock.AXIS, axis), particle, (level, pos, state) -> new MolangExp(
+                    "v.x=" + (axis == Direction.Axis.X ? 1 : 0)
+            ), false));
+        }
+        ClientConfigs.netherPortal.initAssociated(associated);
     }
 
     @SubscribeEvent

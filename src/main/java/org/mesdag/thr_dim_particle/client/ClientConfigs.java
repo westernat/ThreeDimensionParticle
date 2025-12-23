@@ -30,6 +30,7 @@ public final class ClientConfigs {
 
     public static ParticleConfig explosion;
     public static ParticleConfig endRod;
+    public static ParticleConfig netherPortal;
 
     public static void register(ModContainer container) {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -47,6 +48,7 @@ public final class ClientConfigs {
         builder.push("Particle");
         explosion = new ParticleConfig(builder, "explosion", "bomb_smoke");
         endRod = new ParticleConfig(builder, "endRod", "end_rod");
+        netherPortal = new ParticleConfig(builder, "netherPortal", "nether_portal");
         builder.pop();
 
         container.registerConfig(ModConfig.Type.CLIENT, builder.build());
@@ -63,6 +65,7 @@ public final class ClientConfigs {
 
         explosion.onLoad();
         endRod.onLoad();
+        netherPortal.onLoad();
     }
 
     public static class ParticleConfig {

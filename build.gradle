@@ -39,7 +39,7 @@ repositories {
 }
 
 base {
-    archivesName = "ThreeDimensionParticle"
+    archivesName = "ThreeDimensionParticle-FMA"
 }
 
 // Mojang ships Java 21 to end users in 1.21.1, so mods should target Java 21.
@@ -141,6 +141,9 @@ configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
 
+boolean iris = false
+boolean nvidium = false
+
 dependencies {
     if (false) {
         implementation(jarJar(files("libs/particlestorm-${particlestorm_version}.jar")))
@@ -150,9 +153,14 @@ dependencies {
 
     compileOnly "maven.modrinth:sodium:mc1.21.1-0.6.13-neoforge"
     compileOnly "maven.modrinth:iris:1.8.12+1.21.1-neoforge"
-    if (false) {
+    if (iris || nvidium) {
         runtimeOnly "maven.modrinth:sodium:mc1.21.1-0.6.13-neoforge"
+    }
+    if (iris) {
         runtimeOnly "maven.modrinth:iris:1.8.12+1.21.1-neoforge"
+    }
+    if (nvidium) {
+        runtimeOnly "maven.modrinth:nvidium-neoforge:yQUX44ky"
     }
 
     compileOnly "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:${geckolib_version}"

@@ -121,8 +121,12 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
             BlockModel blockModel = blockModelGetter.apply(ModelBakery.MODEL_LISTER.idToFile(triple.middle));
             if (blockModel == null) continue;
             ResourceLocation hint = blockModel.customData.getRenderTypeHint();
-            if (hint == null || !TDP.MODID.equals(hint.getNamespace())) continue;
-            TDPRenderType renderType = TDPRenderType.get(hint.getPath());
+            TDPRenderType renderType;
+            if (hint == null || !TDP.MODID.equals(hint.getNamespace())) {
+                renderType = TDPRenderType.get(0);
+            } else {
+                renderType = TDPRenderType.get(hint.getPath());
+            }
             triple.left = context -> new SimpleGeometryModelRenderer(context, triple.right, renderType);
         }
     }
