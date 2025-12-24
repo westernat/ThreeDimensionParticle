@@ -235,6 +235,7 @@ public class TDPClient {
         AttachEmitterToBlockEvent.clearEmitters();
     }
 
+    @SuppressWarnings("WhileLoopReplaceableByForEach")
     public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum, boolean isSolid) {
         GlStateManager.BlendState blend = GlStateManager.BLEND;
         blend.mode.enable();
@@ -249,20 +250,26 @@ public class TDPClient {
             GlStateManager.DEPTH.mask = true;
             GL11.glDepthMask(true);
         }
-        for (Particle particle : queue) {
-            TDParticle tdp = (TDParticle) particle;
+        AABB aabb = null;
+        boolean lastSkip = false;
+        Iterator<Particle> iterator = queue.iterator();
+        while (iterator.hasNext()) {
+            TDParticle tdp = (TDParticle) iterator.next();
+            if (isSolid == tdp.translucent) {
+                continue;
+            }
             ParticleBuffer buffer = tdp.buffer;
             if (buffer == null) {
                 continue;
-            } else if (isSolid) {
-                if (tdp.translucent) continue;
-            } else if (!tdp.translucent) {
+            }
+            if (aabb == null || tdp.outside(aabb)) {
+                aabb = tdp.renderBoundingBox;
+            } else if (lastSkip) {
                 continue;
-            } else {
-                AABB aabb = tdp.renderBoundingBox;
-                if (!frustum.cubeInFrustum(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ)) {
-                    continue;
-                }
+            }
+            if (!frustum.cubeInFrustum(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ)) {
+                lastSkip = true;
+                continue;
             }
             try {
                 tdp.render(buffer, camera, partialTick);

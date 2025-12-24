@@ -59,8 +59,8 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     protected int lastTimeline = 0;
 
     public ModelRenderer<?> renderer = ModelRenderer.DO_NOTHING;
-    public ParticleBuffer buffer;
-    public boolean translucent = false;
+    public @Nullable ParticleBuffer buffer;
+    public boolean translucent;
     public int abgr = 0xFFFFFFFF;
     public int light;
     public float[] renderSize = new float[3];
@@ -474,5 +474,9 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     public void setBoundingBox(AABB bb) {
         super.setBoundingBox(bb);
         this.renderBoundingBox = getBoundingBox().inflate(1.0);
+    }
+
+    public boolean outside(AABB aabb) {
+        return x < aabb.minX || x >= aabb.maxX || y < aabb.minY || y >= aabb.maxY || z < aabb.minZ || z >= aabb.maxZ;
     }
 }

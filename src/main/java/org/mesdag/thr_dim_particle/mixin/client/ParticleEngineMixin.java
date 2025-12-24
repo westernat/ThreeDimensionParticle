@@ -39,10 +39,9 @@ public abstract class ParticleEngineMixin {
             @Share("originalCheck") LocalByteRef originalCheck
     ) {
         if (original.call(instance)) return true; // isEmpty
-        if (frustum != null && originalCheck.get() != 0) {
-            TDPClient.render(instance, camera, partialTick, frustum, originalCheck.get() == 1);
-            return true; // 表示取消接下来的原版逻辑
-        }
-        return false;
+        byte b = originalCheck.get();
+        if (b == 0 || frustum == null) return false;
+        TDPClient.render(instance, camera, partialTick, frustum, b == 1);
+        return true; // 表示取消接下来的原版逻辑
     }
 }
