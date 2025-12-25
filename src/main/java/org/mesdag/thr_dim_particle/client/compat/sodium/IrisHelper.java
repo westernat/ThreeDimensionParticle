@@ -15,4 +15,8 @@ public class IrisHelper {
             TDP.LOGGER.warn("Failed to make our shaders to be allowed from iris");
         }
     }
+
+    public static boolean hasShader() {
+        return Iris.getIrisConfig().areShadersEnabled();
+    }
 }

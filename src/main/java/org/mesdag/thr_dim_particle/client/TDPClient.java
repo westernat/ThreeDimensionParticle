@@ -3,6 +3,7 @@ package org.mesdag.thr_dim_particle.client;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
@@ -41,6 +42,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.loading.LoadingModList;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
@@ -70,6 +72,7 @@ import java.util.function.Function;
 @Mod(value = TDP.MODID, dist = Dist.CLIENT)
 @EventBusSubscriber(modid = TDP.MODID, value = Dist.CLIENT)
 public class TDPClient {
+    public static final boolean IRIS_LOADED = LoadingModList.get().getModFileById("iris") != null;
     public static final ParticleRenderType TDP_RENDER_TYPE = new ParticleRenderType() {
         @Override
         public @Nullable BufferBuilder begin(Tesselator tesselator, TextureManager textureManager) {
@@ -282,8 +285,16 @@ public class TDPClient {
                 throw new ReportedException(report);
             }
         }
-        for (int i = 0; i < 4; i++) {
-            buffers[i].storeMesh(TDPRenderType.get(i));
+        if (TDPClient.IRIS_LOADED && IrisHelper.hasShader()) {
+            for (int i = 0; i < 4; i++) {
+                MeshData meshData = buffers[i].storeMesh();
+                if (meshData == null) continue;
+                TDPRenderType.get(i).draw(meshData);
+            }
+        } else {
+            for (int i = 0; i < 4; i++) {
+                buffers[i].draw(TDPRenderType.get(i));
+            }
         }
     }
 

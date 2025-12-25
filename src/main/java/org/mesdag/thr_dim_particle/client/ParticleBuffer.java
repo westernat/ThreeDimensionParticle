@@ -1,6 +1,9 @@
 package org.mesdag.thr_dim_particle.client;
 
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import org.jetbrains.annotations.Nullable;
 
 /// @see com.mojang.blaze3d.vertex.BufferBuilder
 public class ParticleBuffer {
@@ -43,7 +46,7 @@ public class ParticleBuffer {
         return buffer.reserve(TDPRenderType.VERTEX_SIZE);
     }
 
-    public void storeMesh(TDPRenderType renderType) {
+    public void draw(TDPRenderType renderType) {
         if (this.vertices == 0) {
             return;
         }
@@ -59,5 +62,20 @@ public class ParticleBuffer {
         buffer.resultCount++;
 
         renderType.draw(buffer.pointer + offset, capacity, vertices, buffer::freeResult);
+    }
+
+    public @Nullable MeshData storeMesh() {
+        if (this.vertices == 0) {
+            return null;
+        }
+        int vertices = this.vertices;
+        this.vertices = 0;
+        ByteBufferBuilder.Result result = buffer.build();
+        if (result == null) {
+            return null;
+        }
+        int i = vertices / 4 * 6;
+        VertexFormat.IndexType type = VertexFormat.IndexType.least(vertices);
+        return new MeshData(result, new MeshData.DrawState(TDPRenderType.FORMAT, vertices, i, VertexFormat.Mode.QUADS, type));
     }
 }

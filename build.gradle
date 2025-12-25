@@ -141,7 +141,7 @@ configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
 
-boolean iris = true
+boolean iris = false
 boolean nvidium = false
 
 dependencies {
