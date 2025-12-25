@@ -43,27 +43,21 @@ public class ParticleBuffer {
         return buffer.reserve(TDPRenderType.VERTEX_SIZE);
     }
 
-    public static final SimpleData DATA = new SimpleData();
-
-    public boolean storeMesh() {
+    public void storeMesh(TDPRenderType renderType) {
         if (this.vertices == 0) {
-            return false;
+            return;
         }
         int vertices = this.vertices;
         this.vertices = 0;
-        ByteBufferBuilder.Result result = buffer.build();
-        if (result == null) {
-            return false;
+
+        int offset = buffer.nextResultOffset;
+        int capacity = buffer.writeOffset - offset;
+        if (capacity == 0) {
+            return;
         }
-        DATA.result = result;
-        DATA.vertices = vertices;
-        return true;
-    }
+        buffer.nextResultOffset = buffer.writeOffset;
+        buffer.resultCount++;
 
-    public static class SimpleData {
-        private SimpleData() {}
-
-        public ByteBufferBuilder.Result result;
-        public int vertices;
+        renderType.draw(buffer.pointer + offset, capacity, vertices, buffer::freeResult);
     }
 }

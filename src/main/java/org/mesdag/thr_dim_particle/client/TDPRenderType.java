@@ -10,12 +10,8 @@ import net.minecraft.Util;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL13;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL20;
+import org.lwjgl.opengl.*;
 
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,16 +19,16 @@ import static org.mesdag.thr_dim_particle.client.TDPClient.*;
 
 public final class TDPRenderType extends RenderType.CompositeRenderType {
     static final VertexFormatElement COLOR1 = VertexFormatElement.register(VertexFormatElement.findNextId(), 0, VertexFormatElement.Type.UBYTE, VertexFormatElement.Usage.COLOR, 4);
+    static final VertexFormatElement LIGHT = VertexFormatElement.register(VertexFormatElement.findNextId(), 0, VertexFormatElement.Type.USHORT, EnumProxes.LIGHT.getValue(), 1);
     static final VertexFormat FORMAT = VertexFormat.builder()
             .add("Position", VertexFormatElement.POSITION)
             .add("Color", VertexFormatElement.COLOR)
             .add("Color1", COLOR1) // 用于正片叠底
             .add("UV0", VertexFormatElement.UV0)
-            .add("UV1", VertexFormatElement.UV1) // 实际传入的值为模型光照uv2
-            .add("UV2", VertexFormatElement.UV2)
+            .add("Light", LIGHT) // 传入msl, mbl, esl, ebl
             .build();
 //    public static final int VERTEX_SIZE = FORMAT.getVertexSize();
-    public static final int VERTEX_SIZE = 36;
+    public static final int VERTEX_SIZE = 30;
     private static final TDPRenderType[] TYPES = new TDPRenderType[]{
             new TDPRenderType(0, "tdp_particle_solid", FORMAT, VertexFormat.Mode.QUADS, 256, true, false,
                     RenderType.CompositeState.builder()
@@ -91,7 +87,7 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
     }
 
     @SuppressWarnings("all")
-    public void draw() {
+    public void draw(long address, int capacity, int vertices, Runnable close) {
         // region net.minecraft.client.renderer.RenderStateShard.setupRenderState
         for (RenderStateShard shard : state.states) {
             shard.setupState.run();
@@ -100,8 +96,6 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
 
         // region com.mojang.blaze3d.vertex.BufferUploader._drawWithShader
         //      region com.mojang.blaze3d.vertex.BufferUploader.upload
-        ParticleBuffer.SimpleData data = ParticleBuffer.DATA;
-        ByteBuffer bb = data.result.byteBuffer();
         VertexBuffer vb = FORMAT.immediateDrawVertexBuffer;
         if (vb == null) {
             FORMAT.immediateDrawVertexBuffer = vb = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
@@ -118,25 +112,25 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
                 FORMAT._setupBufferState();
                 vb.format = FORMAT;
             }
-            GL15.glBufferData(34962, bb, 35048);
+            GL15C.nglBufferData(34962, capacity, address, GL15C.GL_DYNAMIC_DRAW);
 
-            int indexCount = data.vertices / 4 * 6;
+            int indexCount = vertices / 4 * 6;
             RenderSystem.AutoStorageIndexBuffer asib = RenderSystem.sharedSequentialQuad;
             if (asib != vb.sequentialIndices || !asib.hasStorage(indexCount)) {
                 asib.bind(indexCount);
             }
             vb.sequentialIndices = asib;
             vb.indexCount = indexCount;
-            vb.indexType = (data.vertices & -65536) == 0 ? VertexFormat.IndexType.SHORT : VertexFormat.IndexType.INT;
+            vb.indexType = (vertices & -65536) == 0 ? VertexFormat.IndexType.SHORT : VertexFormat.IndexType.INT;
         } catch (Throwable throwable1) {
             try {
-                data.result.close();
+                close.run();
             } catch (Throwable throwable) {
                 throwable1.addSuppressed(throwable);
             }
             throw throwable1;
         }
-        data.result.close();
+        close.run();
         //          endregion
         //      endregion
 

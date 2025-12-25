@@ -6,12 +6,15 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleGroup;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -62,7 +65,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     public @Nullable ParticleBuffer buffer;
     public boolean translucent;
     public int abgr = 0xFFFFFFFF;
-    public int light;
+    public short light;
     public float[] renderSize = new float[3];
     public float[] renderSizeO = new float[3];
     public AABB renderBoundingBox;
@@ -73,7 +76,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         super(level, x, y, z);
         this.friction = 1.0F;
         this.preset = particlePreset;
-        this.light = getLightColor(0);
+        this.light = getLightColor();
 
         RandomSource random = level.getRandom();
         this.particleRandom1 = random.nextDouble();
@@ -354,7 +357,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         for (IParticleComponent component : components) {
             component.update(this);
         }
-        this.light = getLightColor(0);
+        this.light = getLightColor();
     }
 
     /// @see TDParticle#render(ParticleBuffer, Camera, float)
@@ -463,6 +466,26 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     @Override
     public int getLightColor(float partialTick) {
         return preset.environmentLighting ? super.getLightColor(partialTick) : FULL_LIGHT;
+    }
+
+    public short getLightColor() {
+        if (preset.environmentLighting) {
+            BlockPos pos = BlockPos.containing(x, y, z);
+            if (level.hasChunkAt(pos)) {
+                BlockState state = level.getBlockState(pos);
+                if (state.emissiveRendering(level, pos)) {
+                    return (short) 0xFF;
+                }
+                int i = level.getBrightness(LightLayer.SKY, pos);
+                int j = level.getBrightness(LightLayer.BLOCK, pos);
+                int k = state.getLightEmission(level, pos);
+                if (j < k) {
+                    j = k;
+                }
+                return (short) ((i << 4) | j);
+            }
+        }
+        return (short) 0xFF;
     }
 
     @Override

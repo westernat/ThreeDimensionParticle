@@ -12,6 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.texture.TextureAtlas;
@@ -272,7 +273,7 @@ public class TDPClient {
                 continue;
             }
             try {
-                tdp.render(buffer, camera, partialTick);
+                tdp.render(buffer, camera, partialTick); // todo 重点
             } catch (Throwable throwable) {
                 CrashReport report = CrashReport.forThrowable(throwable, "Rendering Particle");
                 CrashReportCategory category = report.addCategory("Particle being rendered");
@@ -282,9 +283,7 @@ public class TDPClient {
             }
         }
         for (int i = 0; i < 4; i++) {
-            if (buffers[i].storeMesh()) {
-                TDPRenderType.get(i).draw();
-            }
+            buffers[i].storeMesh(TDPRenderType.get(i));
         }
     }
 
@@ -350,5 +349,9 @@ public class TDPClient {
 
     public static ResourceLocation asParticle(String path) {
         return ResourceLocation.fromNamespaceAndPath("tdp", path);
+    }
+
+    public static short light2Short(int packetLight) {
+        return (short) ((LightTexture.sky(packetLight) << 4) | LightTexture.block(packetLight));
     }
 }

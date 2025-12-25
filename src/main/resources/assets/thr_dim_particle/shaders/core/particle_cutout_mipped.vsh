@@ -1,13 +1,13 @@
 #version 150
 
 #moj_import <fog.glsl>
+#moj_import <tdp_utils.glsl>
 
 in vec3 Position;
 in vec4 Color;
 in vec4 Color1;
 in vec2 UV0;
-in ivec2 UV1;
-in ivec2 UV2;
+in int Light;
 
 uniform sampler2D Sampler2;
 
@@ -25,6 +25,6 @@ void main() {
 
     vertexDistance = fog_distance(Position, FogShape);
     vertexColor = Color * Color1;
-    lightMapColor = texelFetch(Sampler2, max(UV1, UV2) / 16, 0);
+    lightMapColor = texelFetch(Sampler2, max_light(Light), 0);
     texCoord0 = UV0;
 }

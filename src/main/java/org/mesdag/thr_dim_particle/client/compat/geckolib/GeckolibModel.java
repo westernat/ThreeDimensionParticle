@@ -21,7 +21,6 @@ import java.util.List;
 
 public class GeckolibModel {
     private static final long fullModelColor = 0xFFFFFFFFL << 32;
-    private static final long fullModelLight = 0xF000F0L << 24;
     protected final CompiledVertex[][] quads;
 
     public GeckolibModel(BakedGeoModel root, ResourceLocation textureLocation) {
@@ -76,8 +75,8 @@ public class GeckolibModel {
         float m00 = pose.m00(), m10 = pose.m10(), m20 = pose.m20(), m30 = pose.m30(),
                 m01 = pose.m01(), m11 = pose.m11(), m21 = pose.m21(), m31 = pose.m31(),
                 m02 = pose.m02(), m12 = pose.m12(), m22 = pose.m22(), m32 = pose.m32();
-        int c = particle.abgr;
-        int l = particle.light;
+        long c = particle.abgr & 0xFFFFFFFFL;
+        short l = particle.light;
         long ptr = buffer.pushPtr(quads.length * 4 * TDPRenderType.VERTEX_SIZE);
         for (CompiledVertex[] quad : quads) {
             CompiledVertex vertex0 = quad[0];
@@ -127,21 +126,21 @@ public class GeckolibModel {
         buffer.popPtr(ptr);
     }
 
-    private static void l(CompiledVertex vertex, long ptr, float x, float y, float z, int c, int l) {
+    private static void l(CompiledVertex vertex, long ptr, float x, float y, float z, long c, short l) {
         MemoryUtil.memPutFloat(ptr + ParticleBuffer.POS_X, x);
         MemoryUtil.memPutFloat(ptr + ParticleBuffer.POS_Y, y);
         MemoryUtil.memPutFloat(ptr + ParticleBuffer.POS_Z, z);
-        MemoryUtil.memPutLong(ptr + ParticleBuffer.COLOR, fullModelColor | (c & 0xFFFFFFFFL));
+        MemoryUtil.memPutLong(ptr + ParticleBuffer.COLOR, fullModelColor | c);
         MemoryUtil.memPutLong(ptr + ParticleBuffer.UV, vertex.uv);
-        MemoryUtil.memPutLong(ptr + ParticleBuffer.LIGHT, fullModelLight | l);
+        MemoryUtil.memPutShort(ptr + ParticleBuffer.LIGHT, l);
     }
 
     private void b(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz) {
         float m00 = pose.m00(), m10 = pose.m10(), m20 = pose.m20(), m30 = pose.m30(),
                 m01 = pose.m01(), m11 = pose.m11(), m21 = pose.m21(), m31 = pose.m31(),
                 m02 = pose.m02(), m12 = pose.m12(), m22 = pose.m22(), m32 = pose.m32();
-        int c = particle.abgr;
-        int l = particle.light;
+        long c = particle.abgr & 0xFFFFFFFFL;
+        short l = particle.light;
         long ptr = buffer.pushPtr(quads.length * 4 * TDPRenderType.VERTEX_SIZE);
         for (CompiledVertex[] quad : quads) {
             CompiledVertex vertex0 = quad[0];
@@ -191,13 +190,13 @@ public class GeckolibModel {
         buffer.popPtr(ptr);
     }
 
-    private static void b(CompiledVertex vertex, long ptr, float x, float y, float z, int c, int l) {
+    private static void b(CompiledVertex vertex, long ptr, float x, float y, float z, long c, short l) {
         MemoryUtil.memPutFloat(ptr + ParticleBuffer.POS_X, x);
         MemoryUtil.memPutFloat(ptr + ParticleBuffer.POS_Y, y);
         MemoryUtil.memPutFloat(ptr + ParticleBuffer.POS_Z, z);
-        MemoryUtil.memPutLong(ptr + ParticleBuffer.COLOR, Long.reverseBytes(fullModelColor | (c & 0xFFFFFFFFL)));
+        MemoryUtil.memPutLong(ptr + ParticleBuffer.COLOR, Long.reverseBytes(fullModelColor | c));
         MemoryUtil.memPutLong(ptr + ParticleBuffer.UV, Long.reverseBytes(vertex.uv));
-        MemoryUtil.memPutLong(ptr + ParticleBuffer.LIGHT, Long.reverseBytes(l));
+        MemoryUtil.memPutShort(ptr + ParticleBuffer.LIGHT, l);
     }
 
     public interface Renderer<M extends GeckolibModel> extends ModelRenderer<M> {}
