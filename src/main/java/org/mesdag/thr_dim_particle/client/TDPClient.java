@@ -264,11 +264,11 @@ public class TDPClient {
             }
             if (aabb == null || tdp.outside(aabb)) {
                 aabb = tdp.renderBoundingBox;
+                if (!frustum.cubeInFrustum(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ)) {
+                    lastSkip = true;
+                    continue;
+                }
             } else if (lastSkip) {
-                continue;
-            }
-            if (!frustum.cubeInFrustum(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ)) {
-                lastSkip = true;
                 continue;
             }
             try {
