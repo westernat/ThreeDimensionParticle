@@ -111,8 +111,8 @@ neoForge {
                     // 启用 JetBrain Runtime 热重载功能
                     "-XX:+AllowEnhancedClassRedefinition",
                     // 启用FMA指令
-                    "-XX:+UseFMA",
-                    "-XX:UseAVX=2"
+//                    "-XX:+UseFMA",
+//                    "-XX:UseAVX=2"
             ])
             if (isRunningInIdea) {
                 systemProperty "terminal.jline", "true"

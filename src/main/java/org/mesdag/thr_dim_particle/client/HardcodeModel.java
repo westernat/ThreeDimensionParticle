@@ -67,26 +67,26 @@ public class HardcodeModel {
         long ptr = buffer.pushPtr(maxBytes);
         for (CompiledVertex[] quad : quads) {
             CompiledVertex vertex0 = quad[0];
-            float x = vertex0.x;
-            float y = vertex0.y;
-            float z = vertex0.z;
-            float x0 = Math.fma(m00, x, Math.fma(m10, y, Math.fma(m20, z, m30)));
-            float y0 = Math.fma(m01, x, Math.fma(m11, y, Math.fma(m21, z, m31)));
-            float z0 = Math.fma(m02, x, Math.fma(m12, y, Math.fma(m22, z, m32)));
+            float xa = vertex0.x;
+            float ya = vertex0.y;
+            float za = vertex0.z;
+            float x0 = Math.fma(m00, xa, Math.fma(m10, ya, Math.fma(m20, za, m30)));
+            float y0 = Math.fma(m01, xa, Math.fma(m11, ya, Math.fma(m21, za, m31)));
+            float z0 = Math.fma(m02, xa, Math.fma(m12, ya, Math.fma(m22, za, m32)));
             CompiledVertex vertex1 = quad[1];
-            x = vertex1.x;
-            y = vertex1.y;
-            z = vertex1.z;
-            float x1 = Math.fma(m00, x, Math.fma(m10, y, Math.fma(m20, z, m30)));
-            float y1 = Math.fma(m01, x, Math.fma(m11, y, Math.fma(m21, z, m31)));
-            float z1 = Math.fma(m02, x, Math.fma(m12, y, Math.fma(m22, z, m32)));
+            float xb = vertex1.x;
+            float yb = vertex1.y;
+            float zb = vertex1.z;
+            float x1 = Math.fma(m00, xb, Math.fma(m10, yb, Math.fma(m20, zb, m30)));
+            float y1 = Math.fma(m01, xb, Math.fma(m11, yb, Math.fma(m21, zb, m31)));
+            float z1 = Math.fma(m02, xb, Math.fma(m12, yb, Math.fma(m22, zb, m32)));
             CompiledVertex vertex2 = quad[2];
-            x = vertex2.x;
-            y = vertex2.y;
-            z = vertex2.z;
-            float x2 = Math.fma(m00, x, Math.fma(m10, y, Math.fma(m20, z, m30)));
-            float y2 = Math.fma(m01, x, Math.fma(m11, y, Math.fma(m21, z, m31)));
-            float z2 = Math.fma(m02, x, Math.fma(m12, y, Math.fma(m22, z, m32)));
+            float xc = vertex2.x;
+            float yc = vertex2.y;
+            float zc = vertex2.z;
+            float x2 = Math.fma(m00, xc, Math.fma(m10, yc, Math.fma(m20, zc, m30)));
+            float y2 = Math.fma(m01, xc, Math.fma(m11, yc, Math.fma(m21, zc, m31)));
+            float z2 = Math.fma(m02, xc, Math.fma(m12, yc, Math.fma(m22, zc, m32)));
 
             float x01 = x1 - x0;
             float y01 = y1 - y0;
@@ -96,12 +96,12 @@ public class HardcodeModel {
             float z02 = z2 - z0;
             if (Math.fma(vx, Math.fma(y01, z02, -z01 * y02), Math.fma(vy, Math.fma(z01, x02, -x01 * z02), vz * Math.fma(x01, y02, -y01 * x02))) < 0) { // 背面剔除
                 CompiledVertex vertex3 = quad[3];
-                x = vertex3.x;
-                y = vertex3.y;
-                z = vertex3.z;
-                float x3 = Math.fma(m00, x, Math.fma(m10, y, Math.fma(m20, z, m30)));
-                float y3 = Math.fma(m01, x, Math.fma(m11, y, Math.fma(m21, z, m31)));
-                float z3 = Math.fma(m02, x, Math.fma(m12, y, Math.fma(m22, z, m32)));
+                float xd = vertex3.x;
+                float yd = vertex3.y;
+                float zd = vertex3.z;
+                float x3 = Math.fma(m00, xd, Math.fma(m10, yd, Math.fma(m20, zd, m30)));
+                float y3 = Math.fma(m01, xd, Math.fma(m11, yd, Math.fma(m21, zd, m31)));
+                float z3 = Math.fma(m02, xd, Math.fma(m12, yd, Math.fma(m22, zd, m32)));
 
                 l(vertex0, ptr, x0, y0, z0, c, l);
                 l(vertex1, ptr += TDPRenderType.VERTEX_SIZE, x1, y1, z1, c, l);
@@ -131,26 +131,26 @@ public class HardcodeModel {
         long ptr = buffer.pushPtr(maxBytes);
         for (CompiledVertex[] quad : quads) {
             CompiledVertex vertex0 = quad[0];
-            float x = vertex0.x;
-            float y = vertex0.y;
-            float z = vertex0.z;
-            float x0 = m00 * x + m10 * y + m20 * z + m30;
-            float y0 = m01 * x + m11 * y + m21 * z + m31;
-            float z0 = m02 * x + m12 * y + m22 * z + m32;
+            float xa = vertex0.x;
+            float ya = vertex0.y;
+            float za = vertex0.z;
+            float x0 = m00 * xa + m10 * ya + m20 * za + m30;
+            float y0 = m01 * xa + m11 * ya + m21 * za + m31;
+            float z0 = m02 * xa + m12 * ya + m22 * za + m32;
             CompiledVertex vertex1 = quad[1];
-            x = vertex1.x;
-            y = vertex1.y;
-            z = vertex1.z;
-            float x1 = m00 * x + m10 * y + m20 * z + m30;
-            float y1 = m01 * x + m11 * y + m21 * z + m31;
-            float z1 = m02 * x + m12 * y + m22 * z + m32;
+            float xb = vertex1.x;
+            float yb = vertex1.y;
+            float zb = vertex1.z;
+            float x1 = m00 * xb + m10 * yb + m20 * zb + m30;
+            float y1 = m01 * xb + m11 * yb + m21 * zb + m31;
+            float z1 = m02 * xb + m12 * yb + m22 * zb + m32;
             CompiledVertex vertex2 = quad[2];
-            x = vertex2.x;
-            y = vertex2.y;
-            z = vertex2.z;
-            float x2 = m00 * x + m10 * y + m20 * z + m30;
-            float y2 = m01 * x + m11 * y + m21 * z + m31;
-            float z2 = m02 * x + m12 * y + m22 * z + m32;
+            float xc = vertex2.x;
+            float yc = vertex2.y;
+            float zc = vertex2.z;
+            float x2 = m00 * xc + m10 * yc + m20 * zc + m30;
+            float y2 = m01 * xc + m11 * yc + m21 * zc + m31;
+            float z2 = m02 * xc + m12 * yc + m22 * zc + m32;
 
             float x01 = x1 - x0;
             float y01 = y1 - y0;
@@ -158,21 +158,21 @@ public class HardcodeModel {
             float x02 = x2 - x0;
             float y02 = y2 - y0;
             float z02 = z2 - z0;
-            if (vx * (y01 * z02 - z01 * y02) + vy * (z01 * x02 - x01 * z02) + vz * (x01 * y02 - y01 * x02) >= 0) continue; // 背面剔除
+            if (vx * (y01 * z02 - z01 * y02) + vy * (z01 * x02 - x01 * z02) + vz * (x01 * y02 - y01 * x02) >= 0) { // 背面剔除
+                CompiledVertex vertex3 = quad[3];
+                float xd = vertex3.x;
+                float yd = vertex3.y;
+                float zd = vertex3.z;
+                float x3 = m00 * xd + m10 * yd + m20 * zd + m30;
+                float y3 = m01 * xd + m11 * yd + m21 * zd + m31;
+                float z3 = m02 * xd + m12 * yd + m22 * zd + m32;
 
-            CompiledVertex vertex3 = quad[3];
-            x = vertex3.x;
-            y = vertex3.y;
-            z = vertex3.z;
-            float x3 = m00 * x + m10 * y + m20 * z + m30;
-            float y3 = m01 * x + m11 * y + m21 * z + m31;
-            float z3 = m02 * x + m12 * y + m22 * z + m32;
-
-            b(vertex0, ptr, x0, y0, z0, c, l);
-            b(vertex1, ptr += TDPRenderType.VERTEX_SIZE, x1, y1, z1, c, l);
-            b(vertex2, ptr += TDPRenderType.VERTEX_SIZE, x2, y2, z2, c, l);
-            b(vertex3, ptr += TDPRenderType.VERTEX_SIZE, x3, y3, z3, c, l);
-            ptr += TDPRenderType.VERTEX_SIZE;
+                b(vertex0, ptr, x0, y0, z0, c, l);
+                b(vertex1, ptr += TDPRenderType.VERTEX_SIZE, x1, y1, z1, c, l);
+                b(vertex2, ptr += TDPRenderType.VERTEX_SIZE, x2, y2, z2, c, l);
+                b(vertex3, ptr += TDPRenderType.VERTEX_SIZE, x3, y3, z3, c, l);
+                ptr += TDPRenderType.VERTEX_SIZE;
+            }
         }
         buffer.popPtr(ptr);
     }
