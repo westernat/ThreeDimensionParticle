@@ -21,7 +21,14 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackLocationInfo;
+import net.minecraft.server.packs.PackSelectionConfig;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.PathPackResources;
+import net.minecraft.server.packs.repository.Pack;
+import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
@@ -46,7 +53,9 @@ import net.neoforged.fml.loading.LoadingModList;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import net.neoforged.neoforge.event.AddPackFindersEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
+import net.neoforged.neoforgespi.locating.IModFile;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL14;
@@ -195,17 +204,6 @@ public class TDPClient {
     }
 
     @SubscribeEvent
-    public static void registerTDPRenderer(RegisterTDPRendererEvent event) {
-//        event.registerHardcode(
-//                TDP.asResource("test_model2"),
-//                TDP.asResource("tdp/test_hardcode"),
-//                TestHardcodeModel.LAYER_LOCATION,
-//                TestHardcodeModel::createBodyLayer,
-//                () -> TDPRenderType.get(0)
-//        );
-    }
-
-    @SubscribeEvent
     public static void attachEmitterToBlock(AttachEmitterToBlockEvent event) {
         simpleAttach(event, Blocks.END_ROD, EndRodBlock.FACING, facing -> "v.x=" + facing.getStepX() + ";v.y=" + facing.getStepY() + ";v.z=" + facing.getStepZ(), ClientConfigs.endRod);
         simpleAttach(event, Blocks.NETHER_PORTAL, NetherPortalBlock.AXIS, axis -> "v.x=" + (axis == Direction.Axis.X ? 1 : 0), ClientConfigs.netherPortal);
@@ -231,6 +229,23 @@ public class TDPClient {
                 AttachEmitterToBlockEvent.tick(camera);
                 tick(camera);
             }
+        }
+    }
+
+    @SubscribeEvent
+    public static void addPackFinders(AddPackFindersEvent event) {
+        if (event.getPackType() == PackType.CLIENT_RESOURCES) {
+            IModFile modFile = ModList.get().getModFileById(TDP.MODID).getFile();
+            event.addRepositorySource(consumer -> {
+                String path = "3d_particle_display_adaptation";
+                Pack pack = Pack.readMetaAndCreate(
+                        new PackLocationInfo(TDP.MODID + ':' + path, Component.translatable("resourcepack." + path), PackSource.BUILT_IN, Optional.empty()),
+                        new PathPackResources.PathResourcesSupplier(modFile.findResource("resourcepacks/" + path)),
+                        PackType.CLIENT_RESOURCES,
+                        new PackSelectionConfig(false, Pack.Position.TOP, false)
+                );
+                if (pack != null) consumer.accept(pack);
+            });
         }
     }
 
