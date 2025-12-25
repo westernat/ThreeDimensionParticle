@@ -15,6 +15,7 @@ import java.util.List;
 public class HardcodeModel {
     private static final long fullModelColor = 0xFFFFFFFFL << 32;
     protected final CompiledVertex[][] quads;
+    public final int maxBytes;
 
     public HardcodeModel(ModelPart root, ResourceLocation textureLocation) {
         List<CompiledVertex[]> list = new ArrayList<>();
@@ -22,6 +23,7 @@ public class HardcodeModel {
         poseStack.scale(-1.0F, -1.0F, 1.0F);
         collectQuads(list, poseStack, root, TDPClient.getAtlas().getSprite(textureLocation));
         this.quads = list.toArray(new CompiledVertex[0][0]);
+        this.maxBytes = quads.length * 4 * TDPRenderType.VERTEX_SIZE;
     }
 
     private static void collectQuads(List<CompiledVertex[]> list, PoseStack poseStack, ModelPart part, TextureAtlasSprite sprite) {
@@ -62,7 +64,7 @@ public class HardcodeModel {
                 m02 = pose.m02(), m12 = pose.m12(), m22 = pose.m22(), m32 = pose.m32();
         long c = particle.abgr & 0xFFFFFFFFL;
         short l = particle.light;
-        long ptr = buffer.pushPtr(quads.length * 4 * TDPRenderType.VERTEX_SIZE);
+        long ptr = buffer.pushPtr(maxBytes);
         for (CompiledVertex[] quad : quads) {
             CompiledVertex vertex0 = quad[0];
             float x = vertex0.x;
@@ -126,7 +128,7 @@ public class HardcodeModel {
                 m02 = pose.m02(), m12 = pose.m12(), m22 = pose.m22(), m32 = pose.m32();
         long c = particle.abgr & 0xFFFFFFFFL;
         short l = particle.light;
-        long ptr = buffer.pushPtr(quads.length * 4 * TDPRenderType.VERTEX_SIZE);
+        long ptr = buffer.pushPtr(maxBytes);
         for (CompiledVertex[] quad : quads) {
             CompiledVertex vertex0 = quad[0];
             float x = vertex0.x;

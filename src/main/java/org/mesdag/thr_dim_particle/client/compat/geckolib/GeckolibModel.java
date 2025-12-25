@@ -22,6 +22,7 @@ import java.util.List;
 public class GeckolibModel {
     private static final long fullModelColor = 0xFFFFFFFFL << 32;
     protected final CompiledVertex[][] quads;
+    public final int maxBytes;
 
     public GeckolibModel(BakedGeoModel root, ResourceLocation textureLocation) {
         List<CompiledVertex[]> list = new ArrayList<>();
@@ -30,6 +31,7 @@ public class GeckolibModel {
             collectQuads(list, poseStack, bone, TDPClient.getAtlas().getSprite(textureLocation));
         }
         this.quads = list.toArray(new CompiledVertex[0][0]);
+        this.maxBytes = quads.length * 4 * TDPRenderType.VERTEX_SIZE;
     }
 
     /// @see GeoRenderer#renderRecursively(PoseStack, GeoAnimatable, GeoBone, RenderType, MultiBufferSource, VertexConsumer, boolean, float, int, int, int)
@@ -77,7 +79,7 @@ public class GeckolibModel {
                 m02 = pose.m02(), m12 = pose.m12(), m22 = pose.m22(), m32 = pose.m32();
         long c = particle.abgr & 0xFFFFFFFFL;
         short l = particle.light;
-        long ptr = buffer.pushPtr(quads.length * 4 * TDPRenderType.VERTEX_SIZE);
+        long ptr = buffer.pushPtr(maxBytes);
         for (CompiledVertex[] quad : quads) {
             CompiledVertex vertex0 = quad[0];
             float x = vertex0.x;
@@ -141,7 +143,7 @@ public class GeckolibModel {
                 m02 = pose.m02(), m12 = pose.m12(), m22 = pose.m22(), m32 = pose.m32();
         long c = particle.abgr & 0xFFFFFFFFL;
         short l = particle.light;
-        long ptr = buffer.pushPtr(quads.length * 4 * TDPRenderType.VERTEX_SIZE);
+        long ptr = buffer.pushPtr(maxBytes);
         for (CompiledVertex[] quad : quads) {
             CompiledVertex vertex0 = quad[0];
             float x = vertex0.x;

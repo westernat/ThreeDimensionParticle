@@ -116,7 +116,7 @@ public class GeometryModel {
                 m02 = pose.m02(), m12 = pose.m12(), m22 = pose.m22(), m32 = pose.m32();
         long c = particle.abgr & 0xFFFFFFFFL;
         short l = particle.light;
-        long ptr = buffer.pushPtr(quads.length * 4 * TDPRenderType.VERTEX_SIZE);
+        long ptr = buffer.pushPtr(maxBytes);
         for (CompiledVertex[] quad : quads) {
             CompiledVertex vertex0 = quad[0];
             float x = vertex0.x;
