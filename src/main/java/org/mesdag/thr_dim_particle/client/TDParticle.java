@@ -498,8 +498,4 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         super.setBoundingBox(bb);
         this.renderBoundingBox = getBoundingBox().inflate(1.0);
     }
-
-    public boolean outside(AABB aabb) {
-        return x < aabb.minX || x >= aabb.maxX || y < aabb.minY || y >= aabb.maxY || z < aabb.minZ || z >= aabb.maxZ;
-    }
 }

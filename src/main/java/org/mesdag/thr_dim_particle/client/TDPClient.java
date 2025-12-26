@@ -1,10 +1,12 @@
 package org.mesdag.thr_dim_particle.client;
 
+import com.google.common.collect.Iterables;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
 import net.minecraft.ReportedException;
@@ -18,6 +20,7 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -72,7 +75,9 @@ import org.mesdag.particlestorm.particle.ParticlePreset;
 import org.mesdag.thr_dim_particle.TDP;
 import org.mesdag.thr_dim_particle.client.compat.sodium.IrisHelper;
 import org.mesdag.thr_dim_particle.client.impl.TDParticleAppearance;
-import org.mesdag.thr_dim_particle.client.impl.WithBlockParticleEmitter;
+import org.mesdag.thr_dim_particle.client.impl.emitter.PresetVarsParticleEmitter;
+import org.mesdag.thr_dim_particle.client.impl.emitter.TDParticleEmitter;
+import org.mesdag.thr_dim_particle.client.impl.emitter.WithBlockParticleEmitter;
 
 import java.io.IOException;
 import java.util.*;
@@ -214,7 +219,7 @@ public class TDPClient {
         ResourceLocation particle = asParticle(BuiltInRegistries.BLOCK.getKey(block).getPath());
         List<AttachEmitterToBlockEvent.AttachData> associated = new ArrayList<>();
         for (T t : property.getPossibleValues()) {
-            associated.add(event.attach(blockState.setValue(property, t), particle, (level, pos, state) -> new MolangExp(expStr.apply(t)), false));
+            associated.add(event.attach(blockState.setValue(property, t), particle, (level, pos, state) -> new MolangExp(expStr.apply(t)), false, emitter -> false));
         }
         config.initAssociated(associated);
     }
@@ -223,11 +228,14 @@ public class TDPClient {
     public static void clientTick$Post(ClientTickEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
-        if (level != null && level.getGameTime() % ClientConfigs.emitterAutoRemoveIntervalTick == 0) {
-            Camera camera = minecraft.gameRenderer.getMainCamera();
-            if (camera.isInitialized()) {
-                AttachEmitterToBlockEvent.tick(camera);
-                tick(camera);
+        if (level != null) {
+            int tick = ClientConfigs.emitterAutoRemoveIntervalTick;
+            if (tick <= 1 || level.getGameTime() % tick == 0) {
+                Camera camera = minecraft.gameRenderer.getMainCamera();
+                if (camera.isInitialized()) {
+                    AttachEmitterToBlockEvent.tick(camera);
+                    tick(camera);
+                }
             }
         }
     }
@@ -269,8 +277,6 @@ public class TDPClient {
             GlStateManager.DEPTH.mask = true;
             GL11.glDepthMask(true);
         }
-        AABB aabb = null;
-        boolean lastSkip = false;
         Iterator<Particle> iterator = queue.iterator();
         while (iterator.hasNext()) {
             TDParticle tdp = (TDParticle) iterator.next();
@@ -281,13 +287,8 @@ public class TDPClient {
             if (buffer == null) {
                 continue;
             }
-            if (aabb == null || tdp.outside(aabb)) {
-                aabb = tdp.renderBoundingBox;
-                if (!frustum.cubeInFrustum(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ)) {
-                    lastSkip = true;
-                    continue;
-                }
-            } else if (lastSkip) {
+            AABB aabb = tdp.renderBoundingBox;
+            if (!frustum.cubeInFrustum(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ)) {
                 continue;
             }
             try {
@@ -320,13 +321,20 @@ public class TDPClient {
         return atlas;
     }
 
-    static final ArrayDeque<ParticleEmitter> emitters = new ArrayDeque<>(64);
+    public static final Queue<TDParticleEmitter> emitters = new ArrayDeque<>(64);
+    public static final Map<BlockPos, TDParticleEmitter> campfireEmitters = new Object2ObjectOpenHashMap<>(64);
+    private static final Iterable<TDParticleEmitter> emittersIterable = Iterables.concat(emitters, campfireEmitters.values());
 
     private static void tick(Camera camera) {
-        if (emitters.isEmpty()) return;
-        Iterator<ParticleEmitter> iterator = emitters.iterator();
+        if (emitters.isEmpty() && campfireEmitters.isEmpty()) return;
+        Iterator<TDParticleEmitter> iterator = emittersIterable.iterator();
         while (iterator.hasNext()) {
-            ParticleEmitter emitter = iterator.next();
+            TDParticleEmitter emitter = iterator.next();
+            for (ParticleEmitter child : emitter.children) {
+                if (child instanceof TDParticleEmitter tdpe && shouldRemoveEmitter(camera, tdpe)) {
+                    child.remove();
+                }
+            }
             if (shouldRemoveEmitter(camera, emitter)) {
                 emitter.remove();
                 iterator.remove();
@@ -336,15 +344,7 @@ public class TDPClient {
 
     public static boolean addEmitter(Level level, Vec3 pos, ResourceLocation particle, Variable... variables) {
         if (ableToAddEmitter()) {
-            ParticleEmitter emitter = new ParticleEmitter(level, pos, particle) {
-                @Override
-                protected void createVars() {
-                    super.createVars();
-                    for (Variable var : variables) {
-                        vars.table.put(var.name(), var);
-                    }
-                }
-            };
+            PresetVarsParticleEmitter emitter = new PresetVarsParticleEmitter(level, pos, particle, variables);
             PSGameClient.LOADER.addEmitter(emitter, false);
             emitters.add(emitter);
             return false;
@@ -352,13 +352,28 @@ public class TDPClient {
         return ClientConfigs.allowsVanillaParticleWhenReachLimit;
     }
 
+    public static boolean ableToAddCampfireEmitter(BlockPos pos) {
+        if (Minecraft.fps > ClientConfigs.fpsThreshold) {
+            int i = ClientConfigs.emitterLimit - AttachEmitterToBlockEvent.emitters.size() - emitters.size();
+            if (i > campfireEmitters.size() / 2) {
+                return !campfireEmitters.containsKey(pos.immutable());
+            }
+        }
+        return false;
+    }
+
     public static boolean ableToAddEmitter() {
         return Minecraft.fps > ClientConfigs.fpsThreshold &&
                 AttachEmitterToBlockEvent.emitters.size() + emitters.size() < ClientConfigs.emitterLimit;
     }
 
-    public static boolean shouldRemoveEmitter(Camera camera, ParticleEmitter emitter) {
+    public static boolean shouldRemoveEmitter(Camera camera, TDParticleEmitter emitter) {
         if (emitter.isRemoved()) return true;
+        if (emitter.ignoreRange.test(emitter)) return false;
+        return isFarAwayFromCamera(camera, emitter);
+    }
+
+    public static boolean isFarAwayFromCamera(Camera camera, TDParticleEmitter emitter) {
         double v = camera.getPosition().distanceToSqr(emitter.getPosition());
         if (v < Mth.square(ClientConfigs.emitterAutoRemoveMinimumDistance)) return false;
         v = Math.sqrt(v) - ClientConfigs.emitterAutoRemoveMinimumDistance;

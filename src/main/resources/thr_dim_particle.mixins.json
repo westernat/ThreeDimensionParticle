@@ -8,6 +8,7 @@
         "client.BlockModel$DeserializerMixin",
         "client.MinecraftMixin",
         "client.ParticleEngineMixin",
+        "client.effect.CampfireBlockEntityMixin",
         "client.effect.ClientLevelMixin",
         "client.effect.ExplosionMixin"
     ],

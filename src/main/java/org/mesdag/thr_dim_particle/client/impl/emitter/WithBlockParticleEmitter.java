@@ -1,4 +1,4 @@
-package org.mesdag.thr_dim_particle.client.impl;
+package org.mesdag.thr_dim_particle.client.impl.emitter;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -8,20 +8,28 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.mesdag.particlestorm.api.RegisterCustomEmitterTypeEvent;
+import org.mesdag.particlestorm.data.event.ParticleEffect;
 import org.mesdag.particlestorm.data.molang.MolangExp;
 import org.mesdag.particlestorm.particle.ParticleEmitter;
 
-public class WithBlockParticleEmitter extends ParticleEmitter {
+import java.util.function.Predicate;
+
+public class WithBlockParticleEmitter extends TDParticleEmitter {
     protected @Nullable WithBlockParticleEmitter.BlockData blockData;
 
-    public WithBlockParticleEmitter(Level level, Vec3 pos, ResourceLocation particleId, MolangExp expression, boolean ignoreSameBlock) {
-        super(level, pos, particleId, expression);
+    public WithBlockParticleEmitter(Level level, Vec3 pos, ResourceLocation particleId, MolangExp expression, boolean ignoreSameBlock, Predicate<TDParticleEmitter> ignoreRange) {
+        super(level, pos, particleId, expression, ignoreRange);
         initBlock(level, pos, ignoreSameBlock);
     }
 
     public WithBlockParticleEmitter(Level level, CompoundTag tag) {
         super(level, tag);
         initBlock(level, pos, tag.getBoolean("ignoreSameBlock"));
+    }
+
+    public WithBlockParticleEmitter(ParticleEmitter parent, ParticleEffect effect, boolean ignoreSameBlock, Predicate<TDParticleEmitter> ignoreRange) {
+        super(parent, effect, ignoreRange);
+        initBlock(parent.level, parent.pos, ignoreSameBlock);
     }
 
     private void initBlock(Level level, Vec3 pos, boolean ignoreSameBlock) {
