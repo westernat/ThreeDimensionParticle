@@ -45,7 +45,7 @@
 			},
 			"minecraft:particle_motion_collision": {
 				"collision_drag": 0.4,
-				"collision_radius": 0.2
+				"collision_radius": 0.1
 			}
 		}
 	}

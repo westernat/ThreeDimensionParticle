@@ -5,10 +5,8 @@ import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.CampfireBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
 import org.mesdag.particlestorm.PSGameClient;
 import org.mesdag.thr_dim_particle.client.ClientConfigs;
 import org.mesdag.thr_dim_particle.client.TDPClient;
@@ -27,19 +25,21 @@ public abstract class CampfireBlockEntityMixin {
             @Local(argsOnly = true) CampfireBlockEntity blockEntity
     ) {
         if (!level.isClientSide) return original;
-        if (ClientConfigs.campfireSmoke.isEnabled() && TDPClient.ableToAddCampfireEmitter(pos)) {
-            Block block = state.getBlock();
-            ResourceLocation particle = ClientConfigs.campfireSmoke.particle;
-            if (particle == null) {
-                ClientConfigs.campfireSmoke.markFailed();
-                return original;
+        if (ClientConfigs.campfireSmoke.isEnabled()) {
+            if (CampfireSmokeParticleEmitter.ableToAddCampfireEmitter(pos)) {
+                ResourceLocation particle = ClientConfigs.campfireSmoke.particle;
+                if (particle == null) {
+                    ClientConfigs.campfireSmoke.markFailed();
+                } else {
+                    CampfireSmokeParticleEmitter emitter = new CampfireSmokeParticleEmitter(level, pos.getCenter(), particle);
+                    emitter.attachedBlock = blockEntity;
+                    PSGameClient.LOADER.addEmitter(emitter, false);
+                    TDPClient.campfireEmitters.put(pos.immutable(), emitter);
+                    CampfireSmokeParticleEmitter.addFireEmitter(level, pos, state.getBlock(), emitter);
+                }
             }
-            Vec3 center = pos.getCenter();
-            CampfireSmokeParticleEmitter emitter = new CampfireSmokeParticleEmitter(level, center, particle);
-            emitter.attachedBlock = blockEntity;
-            PSGameClient.LOADER.addEmitter(emitter, false);
-            TDPClient.campfireEmitters.put(pos.immutable(), emitter);
-            CampfireSmokeParticleEmitter.addFireEmitter(block, emitter);
+        } else {
+            CampfireSmokeParticleEmitter.addFireEmitter(level, pos, state.getBlock(), null);
         }
         return ClientConfigs.allowsVanillaParticleWhenReachLimit ? original : 1;
     }

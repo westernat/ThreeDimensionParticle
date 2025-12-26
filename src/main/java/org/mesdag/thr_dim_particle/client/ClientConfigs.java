@@ -8,8 +8,10 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.jetbrains.annotations.Nullable;
 import org.mesdag.thr_dim_particle.TDP;
+import org.mesdag.thr_dim_particle.client.impl.emitter.TDParticleEmitter;
 import org.mesdag.thr_dim_particle.client.impl.emitter.WithBlockParticleEmitter;
 
+import java.util.Iterator;
 import java.util.List;
 
 public final class ClientConfigs {
@@ -53,9 +55,17 @@ public final class ClientConfigs {
         explosion = new ParticleConfig(builder, "explosion", "bomb_smoke");
         endRod = new ParticleConfig(builder, "endRod", "end_rod");
         netherPortal = new ParticleConfig(builder, "netherPortal", "nether_portal");
-        commonCampfireFire = new ParticleConfig(builder, "commonCampfireFire", "fire");
-        soulCampfireFire = new ParticleConfig(builder, "soulCampfireFire", "soul_fire");
-        campfireSmoke = new ParticleConfig(builder, "campfireSmoke", "campfire_smoke");
+        Runnable campfireCallback = () -> {
+            Iterator<TDParticleEmitter> iterator = TDPClient.campfireEmitters.values().iterator();
+            while (iterator.hasNext()) {
+                TDParticleEmitter emitter = iterator.next();
+                emitter.remove();
+                iterator.remove();
+            }
+        };
+        commonCampfireFire = new ParticleConfig(builder, "commonCampfireFire", "fire", campfireCallback);
+        soulCampfireFire = new ParticleConfig(builder, "soulCampfireFire", "soul_fire", campfireCallback);
+        campfireSmoke = new ParticleConfig(builder, "campfireSmoke", "campfire_smoke", campfireCallback);
         builder.pop();
 
         container.registerConfig(ModConfig.Type.CLIENT, builder.build());
@@ -85,11 +95,17 @@ public final class ClientConfigs {
         public boolean failed = false;
 
         private final String configPath;
+        private final @Nullable Runnable onLoadCallback;
         private final ModConfigSpec.BooleanValue ENABLE;
         private final ModConfigSpec.ConfigValue<String> PARTICLE;
 
         public ParticleConfig(ModConfigSpec.Builder builder, String configPath, String particlePath) {
+            this(builder, configPath, particlePath, null);
+        }
+
+        public ParticleConfig(ModConfigSpec.Builder builder, String configPath, String particlePath, @Nullable Runnable onLoadCallback) {
             this.configPath = configPath;
+            this.onLoadCallback = onLoadCallback;
             this.ENABLE = builder.define(configPath, true);
             this.PARTICLE = builder.define(configPath + "Particle", "tdp:" + particlePath);
         }
@@ -102,6 +118,9 @@ public final class ClientConfigs {
             this.enabled = ENABLE.get();
             this.particle = ResourceLocation.tryParse(PARTICLE.get());
             updateAssociated();
+            if (onLoadCallback != null) {
+                Minecraft.getInstance().execute(onLoadCallback);
+            }
         }
 
         public void initAssociated(List<AttachEmitterToBlockEvent.AttachData> associated) {

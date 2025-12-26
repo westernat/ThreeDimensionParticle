@@ -352,16 +352,6 @@ public class TDPClient {
         return ClientConfigs.allowsVanillaParticleWhenReachLimit;
     }
 
-    public static boolean ableToAddCampfireEmitter(BlockPos pos) {
-        if (Minecraft.fps > ClientConfigs.fpsThreshold) {
-            int i = ClientConfigs.emitterLimit - AttachEmitterToBlockEvent.emitters.size() - emitters.size();
-            if (i > campfireEmitters.size() / 2) {
-                return !campfireEmitters.containsKey(pos.immutable());
-            }
-        }
-        return false;
-    }
-
     public static boolean ableToAddEmitter() {
         return Minecraft.fps > ClientConfigs.fpsThreshold &&
                 AttachEmitterToBlockEvent.emitters.size() + emitters.size() < ClientConfigs.emitterLimit;
