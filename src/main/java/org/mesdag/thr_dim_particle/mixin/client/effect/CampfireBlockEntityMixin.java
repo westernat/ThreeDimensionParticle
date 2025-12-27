@@ -40,6 +40,7 @@ public abstract class CampfireBlockEntityMixin {
             }
         } else {
             CampfireSmokeParticleEmitter.addFireEmitter(level, pos, state.getBlock(), null);
+            return original;
         }
         return ClientConfigs.allowsVanillaParticleWhenReachLimit ? original : 1;
     }

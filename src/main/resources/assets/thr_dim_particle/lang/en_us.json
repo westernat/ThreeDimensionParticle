@@ -1,3 +1,17 @@
 {
-    "resourcepack.3d_particle_display_adaptation": "3D Particle Display Adaptation"
+    "resourcepack.3d_particle_display_adaptation": "3D Particle Display Adaptation",
+    "thr_dim_particle.configuration.soulCampfireFire": "Soul Campfire Fire",
+    "thr_dim_particle.configuration.Particle": "Particle",
+    "thr_dim_particle.configuration.endRod": "End Rod",
+    "thr_dim_particle.configuration.commonCampfireFire": "Common Campfire Fire",
+    "thr_dim_particle.configuration.campfireSmokeParticle": "Campfire Smoke Particle",
+    "thr_dim_particle.configuration.campfireSmoke": "Campfire Smoke",
+    "thr_dim_particle.configuration.soulCampfireFireParticle": "Soul Campfire Fire Particle",
+    "thr_dim_particle.configuration.explosion": "Explosion",
+    "thr_dim_particle.configuration.netherPortalParticle": "Nether Portal Particle",
+    "thr_dim_particle.configuration.endRodParticle": "End Rod Particle",
+    "thr_dim_particle.configuration.netherPortal": "Nether Portal",
+    "thr_dim_particle.configuration.Emitter": "Emitter",
+    "thr_dim_particle.configuration.explosionParticle": "Explosion Particle",
+    "thr_dim_particle.configuration.commonCampfireFireParticle": "Common Campfire Fire Particle"
 }
