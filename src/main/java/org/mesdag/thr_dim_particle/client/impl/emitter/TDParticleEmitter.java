@@ -8,23 +8,20 @@ import org.mesdag.particlestorm.data.event.ParticleEffect;
 import org.mesdag.particlestorm.data.molang.MolangExp;
 import org.mesdag.particlestorm.particle.ParticleEmitter;
 
-import java.util.function.Predicate;
-
 public abstract class TDParticleEmitter extends ParticleEmitter {
-    public final Predicate<TDParticleEmitter> ignoreRange;
+    public final boolean ignoreRange;
 
-    public TDParticleEmitter(Level level, Vec3 pos, ResourceLocation particleId, MolangExp expression, Predicate<TDParticleEmitter> ignoreRange) {
+    public TDParticleEmitter(Level level, Vec3 pos, ResourceLocation particleId, MolangExp expression, boolean ignoreRange) {
         super(level, pos, particleId, expression);
         this.ignoreRange = ignoreRange;
     }
 
     public TDParticleEmitter(Level level, CompoundTag tag) {
         super(level, tag);
-        boolean ignoreRange = tag.getBoolean("ignoreRange");
-        this.ignoreRange = emitter -> ignoreRange;
+        this.ignoreRange = tag.getBoolean("ignoreRange");
     }
 
-    public TDParticleEmitter(ParticleEmitter parent, ParticleEffect effect, Predicate<TDParticleEmitter> ignoreRange) {
+    public TDParticleEmitter(ParticleEmitter parent, ParticleEffect effect, boolean ignoreRange) {
         super(parent, effect);
         this.ignoreRange = ignoreRange;
     }
@@ -40,6 +37,6 @@ public abstract class TDParticleEmitter extends ParticleEmitter {
     @Override
     public void serialize(CompoundTag compound) {
         super.serialize(compound);
-        compound.putBoolean("ignoreRange", ignoreRange.test(this));
+        compound.putBoolean("ignoreRange", ignoreRange);
     }
 }

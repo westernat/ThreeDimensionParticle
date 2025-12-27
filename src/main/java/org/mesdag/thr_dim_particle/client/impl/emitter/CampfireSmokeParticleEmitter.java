@@ -21,7 +21,7 @@ import org.mesdag.thr_dim_particle.client.TDPClient;
 
 public class CampfireSmokeParticleEmitter extends TDParticleEmitter {
     public CampfireSmokeParticleEmitter(Level level, Vec3 pos, ResourceLocation particleId) {
-        super(level, pos, particleId, MolangExp.EMPTY, emitter -> true);
+        super(level, pos, particleId, MolangExp.EMPTY, true);
     }
 
     @Override
@@ -48,26 +48,26 @@ public class CampfireSmokeParticleEmitter extends TDParticleEmitter {
     }
 
     public static void addFireEmitter(Level level, BlockPos pos, Block block, @Nullable CampfireSmokeParticleEmitter emitter) {
-        ClientConfigs.ParticleConfig fireConfig;
+        ClientConfigs.ParticleConfig config;
         if (block == Blocks.CAMPFIRE) {
-            fireConfig = ClientConfigs.commonCampfireFire;
+            config = ClientConfigs.commonCampfireFire;
         } else if (block == Blocks.SOUL_CAMPFIRE) {
-            fireConfig = ClientConfigs.soulCampfireFire;
+            config = ClientConfigs.soulCampfireFire;
         } else {
             return;
         }
-        if (fireConfig.isEnabled()) {
-            if (fireConfig.particle == null) {
-                fireConfig.markFailed();
+        if (config.isEnabled()) {
+            if (config.particle == null) {
+                config.markFailed();
             } else if (emitter == null) {
                 if (CampfireSmokeParticleEmitter.ableToAddCampfireEmitter(pos)) {
-                    WithBlockParticleEmitter emitter1 = new WithBlockParticleEmitter(level, pos.getCenter(), fireConfig.particle, MolangExp.EMPTY, false, e -> false);
+                    WithBlockParticleEmitter emitter1 = new WithBlockParticleEmitter(level, pos.getCenter(), config.particle, MolangExp.EMPTY, false, false);
                     PSGameClient.LOADER.addEmitter(emitter1, false);
                     TDPClient.campfireEmitters.put(pos.immutable(), emitter1);
                 }
             } else {
-                ParticleEffect effect = new ParticleEffect(fireConfig.particle, ParticleEffect.Type.EMITTER_BOUND, MolangExp.EMPTY);
-                PSGameClient.LOADER.addEmitter(new WithBlockParticleEmitter(emitter, effect, false, e -> false), false);
+                ParticleEffect effect = new ParticleEffect(config.particle, ParticleEffect.Type.EMITTER_BOUND, MolangExp.EMPTY);
+                PSGameClient.LOADER.addEmitter(new WithBlockParticleEmitter(emitter, effect, false, false), false);
             }
         }
     }

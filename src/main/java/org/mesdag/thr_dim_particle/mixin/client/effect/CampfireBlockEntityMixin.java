@@ -3,7 +3,6 @@ package org.mesdag.thr_dim_particle.mixin.client.effect;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.CampfireBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -25,13 +24,13 @@ public abstract class CampfireBlockEntityMixin {
             @Local(argsOnly = true) CampfireBlockEntity blockEntity
     ) {
         if (!level.isClientSide) return original;
-        if (ClientConfigs.campfireSmoke.isEnabled()) {
+        ClientConfigs.ParticleConfig config = ClientConfigs.campfireSmoke;
+        if (config.isEnabled()) {
             if (CampfireSmokeParticleEmitter.ableToAddCampfireEmitter(pos)) {
-                ResourceLocation particle = ClientConfigs.campfireSmoke.particle;
-                if (particle == null) {
-                    ClientConfigs.campfireSmoke.markFailed();
+                if (config.particle == null) {
+                    config.markFailed();
                 } else {
-                    CampfireSmokeParticleEmitter emitter = new CampfireSmokeParticleEmitter(level, pos.getCenter(), particle);
+                    CampfireSmokeParticleEmitter emitter = new CampfireSmokeParticleEmitter(level, pos.getCenter(), config.particle);
                     emitter.attachedBlock = blockEntity;
                     PSGameClient.LOADER.addEmitter(emitter, false);
                     TDPClient.campfireEmitters.put(pos.immutable(), emitter);

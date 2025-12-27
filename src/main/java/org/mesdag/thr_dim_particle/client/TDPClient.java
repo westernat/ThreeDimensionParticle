@@ -219,7 +219,7 @@ public class TDPClient {
         ResourceLocation particle = asParticle(BuiltInRegistries.BLOCK.getKey(block).getPath());
         List<AttachEmitterToBlockEvent.AttachData> associated = new ArrayList<>();
         for (T t : property.getPossibleValues()) {
-            associated.add(event.attach(blockState.setValue(property, t), particle, (level, pos, state) -> new MolangExp(expStr.apply(t)), false, emitter -> false));
+            associated.add(event.attach(blockState.setValue(property, t), particle, (level, pos, state) -> new MolangExp(expStr.apply(t)), false, false));
         }
         config.initAssociated(associated);
     }
@@ -344,7 +344,7 @@ public class TDPClient {
 
     public static boolean addEmitter(Level level, Vec3 pos, ResourceLocation particle, Variable... variables) {
         if (ableToAddEmitter()) {
-            PresetVarsParticleEmitter emitter = new PresetVarsParticleEmitter(level, pos, particle, variables);
+            PresetVarsParticleEmitter emitter = new PresetVarsParticleEmitter(level, pos, particle, false, variables);
             PSGameClient.LOADER.addEmitter(emitter, false);
             emitters.add(emitter);
             return false;
@@ -359,7 +359,7 @@ public class TDPClient {
 
     public static boolean shouldRemoveEmitter(Camera camera, TDParticleEmitter emitter) {
         if (emitter.isRemoved()) return true;
-        if (emitter.ignoreRange.test(emitter)) return false;
+        if (emitter.ignoreRange) return false;
         return isFarAwayFromCamera(camera, emitter);
     }
 

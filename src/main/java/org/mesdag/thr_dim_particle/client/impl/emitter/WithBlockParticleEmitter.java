@@ -12,12 +12,10 @@ import org.mesdag.particlestorm.data.event.ParticleEffect;
 import org.mesdag.particlestorm.data.molang.MolangExp;
 import org.mesdag.particlestorm.particle.ParticleEmitter;
 
-import java.util.function.Predicate;
-
 public class WithBlockParticleEmitter extends TDParticleEmitter {
     protected @Nullable WithBlockParticleEmitter.BlockData blockData;
 
-    public WithBlockParticleEmitter(Level level, Vec3 pos, ResourceLocation particleId, MolangExp expression, boolean ignoreSameBlock, Predicate<TDParticleEmitter> ignoreRange) {
+    public WithBlockParticleEmitter(Level level, Vec3 pos, ResourceLocation particleId, MolangExp expression, boolean ignoreSameBlock, boolean ignoreRange) {
         super(level, pos, particleId, expression, ignoreRange);
         initBlock(level, pos, ignoreSameBlock);
     }
@@ -27,7 +25,7 @@ public class WithBlockParticleEmitter extends TDParticleEmitter {
         initBlock(level, pos, tag.getBoolean("ignoreSameBlock"));
     }
 
-    public WithBlockParticleEmitter(ParticleEmitter parent, ParticleEffect effect, boolean ignoreSameBlock, Predicate<TDParticleEmitter> ignoreRange) {
+    public WithBlockParticleEmitter(ParticleEmitter parent, ParticleEffect effect, boolean ignoreSameBlock, boolean ignoreRange) {
         super(parent, effect, ignoreRange);
         initBlock(parent.level, parent.pos, ignoreSameBlock);
     }

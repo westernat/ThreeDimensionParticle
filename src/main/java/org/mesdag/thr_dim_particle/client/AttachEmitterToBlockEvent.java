@@ -15,12 +15,10 @@ import net.neoforged.fml.event.IModBusEvent;
 import org.jetbrains.annotations.Nullable;
 import org.mesdag.particlestorm.PSGameClient;
 import org.mesdag.particlestorm.data.molang.MolangExp;
-import org.mesdag.thr_dim_particle.client.impl.emitter.TDParticleEmitter;
 import org.mesdag.thr_dim_particle.client.impl.emitter.WithBlockParticleEmitter;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.function.Predicate;
 
 public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
     private static ResourceLocation defaultParticle;
@@ -37,37 +35,37 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
         defaultParticle = null;
     }
 
-    public AttachData attach(BlockState state, boolean allowsVanilla, Function3<Level, BlockPos, BlockState, @Nullable WithBlockParticleEmitter> factory, Predicate<TDParticleEmitter> ignoreRange) {
+    public AttachData attach(BlockState state, boolean allowsVanilla, Function3<Level, BlockPos, BlockState, @Nullable WithBlockParticleEmitter> factory, boolean ignoreRange) {
         AttachData data = new AttachData.Wrapped(factory, false, allowsVanilla, ignoreRange);
         stateMap.put(state, data);
         return data;
     }
 
-    public AttachData attach(Block block, boolean allowsVanilla, Function3<Level, BlockPos, BlockState, @Nullable WithBlockParticleEmitter> factory, Predicate<TDParticleEmitter> ignoreRange) {
+    public AttachData attach(Block block, boolean allowsVanilla, Function3<Level, BlockPos, BlockState, @Nullable WithBlockParticleEmitter> factory, boolean ignoreRange) {
         AttachData data = new AttachData.Wrapped(factory, true, allowsVanilla, ignoreRange);
         blockMap.put(block, data);
         return data;
     }
 
-    public AttachData attach(BlockState state, ResourceLocation particleId, MolangExp expression, boolean allowsVanilla, Predicate<TDParticleEmitter> ignoreRange) {
+    public AttachData attach(BlockState state, ResourceLocation particleId, MolangExp expression, boolean allowsVanilla, boolean ignoreRange) {
         AttachData data = new AttachData(particleId, expression, false, allowsVanilla, ignoreRange);
         stateMap.put(state, data);
         return data;
     }
 
-    public AttachData attach(BlockState state, ResourceLocation particleId, Function3<Level, BlockPos, BlockState, MolangExp> expression, boolean allowsVanilla, Predicate<TDParticleEmitter> ignoreRange) {
+    public AttachData attach(BlockState state, ResourceLocation particleId, Function3<Level, BlockPos, BlockState, MolangExp> expression, boolean allowsVanilla, boolean ignoreRange) {
         AttachData data = new AttachData(particleId, expression, false, allowsVanilla, ignoreRange);
         stateMap.put(state, data);
         return data;
     }
 
-    public AttachData attach(Block block, ResourceLocation particleId, MolangExp expression, boolean allowsVanilla, Predicate<TDParticleEmitter> ignoreRange) {
+    public AttachData attach(Block block, ResourceLocation particleId, MolangExp expression, boolean allowsVanilla, boolean ignoreRange) {
         AttachData data = new AttachData(particleId, expression, true, allowsVanilla, ignoreRange);
         blockMap.put(block, data);
         return data;
     }
 
-    public AttachData attach(Block block, ResourceLocation particleId, Function3<Level, BlockPos, BlockState, MolangExp> expression, boolean allowsVanilla, Predicate<TDParticleEmitter> ignoreRange) {
+    public AttachData attach(Block block, ResourceLocation particleId, Function3<Level, BlockPos, BlockState, MolangExp> expression, boolean allowsVanilla, boolean ignoreRange) {
         AttachData data = new AttachData(particleId, expression, true, allowsVanilla, ignoreRange);
         blockMap.put(block, data);
         return data;
@@ -117,9 +115,9 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
         public final Function3<Level, BlockPos, BlockState, MolangExp> expression;
         public final boolean ignoreSameBlock;
         public final boolean allowsVanilla;
-        public final Predicate<TDParticleEmitter> ignoreRange;
+        public final boolean ignoreRange;
 
-        public AttachData(ResourceLocation particleId, Function3<Level, BlockPos, BlockState, MolangExp> expression, boolean ignoreSameBlock, boolean allowsVanilla, Predicate<TDParticleEmitter> ignoreRange) {
+        public AttachData(ResourceLocation particleId, Function3<Level, BlockPos, BlockState, MolangExp> expression, boolean ignoreSameBlock, boolean allowsVanilla, boolean ignoreRange) {
             this.particleId = particleId;
             this.expression = expression;
             this.ignoreSameBlock = ignoreSameBlock;
@@ -127,7 +125,7 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
             this.ignoreRange = ignoreRange;
         }
 
-        public AttachData(ResourceLocation particleId, MolangExp expression, boolean ignoreSameBlock, boolean allowsVanilla, Predicate<TDParticleEmitter> ignoreRange) {
+        public AttachData(ResourceLocation particleId, MolangExp expression, boolean ignoreSameBlock, boolean allowsVanilla, boolean ignoreRange) {
             this(particleId, (level, pos, state) -> expression, ignoreSameBlock, allowsVanilla, ignoreRange);
         }
 
@@ -141,7 +139,7 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
         static class Wrapped extends AttachData {
             private final Function3<Level, BlockPos, BlockState, @Nullable WithBlockParticleEmitter> factory;
 
-            Wrapped(Function3<Level, BlockPos, BlockState, @Nullable WithBlockParticleEmitter> factory, boolean ignoreSameBlock, boolean allowsVanilla, Predicate<TDParticleEmitter> ignoreRange) {
+            Wrapped(Function3<Level, BlockPos, BlockState, @Nullable WithBlockParticleEmitter> factory, boolean ignoreSameBlock, boolean allowsVanilla, boolean ignoreRange) {
                 super(defaultParticle, MolangExp.EMPTY, ignoreSameBlock, allowsVanilla, ignoreRange);
                 this.factory = factory;
             }
