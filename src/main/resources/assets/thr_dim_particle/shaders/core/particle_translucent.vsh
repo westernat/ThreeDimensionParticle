@@ -1,7 +1,7 @@
 #version 150
 
 #moj_import <fog.glsl>
-#moj_import <tdp_utils.glsl>
+#moj_import <thr_dim_particle:tdp_utils.glsl>
 
 in vec3 Position;
 in vec4 Color;
