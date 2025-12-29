@@ -28,7 +28,7 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
     private AttachEmitterToBlockEvent() {}
 
     public static void postEvent() {
-        defaultParticle = ResourceLocation.fromNamespaceAndPath("tdp", "test");
+        defaultParticle = TDPClient.asParticle("test");
         stateMap = new Object2ObjectOpenHashMap<>();
         blockMap = new Object2ObjectOpenHashMap<>();
         ModLoader.postEvent(new AttachEmitterToBlockEvent());

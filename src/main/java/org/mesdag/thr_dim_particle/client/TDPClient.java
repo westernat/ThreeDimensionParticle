@@ -99,6 +99,7 @@ public class TDPClient {
         }
     };
     public static final ResourceLocation ATLAS_LOCATION = TDP.asResource("textures/atlas/particles.png");
+    public static final int BUFFER_SIZE = 262144;
     static ShaderInstance particleSolidShaderInstance;
     static ShaderInstance particleCutoutShaderInstance;
     static ShaderInstance particleCutoutMippedShaderInstance;
@@ -119,12 +120,11 @@ public class TDPClient {
                 IrisHelper.setAllowUnknownShaders();
             }
             AttachEmitterToBlockEvent.postEvent();
-            ByteBufferBuilder buffer = Tesselator.getInstance().buffer;
             buffers = new ParticleBuffer[]{
-                    new ParticleBuffer(buffer),
-                    new ParticleBuffer(buffer),
-                    new ParticleBuffer(buffer),
-                    new ParticleBuffer(buffer)
+                    new ParticleBuffer(new ByteBufferBuilder(BUFFER_SIZE)),
+                    new ParticleBuffer(new ByteBufferBuilder(BUFFER_SIZE)),
+                    new ParticleBuffer(new ByteBufferBuilder(BUFFER_SIZE)),
+                    new ParticleBuffer(new ByteBufferBuilder(BUFFER_SIZE))
             };
         });
     }
