@@ -41,11 +41,6 @@ public class ParticleBuffer {
         buffer.writeOffset += bytes;
     }
 
-    public long reserve() {
-        ++this.vertices;
-        return buffer.reserve(TDPRenderType.VERTEX_SIZE);
-    }
-
     public void draw(TDPRenderType renderType) {
         if (this.vertices == 0) {
             return;

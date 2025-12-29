@@ -3,6 +3,7 @@ package org.mesdag.thr_dim_particle.client;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.client.model.IQuadTransformer;
 import org.joml.Matrix4f;
@@ -17,7 +18,13 @@ public class GeometryModel {
 
     public GeometryModel(BakedModel model) {
         List<CompiledVertex[]> list = new ArrayList<>();
-        for (BakedQuad bakedQuad : model.getQuads(null, null, RandomSource.create(251225))) {
+        List<BakedQuad> quadList = new ArrayList<>();
+        RandomSource random = RandomSource.create(251225);
+        for (Direction direction : Direction.values()) {
+            quadList.addAll(model.getQuads(null, direction, random));
+        }
+        quadList.addAll(model.getQuads(null, null, random));
+        for (BakedQuad bakedQuad : quadList) {
             int[] vertices = bakedQuad.getVertices();
             CompiledVertex[] quad = new CompiledVertex[4];
             for (int i = 0; i < 4; i++) {
