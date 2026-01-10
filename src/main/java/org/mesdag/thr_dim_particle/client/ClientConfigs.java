@@ -11,6 +11,7 @@ import org.mesdag.thr_dim_particle.TDP;
 import org.mesdag.thr_dim_particle.client.impl.emitter.TDParticleEmitter;
 import org.mesdag.thr_dim_particle.client.impl.emitter.WithBlockParticleEmitter;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -38,6 +39,9 @@ public final class ClientConfigs {
     public static ParticleConfig soulCampfireFire;
     public static ParticleConfig campfireSmoke;
 
+    private static List<ParticleConfig> resourcePackAssociatedConfigs;
+    private static ModConfigSpec spec;
+
     public static void register(ModContainer container) {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
@@ -63,12 +67,14 @@ public final class ClientConfigs {
                 iterator.remove();
             }
         };
-        commonCampfireFire = new ParticleConfig(builder, "commonCampfireFire", "fire", campfireCallback);
-        soulCampfireFire = new ParticleConfig(builder, "soulCampfireFire", "soul_fire", campfireCallback);
-        campfireSmoke = new ParticleConfig(builder, "campfireSmoke", "campfire_smoke", campfireCallback);
+        List<ParticleConfig> configs = new ArrayList<>();
+        configs.add(commonCampfireFire = new ParticleConfig(builder, "commonCampfireFire", "fire", false, campfireCallback));
+        configs.add(soulCampfireFire = new ParticleConfig(builder, "soulCampfireFire", "soul_fire", false, campfireCallback));
+        configs.add(campfireSmoke = new ParticleConfig(builder, "campfireSmoke", "campfire_smoke", false, campfireCallback));
+        resourcePackAssociatedConfigs = configs;
         builder.pop();
 
-        container.registerConfig(ModConfig.Type.CLIENT, builder.build());
+        container.registerConfig(ModConfig.Type.CLIENT, spec = builder.build());
     }
 
     public static void onLoad() {
@@ -83,9 +89,20 @@ public final class ClientConfigs {
         explosion.onLoad();
         endRod.onLoad();
         netherPortal.onLoad();
-        commonCampfireFire.onLoad();
-        soulCampfireFire.onLoad();
-        campfireSmoke.onLoad();
+        for (ParticleConfig config : resourcePackAssociatedConfigs) {
+            config.onLoad();
+        }
+    }
+
+    public static void autoEnableConfig() {
+        boolean save = false;
+        boolean enable = TDPClient.isResourcePackLoaded(TDP.MODID + ":" + TDPClient.RESOURCE_PACK_PATH);
+        for (ParticleConfig config : resourcePackAssociatedConfigs) {
+            save |= config.enable(enable);
+        }
+        if (save) {
+            spec.save();
+        }
     }
 
     public static class ParticleConfig {
@@ -100,18 +117,35 @@ public final class ClientConfigs {
         private final ModConfigSpec.ConfigValue<String> PARTICLE;
 
         public ParticleConfig(ModConfigSpec.Builder builder, String configPath, String particlePath) {
-            this(builder, configPath, particlePath, null);
+            this(builder, configPath, particlePath, true, null);
         }
 
         public ParticleConfig(ModConfigSpec.Builder builder, String configPath, String particlePath, @Nullable Runnable onLoadCallback) {
+            this(builder, configPath, particlePath, true, onLoadCallback);
+        }
+
+        public ParticleConfig(ModConfigSpec.Builder builder, String configPath, String particlePath, boolean enabled, @Nullable Runnable onLoadCallback) {
             this.configPath = configPath;
             this.onLoadCallback = onLoadCallback;
-            this.ENABLE = builder.define(configPath, true);
+            this.ENABLE = builder.define(configPath, enabled);
             this.PARTICLE = builder.define(configPath + "Particle", "tdp:" + particlePath);
         }
 
         public boolean isEnabled() {
             return enabled && !failed;
+        }
+
+        public boolean enable(boolean enable) {
+            if (enable) {
+                if (!isEnabled()) {
+                    ENABLE.set(true);
+                    return true;
+                }
+            } else if (isEnabled()) {
+                ENABLE.set(false);
+                return true;
+            }
+            return false;
         }
 
         public void onLoad() {

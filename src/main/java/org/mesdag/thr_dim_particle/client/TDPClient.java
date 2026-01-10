@@ -100,6 +100,7 @@ public class TDPClient {
     };
     public static final ResourceLocation ATLAS_LOCATION = TDP.asResource("textures/atlas/particles.png");
     public static final int BUFFER_SIZE = 262144;
+    public static final String RESOURCE_PACK_PATH = "3d_particle_display_adaptation";
     static ShaderInstance particleSolidShaderInstance;
     static ShaderInstance particleCutoutShaderInstance;
     static ShaderInstance particleCutoutMippedShaderInstance;
@@ -245,7 +246,7 @@ public class TDPClient {
         if (event.getPackType() == PackType.CLIENT_RESOURCES) {
             IModFile modFile = ModList.get().getModFileById(TDP.MODID).getFile();
             event.addRepositorySource(consumer -> {
-                String path = "3d_particle_display_adaptation";
+                String path = RESOURCE_PACK_PATH;
                 Pack pack = Pack.readMetaAndCreate(
                         new PackLocationInfo(TDP.MODID + ':' + path, Component.translatable("resourcepack." + path), PackSource.BUILT_IN, Optional.empty()),
                         new PathPackResources.PathResourcesSupplier(modFile.findResource("resourcepacks/" + path)),
@@ -384,5 +385,9 @@ public class TDPClient {
 
     public static short light2Short(int packetLight) {
         return (short) ((LightTexture.sky(packetLight) << 4) | LightTexture.block(packetLight));
+    }
+
+    public static boolean isResourcePackLoaded(String id) {
+        return Minecraft.getInstance().getResourcePackRepository().getSelectedIds().contains(id);
     }
 }
