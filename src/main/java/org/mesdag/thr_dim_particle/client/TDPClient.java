@@ -133,14 +133,14 @@ public class TDPClient {
     @SubscribeEvent
     public static void modConfig$Loading(ModConfigEvent.Loading event) {
         if (TDP.MODID.equals(event.getConfig().getModId())) {
-            ClientConfigs.onLoad();
+            ClientConfigs.onLoad(false);
         }
     }
 
     @SubscribeEvent
     public static void modConfig$Reloading(ModConfigEvent.Reloading event) {
         if (TDP.MODID.equals(event.getConfig().getModId())) {
-            ClientConfigs.onLoad();
+            ClientConfigs.onLoad(true);
         }
     }
 
@@ -387,7 +387,7 @@ public class TDPClient {
         return (short) ((LightTexture.sky(packetLight) << 4) | LightTexture.block(packetLight));
     }
 
-    public static boolean isResourcePackLoaded(String id) {
-        return Minecraft.getInstance().getResourcePackRepository().getSelectedIds().contains(id);
+    public static boolean isResourcePackLoaded() {
+        return Minecraft.getInstance().getResourcePackRepository().getSelectedIds().contains(TDP.MODID + ":" + TDPClient.RESOURCE_PACK_PATH);
     }
 }

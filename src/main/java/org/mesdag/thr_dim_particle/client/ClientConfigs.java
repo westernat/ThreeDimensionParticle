@@ -77,7 +77,7 @@ public final class ClientConfigs {
         container.registerConfig(ModConfig.Type.CLIENT, spec = builder.build());
     }
 
-    public static void onLoad() {
+    public static void onLoad(boolean reloading) {
         emitterLimit = EMITTER_LIMIT.get();
         fpsThreshold = FPS_THRESHOLD.get();
         allowsVanillaParticleWhenReachLimit = ALLOWS_VANILLA_PARTICLE_WHEN_REACH_LIMIT.get();
@@ -89,19 +89,25 @@ public final class ClientConfigs {
         explosion.onLoad();
         endRod.onLoad();
         netherPortal.onLoad();
-        for (ParticleConfig config : resourcePackAssociatedConfigs) {
-            config.onLoad();
+        if (reloading) { // 非reloading时资源包未加载，不能调用
+            boolean unLoaded = !TDPClient.isResourcePackLoaded();
+            for (ParticleConfig config : resourcePackAssociatedConfigs) {
+                if (unLoaded) { // 只有当资源包加载了才能开启，否则关闭
+                    config.enable(false);
+                }
+                config.onLoad();
+            }
         }
     }
 
     public static void autoEnableConfig() {
         boolean save = false;
-        boolean enable = TDPClient.isResourcePackLoaded(TDP.MODID + ":" + TDPClient.RESOURCE_PACK_PATH);
+        boolean loaded = TDPClient.isResourcePackLoaded();
         for (ParticleConfig config : resourcePackAssociatedConfigs) {
-            save |= config.enable(enable);
+            save |= config.enable(loaded);
         }
         if (save) {
-            spec.save();
+            spec.save(); // 会触发reloading
         }
     }
 
