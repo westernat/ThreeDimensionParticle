@@ -89,14 +89,12 @@ public final class ClientConfigs {
         explosion.onLoad();
         endRod.onLoad();
         netherPortal.onLoad();
-        if (reloading) { // 非reloading时资源包未加载，不能调用
-            boolean unLoaded = !TDPClient.isResourcePackLoaded();
-            for (ParticleConfig config : resourcePackAssociatedConfigs) {
-                if (unLoaded) { // 只有当资源包加载了才能开启，否则关闭
-                    config.enable(false);
-                }
-                config.onLoad();
+        boolean unLoaded = reloading && !TDPClient.isResourcePackLoaded();
+        for (ParticleConfig config : resourcePackAssociatedConfigs) {
+            if (unLoaded) { // 只有当资源包加载了才能开启，否则关闭
+                config.enable(false);
             }
+            config.onLoad();
         }
     }
 
