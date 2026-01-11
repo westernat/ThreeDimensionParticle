@@ -1,5 +1,7 @@
 # 3D Particles
 
+![Icon](icon.png)
+
 Enhance your Minecraft experience with stunning 3D particles that replace vanilla visual effects, all while maintaining
 excellent performance and customization.
 
