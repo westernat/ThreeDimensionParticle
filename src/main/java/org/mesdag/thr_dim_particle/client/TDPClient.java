@@ -264,7 +264,7 @@ public class TDPClient {
     }
 
     @SuppressWarnings("WhileLoopReplaceableByForEach")
-    public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum, boolean isSolid) {
+    public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum, boolean isOpaque) {
         GlStateManager.BlendState blend = GlStateManager.BLEND;
         blend.mode.enable();
         if (770 != blend.srcRgb || 771 != blend.dstRgb || 1 != blend.srcAlpha || 0 != blend.dstAlpha) {
@@ -281,7 +281,7 @@ public class TDPClient {
         Iterator<Particle> iterator = queue.iterator();
         while (iterator.hasNext()) {
             TDParticle tdp = (TDParticle) iterator.next();
-            if (isSolid == tdp.translucent) {
+            if (isOpaque == tdp.translucent) {
                 continue;
             }
             ParticleBuffer buffer = tdp.buffer;

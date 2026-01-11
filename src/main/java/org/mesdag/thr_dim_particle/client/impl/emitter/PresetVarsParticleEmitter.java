@@ -17,7 +17,11 @@ public class PresetVarsParticleEmitter extends TDParticleEmitter {
                 vars.table.put(var.name(), var);
             }
         };
+        super.init();
     }
+
+    @Override
+    protected void init() {}
 
     @Override
     protected void createVars() {
