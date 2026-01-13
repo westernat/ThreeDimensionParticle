@@ -148,7 +148,7 @@ dependencies {
     if (false) {
         implementation(jarJar(files("libs/particlestorm-${particlestorm_version}.jar")))
     } else {
-        implementation(jarJar("org.mesdag:ParticleStorm:${particlestorm_version}"))
+        implementation "org.mesdag:ParticleStorm:${particlestorm_version}"
     }
 
     compileOnly "maven.modrinth:sodium:mc1.21.1-0.6.13-neoforge"
