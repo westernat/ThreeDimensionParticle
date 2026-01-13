@@ -1,7 +1,6 @@
 package org.mesdag.thr_dim_particle.mixin.client;
 
 import net.minecraft.client.Minecraft;
-import org.mesdag.thr_dim_particle.client.ClientConfigs;
 import org.mesdag.thr_dim_particle.client.RegisterTDPRendererEvent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,6 +21,5 @@ public abstract class MinecraftMixin {
     @Inject(method = "onResourceLoadFinished", at = @At("TAIL"))
     private void end(@Coerce Object gameLoadCookie, CallbackInfo ci) {
         RegisterTDPRendererEvent.end();
-        ClientConfigs.autoEnableConfig();
     }
 }

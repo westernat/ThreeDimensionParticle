@@ -8,11 +8,8 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.jetbrains.annotations.Nullable;
 import org.mesdag.thr_dim_particle.TDP;
-import org.mesdag.thr_dim_particle.client.impl.emitter.TDParticleEmitter;
 import org.mesdag.thr_dim_particle.client.impl.emitter.WithBlockParticleEmitter;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public final class ClientConfigs {
@@ -32,16 +29,6 @@ public final class ClientConfigs {
     public static int emitterAutoRemoveAttenuationDistance = 16;
     public static double emitterAutoRemoveAttenuationCoefficient = 0.25;
 
-    public static ParticleConfig explosion;
-    public static ParticleConfig endRod;
-    public static ParticleConfig netherPortal;
-    public static ParticleConfig commonCampfireFire;
-    public static ParticleConfig soulCampfireFire;
-    public static ParticleConfig campfireSmoke;
-
-    private static List<ParticleConfig> resourcePackAssociatedConfigs;
-    private static ModConfigSpec spec;
-
     public static void register(ModContainer container) {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
@@ -55,26 +42,7 @@ public final class ClientConfigs {
         EMITTER_AUTO_REMOVE_ATTENUATION_COEFFICIENT = builder.defineInRange("minimumEmitterAutoRemoveAttenuationCoefficient", 0.25, 0, 1);
         builder.pop();
 
-        builder.push("Particle");
-        explosion = new ParticleConfig(builder, "explosion", "bomb_smoke");
-        endRod = new ParticleConfig(builder, "endRod", "end_rod");
-        netherPortal = new ParticleConfig(builder, "netherPortal", "nether_portal");
-        Runnable campfireCallback = () -> {
-            Iterator<TDParticleEmitter> iterator = TDPClient.campfireEmitters.values().iterator();
-            while (iterator.hasNext()) {
-                TDParticleEmitter emitter = iterator.next();
-                emitter.remove();
-                iterator.remove();
-            }
-        };
-        List<ParticleConfig> configs = new ArrayList<>();
-        configs.add(commonCampfireFire = new ParticleConfig(builder, "commonCampfireFire", "fire", false, campfireCallback));
-        configs.add(soulCampfireFire = new ParticleConfig(builder, "soulCampfireFire", "soul_fire", false, campfireCallback));
-        configs.add(campfireSmoke = new ParticleConfig(builder, "campfireSmoke", "campfire_smoke", false, campfireCallback));
-        resourcePackAssociatedConfigs = configs;
-        builder.pop();
-
-        container.registerConfig(ModConfig.Type.CLIENT, spec = builder.build());
+        container.registerConfig(ModConfig.Type.CLIENT, builder.build());
     }
 
     public static void onLoad(boolean reloading) {
@@ -85,28 +53,6 @@ public final class ClientConfigs {
         emitterAutoRemoveMinimumDistance = EMITTER_AUTO_REMOVE_MINIMUM_DISTANCE.get();
         emitterAutoRemoveAttenuationDistance = EMITTER_AUTO_REMOVE_ATTENUATION_DISTANCE.get();
         emitterAutoRemoveAttenuationCoefficient = EMITTER_AUTO_REMOVE_ATTENUATION_COEFFICIENT.get();
-
-        explosion.onLoad();
-        endRod.onLoad();
-        netherPortal.onLoad();
-        boolean unLoaded = reloading && !TDPClient.isResourcePackLoaded();
-        for (ParticleConfig config : resourcePackAssociatedConfigs) {
-            if (unLoaded) { // 只有当资源包加载了才能开启，否则关闭
-                config.enable(false);
-            }
-            config.onLoad();
-        }
-    }
-
-    public static void autoEnableConfig() {
-        boolean save = false;
-        boolean loaded = TDPClient.isResourcePackLoaded();
-        for (ParticleConfig config : resourcePackAssociatedConfigs) {
-            save |= config.enable(loaded);
-        }
-        if (save) {
-            spec.save(); // 会触发reloading
-        }
     }
 
     public static class ParticleConfig {
