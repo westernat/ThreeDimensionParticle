@@ -1,6 +1,6 @@
 name: Publish Release
 
-于:
+on:
   workflow_dispatch:
   release:
     types:
