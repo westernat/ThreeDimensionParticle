@@ -34,7 +34,7 @@ public class SimpleHardcodeModelRenderer implements HardcodeModel.Renderer<Hardc
     }
 
     @Override
-    public void render(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz) {
-        model.renderToBuffer(particle, pose, buffer, vx, vy, vz);
+    public void render(TDParticle particle, Matrix4f pose, ParticleBuffer buffer) {
+        model.renderToBuffer(particle, pose, buffer);
     }
 }

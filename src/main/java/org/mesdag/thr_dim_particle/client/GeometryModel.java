@@ -44,15 +44,15 @@ public class GeometryModel {
         this.maxBytes = quads.length * 4 * TDPRenderType.VERTEX_SIZE;
     }
 
-    public void renderToBuffer(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz) {
+    public void renderToBuffer(TDParticle particle, Matrix4f pose, ParticleBuffer buffer) {
         if (BufferBuilder.IS_LITTLE_ENDIAN) {
-            l(particle, pose, buffer, vx, vy, vz);
+            l(particle, pose, buffer);
         } else {
-            b(particle, pose, buffer, vx, vy, vz);
+            b(particle, pose, buffer);
         }
     }
 
-    private void l(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz) {
+    private void l(TDParticle particle, Matrix4f pose, ParticleBuffer buffer) {
         float m00 = pose.m00(), m10 = pose.m10(), m20 = pose.m20(), m30 = pose.m30(),
                 m01 = pose.m01(), m11 = pose.m11(), m21 = pose.m21(), m31 = pose.m31(),
                 m02 = pose.m02(), m12 = pose.m12(), m22 = pose.m22(), m32 = pose.m32();
@@ -88,7 +88,7 @@ public class GeometryModel {
             float x02 = x2 - x0;
             float y02 = y2 - y0;
             float z02 = z2 - z0;
-            if (Math.fma(vx, Math.fma(y01, z02, -z01 * y02), Math.fma(vy, Math.fma(z01, x02, -x01 * z02), vz * Math.fma(x01, y02, -y01 * x02))) < 0) { // 背面剔除
+            if (Math.fma(x2, Math.fma(y01, z02, -z01 * y02), Math.fma(y2, Math.fma(z01, x02, -x01 * z02), z2 * Math.fma(x01, y02, -y01 * x02))) < 0) { // 背面剔除
                 CompiledVertex vertex3 = quad[3];
                 float xd = vertex3.x;
                 float yd = vertex3.y;
@@ -116,7 +116,7 @@ public class GeometryModel {
         MemoryUtil.memPutShort(ptr + ParticleBuffer.LIGHT, (short) (vertex.l | l));
     }
 
-    private void b(TDParticle particle, Matrix4f pose, ParticleBuffer buffer, float vx, float vy, float vz) {
+    private void b(TDParticle particle, Matrix4f pose, ParticleBuffer buffer) {
         float m00 = pose.m00(), m10 = pose.m10(), m20 = pose.m20(), m30 = pose.m30(),
                 m01 = pose.m01(), m11 = pose.m11(), m21 = pose.m21(), m31 = pose.m31(),
                 m02 = pose.m02(), m12 = pose.m12(), m22 = pose.m22(), m32 = pose.m32();
@@ -152,7 +152,7 @@ public class GeometryModel {
             float x02 = x2 - x0;
             float y02 = y2 - y0;
             float z02 = z2 - z0;
-            if (vx * (y01 * z02 - z01 * y02) + vy * (z01 * x02 - x01 * z02) + vz * (x01 * y02 - y01 * x02) < 0) { // 背面剔除
+            if (x2 * (y01 * z02 - z01 * y02) + y2 * (z01 * x02 - x01 * z02) + z2 * (x01 * y02 - y01 * x02) < 0) { // 背面剔除
                 CompiledVertex vertex3 = quad[3];
                 float xd = vertex3.x;
                 float yd = vertex3.y;

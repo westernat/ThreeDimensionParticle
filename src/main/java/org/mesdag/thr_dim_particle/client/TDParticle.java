@@ -372,10 +372,11 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         pose.identity();
 
         Vec3 cameraPos = camera.getPosition();
-        float vx = (float) (Mth.lerp(partialTick, xo, x) - cameraPos.x());
-        float vy = (float) (Mth.lerp(partialTick, yo, y) - cameraPos.y());
-        float vz = (float) (Mth.lerp(partialTick, zo, z) - cameraPos.z());
-        pose.translate(vx, vy, vz);
+        pose.translate(
+                (float) (Mth.lerp(partialTick, xo, x) - cameraPos.x()),
+                (float) (Mth.lerp(partialTick, yo, y) - cameraPos.y()),
+                (float) (Mth.lerp(partialTick, zo, z) - cameraPos.z())
+        );
 
         if (preset.facingCameraMode != FaceCameraMode.DO_NOTHING) {
             preset.facingCameraMode.setRotation(this, quat, camera, partialTick);
@@ -395,7 +396,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         pose.translate(sx * -0.5F, sy * -0.5F, sz * -0.5F);
         pose.scale(sx, sy, sz);
 
-        renderer.render(this, pose, buffer, vx, vy, vz);
+        renderer.render(this, pose, buffer);
     }
 
     @Override
