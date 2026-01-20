@@ -1,7 +1,7 @@
 package org.mesdag.thr_dim_particle.client;
 
 import com.google.common.collect.Iterables;
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
 import com.mojang.blaze3d.vertex.MeshData;
@@ -43,8 +43,6 @@ import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jetbrains.annotations.Nullable;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL14;
 import org.mesdag.particlestorm.PSGameClient;
 import org.mesdag.particlestorm.api.IComponent;
 import org.mesdag.particlestorm.api.ParticlePresetLoadedEvent;
@@ -216,19 +214,6 @@ public class TDPClient {
 
     @SuppressWarnings("WhileLoopReplaceableByForEach")
     public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum, boolean isOpaque) {
-        GlStateManager.BlendState blend = GlStateManager.BLEND;
-        blend.mode.enable();
-        if (770 != blend.srcRgb || 771 != blend.dstRgb || 1 != blend.srcAlpha || 0 != blend.dstAlpha) {
-            blend.srcRgb = 770;
-            blend.dstRgb = 771;
-            blend.srcAlpha = 1;
-            blend.dstAlpha = 0;
-            GL14.glBlendFuncSeparate(770, 771, 1, 0);
-        }
-        if (!GlStateManager.DEPTH.mask) {
-            GlStateManager.DEPTH.mask = true;
-            GL11.glDepthMask(true);
-        }
         Iterator<Particle> iterator = queue.iterator();
         while (iterator.hasNext()) {
             TDParticle tdp = (TDParticle) iterator.next();
@@ -253,6 +238,8 @@ public class TDPClient {
                 throw new ReportedException(report);
             }
         }
+        RenderSystem.depthMask(true);
+        RenderSystem.enableBlend();
         if (TDPClient.IRIS_LOADED && IrisHelper.hasShader()) {
             for (int i = 0; i < 4; i++) {
                 MeshData meshData = buffers[i].storeMesh();

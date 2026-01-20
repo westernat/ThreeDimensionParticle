@@ -18,6 +18,7 @@ import java.util.Map;
 import static org.mesdag.thr_dim_particle.client.TDPClient.*;
 
 public final class TDPRenderType extends RenderType.CompositeRenderType {
+    static final TransparencyStateShard SKIP_TRANSPARENCY = new TransparencyStateShard("skip_transparency", () -> {}, () -> {});
     static final VertexFormatElement COLOR1 = VertexFormatElement.register(VertexFormatElement.findNextId(), 0, VertexFormatElement.Type.UBYTE, VertexFormatElement.Usage.COLOR, 4);
     static final VertexFormatElement LIGHT = VertexFormatElement.register(VertexFormatElement.findNextId(), 0, VertexFormatElement.Type.USHORT, EnumProxes.LIGHT.getValue(), 1);
     static final VertexFormat FORMAT = VertexFormat.builder()
@@ -27,16 +28,15 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
             .add("UV0", VertexFormatElement.UV0)
             .add("Light", LIGHT) // 传入msl, mbl, esl, ebl
             .build();
-//    public static final int VERTEX_SIZE = FORMAT.getVertexSize();
+    //    public static final int VERTEX_SIZE = FORMAT.getVertexSize();
     public static final int VERTEX_SIZE = 30;
     private static final TDPRenderType[] TYPES = new TDPRenderType[]{
             new TDPRenderType(0, "tdp_particle_solid", FORMAT, VertexFormat.Mode.QUADS, 256, true, false,
                     RenderType.CompositeState.builder()
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleSolidShaderInstance))
                             .setTextureState(new RenderStateShard.TextureStateShard(ATLAS_LOCATION, false, false))
-                            .setTransparencyState(RenderType.NO_TRANSPARENCY)
-                            .setOverlayState(RenderType.OVERLAY)
-                            .setLightmapState(RenderType.LIGHTMAP)
+                            .setTransparencyState(SKIP_TRANSPARENCY) // 渲染时提前打开
+                            .setLightmapState(RenderType.NO_LIGHTMAP) // 同上
                             .createCompositeState(false)
             ),
             new TDPRenderType(1,
@@ -44,9 +44,8 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
                     RenderType.CompositeState.builder()
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleCutoutShaderInstance))
                             .setTextureState(new RenderStateShard.TextureStateShard(ATLAS_LOCATION, false, false))
-                            .setTransparencyState(RenderType.NO_TRANSPARENCY)
-                            .setOverlayState(RenderType.OVERLAY)
-                            .setLightmapState(RenderType.LIGHTMAP)
+                            .setTransparencyState(SKIP_TRANSPARENCY)
+                            .setLightmapState(RenderType.NO_LIGHTMAP)
                             .createCompositeState(false)
             ),
             new TDPRenderType(2,
@@ -54,9 +53,8 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
                     RenderType.CompositeState.builder()
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleCutoutMippedShaderInstance))
                             .setTextureState(new RenderStateShard.TextureStateShard(ATLAS_LOCATION, false, true))
-                            .setTransparencyState(RenderType.NO_TRANSPARENCY)
-                            .setOverlayState(RenderType.OVERLAY)
-                            .setLightmapState(RenderType.LIGHTMAP)
+                            .setTransparencyState(SKIP_TRANSPARENCY)
+                            .setLightmapState(RenderType.NO_LIGHTMAP)
                             .createCompositeState(false)
             ),
             new TDPRenderType(3,
@@ -65,8 +63,7 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleTranslucentShaderInstance))
                             .setTextureState(new RenderStateShard.TextureStateShard(ATLAS_LOCATION, false, false))
                             .setTransparencyState(RenderType.TRANSLUCENT_TRANSPARENCY)
-                            .setOverlayState(RenderType.OVERLAY)
-                            .setLightmapState(RenderType.LIGHTMAP)
+                            .setLightmapState(RenderType.NO_LIGHTMAP)
                             .createCompositeState(false)
             )
     };
