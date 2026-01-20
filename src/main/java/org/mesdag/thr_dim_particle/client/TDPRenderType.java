@@ -18,6 +18,7 @@ import java.util.Map;
 import static org.mesdag.thr_dim_particle.client.TDPClient.*;
 
 public final class TDPRenderType extends RenderType.CompositeRenderType {
+    static final TextureStateShard NO_MIPMAP_TEXTURE = new TextureStateShard(TDPClient.ATLAS_LOCATION, false, false);
     static final TransparencyStateShard SKIP_TRANSPARENCY = new TransparencyStateShard("skip_transparency", () -> {}, () -> {});
     static final VertexFormatElement COLOR1 = VertexFormatElement.register(VertexFormatElement.findNextId(), 0, VertexFormatElement.Type.UBYTE, VertexFormatElement.Usage.COLOR, 4);
     static final VertexFormatElement LIGHT = VertexFormatElement.register(VertexFormatElement.findNextId(), 0, VertexFormatElement.Type.USHORT, EnumProxes.LIGHT.getValue(), 1);
@@ -34,18 +35,16 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
             new TDPRenderType(0, "tdp_particle_solid", FORMAT, VertexFormat.Mode.QUADS, 256, true, false,
                     RenderType.CompositeState.builder()
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleSolidShaderInstance))
-                            .setTextureState(new RenderStateShard.TextureStateShard(ATLAS_LOCATION, false, false))
+                            .setTextureState(NO_MIPMAP_TEXTURE)
                             .setTransparencyState(SKIP_TRANSPARENCY) // 渲染时提前打开
-                            .setLightmapState(RenderType.NO_LIGHTMAP) // 同上
                             .createCompositeState(false)
             ),
             new TDPRenderType(1,
                     "tdp_particle_cutout", FORMAT, VertexFormat.Mode.QUADS, 256, true, false,
                     RenderType.CompositeState.builder()
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleCutoutShaderInstance))
-                            .setTextureState(new RenderStateShard.TextureStateShard(ATLAS_LOCATION, false, false))
+                            .setTextureState(NO_MIPMAP_TEXTURE)
                             .setTransparencyState(SKIP_TRANSPARENCY)
-                            .setLightmapState(RenderType.NO_LIGHTMAP)
                             .createCompositeState(false)
             ),
             new TDPRenderType(2,
@@ -54,16 +53,14 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleCutoutMippedShaderInstance))
                             .setTextureState(new RenderStateShard.TextureStateShard(ATLAS_LOCATION, false, true))
                             .setTransparencyState(SKIP_TRANSPARENCY)
-                            .setLightmapState(RenderType.NO_LIGHTMAP)
                             .createCompositeState(false)
             ),
             new TDPRenderType(3,
                     "tdp_particle_translucent", FORMAT, VertexFormat.Mode.QUADS, 256, true, true,
                     RenderType.CompositeState.builder()
                             .setShaderState(new RenderStateShard.ShaderStateShard(() -> particleTranslucentShaderInstance))
-                            .setTextureState(new RenderStateShard.TextureStateShard(ATLAS_LOCATION, false, false))
+                            .setTextureState(NO_MIPMAP_TEXTURE)
                             .setTransparencyState(RenderType.TRANSLUCENT_TRANSPARENCY)
-                            .setLightmapState(RenderType.NO_LIGHTMAP)
                             .createCompositeState(false)
             )
     };
