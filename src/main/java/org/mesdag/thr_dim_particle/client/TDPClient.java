@@ -229,7 +229,7 @@ public class TDPClient {
                 continue;
             }
             try {
-                tdp.render(buffer, camera, partialTick); // todo 重点
+                tdp.render(buffer, camera, partialTick);
             } catch (Throwable throwable) {
                 CrashReport report = CrashReport.forThrowable(throwable, "Rendering Particle");
                 CrashReportCategory category = report.addCategory("Particle being rendered");
