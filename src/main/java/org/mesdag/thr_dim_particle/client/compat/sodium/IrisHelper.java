@@ -11,7 +11,7 @@ public class IrisHelper {
             if (!config.shouldAllowUnknownShaders()) {
                 config.setUnknown(true);
             }
-        } catch (Exception e) {
+        } catch (Exception | NoSuchMethodError e) {
             TDP.LOGGER.warn("Failed to make our shaders to be allowed from iris");
         }
     }
