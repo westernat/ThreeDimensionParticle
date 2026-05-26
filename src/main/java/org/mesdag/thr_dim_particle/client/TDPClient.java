@@ -43,13 +43,13 @@ import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jetbrains.annotations.Nullable;
-import org.mesdag.particlestorm.PSGameClient;
 import org.mesdag.particlestorm.api.IComponent;
 import org.mesdag.particlestorm.api.ParticlePresetLoadedEvent;
 import org.mesdag.particlestorm.api.RegisterCustomEmitterTypeEvent;
 import org.mesdag.particlestorm.api.RegisterCustomParticleTypeEvent;
 import org.mesdag.particlestorm.data.molang.compiler.value.Variable;
 import org.mesdag.particlestorm.particle.FaceCameraMode;
+import org.mesdag.particlestorm.particle.MolangParticleEngine;
 import org.mesdag.particlestorm.particle.ParticleEmitter;
 import org.mesdag.particlestorm.particle.ParticlePreset;
 import org.mesdag.thr_dim_particle.TDP;
@@ -60,10 +60,7 @@ import org.mesdag.thr_dim_particle.client.impl.emitter.TDParticleEmitter;
 import org.mesdag.thr_dim_particle.client.impl.emitter.WithBlockParticleEmitter;
 
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 
 @Mod(value = TDP.MODID, dist = Dist.CLIENT)
 @EventBusSubscriber(modid = TDP.MODID, value = Dist.CLIENT)
@@ -269,9 +266,12 @@ public class TDPClient {
         Iterator<TDParticleEmitter> iterator = emittersIterable.iterator();
         while (iterator.hasNext()) {
             TDParticleEmitter emitter = iterator.next();
-            for (ParticleEmitter child : emitter.children) {
-                if (child instanceof TDParticleEmitter tdpe && shouldRemoveEmitter(camera, tdpe)) {
-                    child.remove();
+            List<ParticleEmitter> children = emitter.getChildren(false);
+            if (children != null) {
+                for (ParticleEmitter child : children) {
+                    if (child instanceof TDParticleEmitter tdpe && shouldRemoveEmitter(camera, tdpe)) {
+                        child.remove();
+                    }
                 }
             }
             if (shouldRemoveEmitter(camera, emitter)) {
@@ -284,7 +284,7 @@ public class TDPClient {
     public static boolean addEmitter(Level level, Vec3 pos, ResourceLocation particle, Variable... variables) {
         if (ableToAddEmitter()) {
             PresetVarsParticleEmitter emitter = new PresetVarsParticleEmitter(level, pos, particle, false, variables);
-            PSGameClient.LOADER.addEmitter(emitter, false);
+            MolangParticleEngine.INSTANCE.addEmitter(emitter);
             emitters.add(emitter);
             return false;
         }

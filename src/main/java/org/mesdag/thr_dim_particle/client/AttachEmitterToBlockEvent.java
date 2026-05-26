@@ -13,8 +13,8 @@ import net.neoforged.bus.api.Event;
 import net.neoforged.fml.ModLoader;
 import net.neoforged.fml.event.IModBusEvent;
 import org.jetbrains.annotations.Nullable;
-import org.mesdag.particlestorm.PSGameClient;
 import org.mesdag.particlestorm.data.molang.MolangExp;
+import org.mesdag.particlestorm.particle.MolangParticleEngine;
 import org.mesdag.thr_dim_particle.client.impl.emitter.WithBlockParticleEmitter;
 
 import java.util.Iterator;
@@ -87,7 +87,7 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
             if (data == null && (data = stateMap.get(state)) == null) return true;
             WithBlockParticleEmitter emitter = data.apply(level, pos, state);
             if (emitter == null) return data.allowsVanilla;
-            PSGameClient.LOADER.addEmitter(emitter, false);
+            MolangParticleEngine.INSTANCE.addEmitter(emitter);
             emitters.put(pos.immutable(), pair = new ObjectBooleanImmutablePair<>(emitter, data.allowsVanilla));
         }
         return pair.rightBoolean();

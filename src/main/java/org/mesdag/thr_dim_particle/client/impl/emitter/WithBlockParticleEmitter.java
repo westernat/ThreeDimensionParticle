@@ -27,7 +27,7 @@ public class WithBlockParticleEmitter extends TDParticleEmitter {
 
     public WithBlockParticleEmitter(ParticleEmitter parent, ParticleEffect effect, boolean ignoreSameBlock, boolean ignoreRange) {
         super(parent, effect, ignoreRange);
-        initBlock(parent.level, parent.pos, ignoreSameBlock);
+        initBlock(parent.level, parent.getPosition(), ignoreSameBlock);
     }
 
     private void initBlock(Level level, Vec3 pos, boolean ignoreSameBlock) {

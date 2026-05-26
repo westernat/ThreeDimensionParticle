@@ -31,8 +31,6 @@ import org.mesdag.particlestorm.particle.*;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mesdag.particlestorm.particle.MolangParticleInstance.FULL_LIGHT;
-
 public class TDParticle extends Particle implements IMolangParticleInstance {
     protected final ParticlePreset preset;
     protected ParticleVariableTable vars;
@@ -49,11 +47,12 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     protected float collisionDrag = 0.0F;
     protected float coefficientOfRestitution = 0.0F;
     protected boolean expireOnContact = false;
+    protected float collisionRadius;
 
-    protected final double particleRandom1;
-    protected final double particleRandom2;
-    protected final double particleRandom3;
-    protected final double particleRandom4;
+    protected final float particleRandom1;
+    protected final float particleRandom2;
+    protected final float particleRandom3;
+    protected final float particleRandom4;
     protected List<IParticleComponent> components;
     protected ParticleEmitter emitter;
 
@@ -79,10 +78,10 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         this.light = getLightColor();
 
         RandomSource random = level.getRandom();
-        this.particleRandom1 = random.nextDouble();
-        this.particleRandom2 = random.nextDouble();
-        this.particleRandom3 = random.nextDouble();
-        this.particleRandom4 = random.nextDouble();
+        this.particleRandom1 = random.nextFloat();
+        this.particleRandom2 = random.nextFloat();
+        this.particleRandom3 = random.nextFloat();
+        this.particleRandom4 = random.nextFloat();
     }
 
     @Override
@@ -159,6 +158,16 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     @Override
     public void setExpireOnContact(boolean b) {
         this.expireOnContact = b;
+    }
+
+    @Override
+    public void setCollisionRadius(float radius) {
+        this.collisionRadius = radius;
+    }
+
+    @Override
+    public float getCollisionRadius() {
+        return collisionRadius;
     }
 
     @Override
@@ -332,22 +341,22 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     }
 
     @Override
-    public double getRandom1() {
+    public float getRandom1() {
         return particleRandom1;
     }
 
     @Override
-    public double getRandom2() {
+    public float getRandom2() {
         return particleRandom2;
     }
 
     @Override
-    public double getRandom3() {
+    public float getRandom3() {
         return particleRandom3;
     }
 
     @Override
-    public double getRandom4() {
+    public float getRandom4() {
         return particleRandom4;
     }
 
@@ -377,6 +386,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
 
     private static final Matrix4f pose = new Matrix4f();
     private static final Quaternionf quat = new Quaternionf();
+    private static final Vector3f vec = new Vector3f();
 
     public void render(ParticleBuffer buffer, Camera camera, float partialTick) {
         pose.identity();
@@ -416,7 +426,16 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         double d1 = y;
         double d2 = z;
         if (hasPhysics && hasCollision && (x != 0.0 || y != 0.0 || z != 0.0) && x * x + y * y + z * z < MAXIMUM_COLLISION_VELOCITY_SQUARED) {
-            Vec3 vec3 = Entity.collideBoundingBox(null, new Vec3(x, y, z), getBoundingBox(), level, List.of());
+            AABB aabb = getBoundingBox();
+            if (emitter.isLocalSpace()) {
+                emitter.local2World(vec.set(aabb.minX, aabb.minY, aabb.minZ), 1);
+                float mx = vec.x;
+                float my = vec.y;
+                float mz = vec.z;
+                emitter.local2World(vec.set(aabb.maxX, aabb.maxY, aabb.maxZ), 1);
+                aabb = new AABB(mx, my, mz, vec.x, vec.y, vec.z);
+            }
+            Vec3 vec3 = Entity.collideBoundingBox(null, new Vec3(x, y, z), aabb, level, List.of());
             if (x != vec3.x) {
                 this.xd = -Mth.sign(xd) * (Math.abs(xd) - collisionDrag) * coefficientOfRestitution;
             }
@@ -476,7 +495,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
 
     @Override
     public int getLightColor(float partialTick) {
-        return preset.environmentLighting ? super.getLightColor(partialTick) : FULL_LIGHT;
+        return preset.environmentLighting ? super.getLightColor(partialTick) : 0xF000F0;
     }
 
     public short getLightColor() {
