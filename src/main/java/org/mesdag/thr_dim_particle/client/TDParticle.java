@@ -5,6 +5,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleGroup;
@@ -388,15 +389,41 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     private static final Quaternionf quat = new Quaternionf();
     private static final Vector3f vec = new Vector3f();
 
+    // 在render前调用
+    @Override
+    public boolean isVisible(Camera camera, Frustum frustum, float partialTick) {
+        Vec3 camPos = camera.getPosition();
+        if (emitter.isLocalSpace()) {
+            emitter.local2World(vec.set(
+                    (float) Mth.lerp(partialTick, xo, x),
+                    (float) Mth.lerp(partialTick, yo, y),
+                    (float) Mth.lerp(partialTick, zo, z)
+            ), partialTick);
+            float size = Math.max(Math.max(renderSize[0], renderSize[1]), renderSize[2]);
+            boolean inFrustum = frustum.cubeInFrustum(
+                    vec.x - size,
+                    vec.y - size,
+                    vec.z - size,
+                    vec.x + size,
+                    vec.y + size,
+                    vec.z + size
+            );
+            vec.sub((float) camPos.x, (float) camPos.y, (float) camPos.z);
+            return inFrustum;
+        }
+        vec.set(
+                (float) (Mth.lerp(partialTick, xo, x) - camPos.x),
+                (float) (Mth.lerp(partialTick, yo, y) - camPos.y),
+                (float) (Mth.lerp(partialTick, zo, z) - camPos.z)
+        );
+        return IMolangParticleInstance.super.isVisible(camera, frustum, partialTick);
+    }
+
+    // 在isVisible后调用
     public void render(ParticleBuffer buffer, Camera camera, float partialTick) {
         pose.identity();
 
-        Vec3 cameraPos = camera.getPosition();
-        pose.translate(
-                (float) (Mth.lerp(partialTick, xo, x) - cameraPos.x()),
-                (float) (Mth.lerp(partialTick, yo, y) - cameraPos.y()),
-                (float) (Mth.lerp(partialTick, zo, z) - cameraPos.z())
-        );
+        pose.translate(vec.x, vec.y, vec.z);
 
         if (preset.facingCameraMode != FaceCameraMode.DO_NOTHING) {
             preset.facingCameraMode.setRotation(this, quat, camera, partialTick);
