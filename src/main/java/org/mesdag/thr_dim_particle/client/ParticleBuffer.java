@@ -1,7 +1,7 @@
 package org.mesdag.thr_dim_particle.client;
 
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
-import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.platform.MemoryTracker;
+import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,62 +15,49 @@ public class ParticleBuffer {
     protected static final byte J = 8;
     protected static final byte D = 8;
 
-    public static final long POS_X = 0;
-    public static final long POS_Y = POS_X + F;
-    public static final long POS_Z = POS_Y + F;
-    public static final long COLOR = POS_Z + F;
-    public static final long UV = COLOR + I + I;
-    public static final long LIGHT = UV + F + F;
+    public static final int POS_X = 0;
+    public static final int POS_Y = POS_X + F;
+    public static final int POS_Z = POS_Y + F;
+    public static final int COLOR = POS_Z + F;
+    public static final int UV = COLOR + I + I;
+    public static final int LIGHT = UV + F + F;
 
-    protected int vertices;
-    protected final ByteBufferBuilder buffer;
-    protected long lastPtr;
+    public final BufferBuilder buffer;
+    protected int lastPtr;
 
-    public ParticleBuffer(ByteBufferBuilder buffer) {
+    public ParticleBuffer(BufferBuilder buffer) {
         this.buffer = buffer;
     }
 
-    public long pushPtr(int bytes) {
-        buffer.ensureCapacity(buffer.writeOffset + bytes);
-        return this.lastPtr = buffer.pointer + buffer.writeOffset;
+    public void begin() {
+        buffer.begin(VertexFormat.Mode.QUADS, TDPRenderType.FORMAT);
     }
 
-    public void popPtr(long currentPtr) {
-        int bytes = (int) (currentPtr - lastPtr);
-        this.vertices += bytes / TDPRenderType.VERTEX_SIZE;
-        buffer.writeOffset += bytes;
-    }
-
-    public void draw(TDPRenderType renderType) {
-        if (this.vertices == 0) {
-            return;
+    public int pushPtr(int bytes) {
+        int capacity = buffer.buffer.capacity();
+        if (buffer.nextElementByte + bytes > capacity) {
+            int i = Math.min(capacity, 2097152);
+            int j = Math.max(capacity + i, bytes);
+            if (j >= 2097152) {
+                return -1;
+            }
+            buffer.buffer = MemoryTracker.resize(buffer.buffer, j);
+            buffer.buffer.rewind();
         }
-        int vertices = this.vertices;
-        this.vertices = 0;
-
-        int offset = buffer.nextResultOffset;
-        int capacity = buffer.writeOffset - offset;
-        if (capacity == 0) {
-            return;
-        }
-        buffer.nextResultOffset = buffer.writeOffset;
-        buffer.resultCount++;
-
-        renderType.draw(buffer.pointer + offset, capacity, vertices, buffer::freeResult);
+        return this.lastPtr = buffer.buffer.position() + buffer.nextElementByte;
     }
 
-    public @Nullable MeshData storeMesh() {
-        if (this.vertices == 0) {
+    public void popPtr(int currentPtr) {
+        int bytes = currentPtr - lastPtr;
+        buffer.vertices += bytes / TDPRenderType.VERTEX_SIZE;
+        buffer.nextElementByte += bytes;
+    }
+
+    public @Nullable BufferBuilder end() {
+        if (buffer.vertices <= 0) {
+            buffer.reset();
             return null;
         }
-        int vertices = this.vertices;
-        this.vertices = 0;
-        ByteBufferBuilder.Result result = buffer.build();
-        if (result == null) {
-            return null;
-        }
-        int i = vertices / 4 * 6;
-        VertexFormat.IndexType type = VertexFormat.IndexType.least(vertices);
-        return new MeshData(result, new MeshData.DrawState(TDPRenderType.FORMAT, vertices, i, VertexFormat.Mode.QUADS, type));
+        return buffer;
     }
 }

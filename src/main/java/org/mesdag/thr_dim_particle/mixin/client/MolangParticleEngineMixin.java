@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.util.Queue;
 import java.util.function.Predicate;
 
-@Mixin(MolangParticleEngine.class)
+@Mixin(value = MolangParticleEngine.class, remap = false)
 public abstract class MolangParticleEngineMixin {
     @WrapOperation(method = "renderParticles", at = @At(value = "INVOKE", target = "Ljava/util/function/Predicate;test(Ljava/lang/Object;)Z"))
     private <T> boolean skipCheck(

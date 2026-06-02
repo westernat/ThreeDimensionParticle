@@ -38,8 +38,8 @@ public record TDParticleAppearance(
     public static final Codec<TDParticleAppearance> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             FloatMolangExp3.CODEC.fieldOf("size").forGetter(TDParticleAppearance::size),
             DuplicateFieldDecoder.optionalFieldOf(FaceCameraMode.CODEC, "face_camera_mode", "facing_camera_mode").forGetter(TDParticleAppearance::faceCameraMode),
-            Direction.CODEC.lenientOptionalFieldOf("direction", Direction.DEFAULT).forGetter(TDParticleAppearance::direction),
-            ModelAnimation.CODEC.lenientOptionalFieldOf("model_animation", ModelAnimation.EMPTY).forGetter(TDParticleAppearance::modelAnimation)
+            Direction.CODEC.optionalFieldOf("direction", Direction.DEFAULT).forGetter(TDParticleAppearance::direction),
+            ModelAnimation.CODEC.optionalFieldOf("model_animation", ModelAnimation.EMPTY).forGetter(TDParticleAppearance::modelAnimation)
     ).apply(instance, TDParticleAppearance::new));
 
     @Override
@@ -68,7 +68,7 @@ public record TDParticleAppearance(
             return;
         }
         float gameTime = (float) ((int) particle.getLevel().getGameTime() & 0b11111111);
-        if (gameTime % (particle.getLevel().tickRateManager().tickrate() / modelAnimation.framesPerSecond) < 1.0F) {
+        if (gameTime % (20 / modelAnimation.framesPerSecond) < 1.0F) {
             modelAnimation.setCurrentModel(particle);
             int currentFrame = particle.getCurrentFrame() + 1;
             if (currentFrame < maxFrame) {
@@ -112,11 +112,11 @@ public record TDParticleAppearance(
         public static final Codec<ModelAnimation> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.either(WeightedModel.CODEC.listOf(), WeightedModel.CODEC).xmap(
                         either -> either.map(Function.identity(), List::of),
-                        list -> list.size() == 1 ? Either.right(list.getFirst()) : Either.left(list)
+                        list -> list.size() == 1 ? Either.right(list.get(0)) : Either.left(list)
                 ).fieldOf("type_frames").forGetter(ModelAnimation::typeFrames),
-                ExtraCodecs.POSITIVE_FLOAT.lenientOptionalFieldOf("frames_per_second", 1.0F).forGetter(ModelAnimation::framesPerSecond),
-                Codec.BOOL.lenientOptionalFieldOf("stretch_to_lifetime", false).forGetter(ModelAnimation::stretchToLifetime),
-                Codec.BOOL.lenientOptionalFieldOf("loop", false).forGetter(ModelAnimation::loop)
+                ExtraCodecs.POSITIVE_FLOAT.optionalFieldOf("frames_per_second", 1.0F).forGetter(ModelAnimation::framesPerSecond),
+                Codec.BOOL.optionalFieldOf("stretch_to_lifetime", false).forGetter(ModelAnimation::stretchToLifetime),
+                Codec.BOOL.optionalFieldOf("loop", false).forGetter(ModelAnimation::loop)
         ).apply(instance, ModelAnimation::new));
 
         public void setCurrentModel(TDParticle particle) {
@@ -150,7 +150,7 @@ public record TDParticleAppearance(
                 throw new IllegalArgumentException("Empty models is not allowed!");
             }
             this.singleton = size == 1;
-            this.defaultModel = entries.getFirst().modelType;
+            this.defaultModel = entries.get(0).modelType;
         }
 
         public WeightedModel(ResourceLocation modelType) {
@@ -172,7 +172,7 @@ public record TDParticleAppearance(
         ).apply(instance, WeightedModelEntry::new));
 
         public WeightedModelEntry(ResourceLocation modelType) {
-            this(modelType, Weight.ONE);
+            this(modelType, Weight.of(1));
         }
 
         @Override

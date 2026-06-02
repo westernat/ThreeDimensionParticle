@@ -68,7 +68,6 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     public short light;
     public float[] renderSize = new float[3];
     public float[] renderSizeO = new float[3];
-    public AABB renderBoundingBox;
     protected int maxFrame = 1;
     protected int currentFrame = 0;
 
@@ -393,30 +392,23 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     @Override
     public boolean isVisible(Camera camera, Frustum frustum, float partialTick) {
         Vec3 camPos = camera.getPosition();
-        if (emitter.isLocalSpace()) {
-            emitter.local2World(vec.set(
-                    (float) Mth.lerp(partialTick, xo, x),
-                    (float) Mth.lerp(partialTick, yo, y),
-                    (float) Mth.lerp(partialTick, zo, z)
-            ), partialTick);
-            float size = Math.max(Math.max(renderSize[0], renderSize[1]), renderSize[2]);
-            boolean inFrustum = frustum.cubeInFrustum(
-                    vec.x - size,
-                    vec.y - size,
-                    vec.z - size,
-                    vec.x + size,
-                    vec.y + size,
-                    vec.z + size
-            );
-            vec.sub((float) camPos.x, (float) camPos.y, (float) camPos.z);
-            return inFrustum;
-        }
         vec.set(
-                (float) (Mth.lerp(partialTick, xo, x) - camPos.x),
-                (float) (Mth.lerp(partialTick, yo, y) - camPos.y),
-                (float) (Mth.lerp(partialTick, zo, z) - camPos.z)
+                (float) Mth.lerp(partialTick, xo, x),
+                (float) Mth.lerp(partialTick, yo, y),
+                (float) Mth.lerp(partialTick, zo, z)
         );
-        return IMolangParticleInstance.super.isVisible(camera, frustum, partialTick);
+        emitter.local2World(vec, partialTick);
+        float size = Mth.abs(Math.max(Math.max(renderSize[0], renderSize[1]), renderSize[2]));
+        boolean inFrustum = frustum.cubeInFrustum(
+                vec.x - size,
+                vec.y - size,
+                vec.z - size,
+                vec.x + size,
+                vec.y + size,
+                vec.z + size
+        );
+        vec.sub((float) camPos.x, (float) camPos.y, (float) camPos.z);
+        return inFrustum;
     }
 
     // 在isVisible后调用
@@ -548,11 +540,5 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     @Override
     public Optional<ParticleGroup> getParticleGroup() {
         return Optional.ofNullable(particleGroup);
-    }
-
-    @Override
-    public void setBoundingBox(AABB bb) {
-        super.setBoundingBox(bb);
-        this.renderBoundingBox = getBoundingBox().inflate(1.0);
     }
 }

@@ -1,6 +1,5 @@
 package org.mesdag.thr_dim_particle.client.compat.geckolib;
 
-import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -9,13 +8,13 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-import org.lwjgl.system.MemoryUtil;
 import org.mesdag.thr_dim_particle.client.*;
-import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.cache.object.*;
+import software.bernie.geckolib.core.animatable.GeoAnimatable;
 import software.bernie.geckolib.renderer.GeoRenderer;
-import software.bernie.geckolib.util.RenderUtil;
+import software.bernie.geckolib.util.RenderUtils;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,16 +33,16 @@ public class GeckolibModel {
         this.maxBytes = quads.length * 4 * TDPRenderType.VERTEX_SIZE;
     }
 
-    /// @see GeoRenderer#renderRecursively(PoseStack, GeoAnimatable, GeoBone, RenderType, MultiBufferSource, VertexConsumer, boolean, float, int, int, int)
+    /// @see GeoRenderer#renderRecursively(PoseStack, GeoAnimatable, GeoBone, RenderType, MultiBufferSource, VertexConsumer, boolean, float, int, int, float, float, float, float)
     private static void collectQuads(List<CompiledVertex[]> list, PoseStack poseStack, GeoBone bone, TextureAtlasSprite sprite) {
         poseStack.pushPose();
-        RenderUtil.prepMatrixForBone(poseStack, bone);
+        RenderUtils.prepMatrixForBone(poseStack, bone);
         Vector3f pos = new Vector3f();
         for (GeoCube cube : bone.getCubes()) {
             poseStack.pushPose();
-            RenderUtil.translateToPivotPoint(poseStack, cube);
-            RenderUtil.rotateMatrixAroundCube(poseStack, cube);
-            RenderUtil.translateAwayFromPivotPoint(poseStack, cube);
+            RenderUtils.translateToPivotPoint(poseStack, cube);
+            RenderUtils.rotateMatrixAroundCube(poseStack, cube);
+            RenderUtils.translateAwayFromPivotPoint(poseStack, cube);
             Matrix4f pose = poseStack.last().pose();
             for (GeoQuad quad : cube.quads()) {
                 if (quad == null) continue;
@@ -66,7 +65,7 @@ public class GeckolibModel {
     }
 
     public void renderToBuffer(TDParticle particle, Matrix4f pose, ParticleBuffer buffer) {
-        if (BufferBuilder.IS_LITTLE_ENDIAN) {
+        if (TDPRenderType.IS_LITTLE_ENDIAN) {
             l(particle, pose, buffer);
         } else {
             b(particle, pose, buffer);
@@ -74,12 +73,14 @@ public class GeckolibModel {
     }
 
     private void l(TDParticle particle, Matrix4f pose, ParticleBuffer buffer) {
+        int ptr = buffer.pushPtr(maxBytes);
+        if (ptr == -1) return;
+        ByteBuffer byteBuffer = buffer.buffer.buffer;
         float m00 = pose.m00(), m10 = pose.m10(), m20 = pose.m20(), m30 = pose.m30(),
                 m01 = pose.m01(), m11 = pose.m11(), m21 = pose.m21(), m31 = pose.m31(),
                 m02 = pose.m02(), m12 = pose.m12(), m22 = pose.m22(), m32 = pose.m32();
         long c = particle.abgr & 0xFFFFFFFFL;
         short l = particle.light;
-        long ptr = buffer.pushPtr(maxBytes);
         for (CompiledVertex[] quad : quads) {
             CompiledVertex vertex0 = quad[0];
             float xa = vertex0.x;
@@ -118,32 +119,34 @@ public class GeckolibModel {
                 float y3 = Math.fma(m01, xd, Math.fma(m11, yd, Math.fma(m21, zd, m31)));
                 float z3 = Math.fma(m02, xd, Math.fma(m12, yd, Math.fma(m22, zd, m32)));
 
-                l(vertex0, ptr, x0, y0, z0, c, l);
-                l(vertex1, ptr += TDPRenderType.VERTEX_SIZE, x1, y1, z1, c, l);
-                l(vertex2, ptr += TDPRenderType.VERTEX_SIZE, x2, y2, z2, c, l);
-                l(vertex3, ptr += TDPRenderType.VERTEX_SIZE, x3, y3, z3, c, l);
+                l(byteBuffer, vertex0, ptr, x0, y0, z0, c, l);
+                l(byteBuffer, vertex1, ptr += TDPRenderType.VERTEX_SIZE, x1, y1, z1, c, l);
+                l(byteBuffer, vertex2, ptr += TDPRenderType.VERTEX_SIZE, x2, y2, z2, c, l);
+                l(byteBuffer, vertex3, ptr += TDPRenderType.VERTEX_SIZE, x3, y3, z3, c, l);
                 ptr += TDPRenderType.VERTEX_SIZE;
             }
         }
         buffer.popPtr(ptr);
     }
 
-    private static void l(CompiledVertex vertex, long ptr, float x, float y, float z, long c, short l) {
-        MemoryUtil.memPutFloat(ptr + ParticleBuffer.POS_X, x);
-        MemoryUtil.memPutFloat(ptr + ParticleBuffer.POS_Y, y);
-        MemoryUtil.memPutFloat(ptr + ParticleBuffer.POS_Z, z);
-        MemoryUtil.memPutLong(ptr + ParticleBuffer.COLOR, fullModelColor | c);
-        MemoryUtil.memPutLong(ptr + ParticleBuffer.UV, vertex.uv);
-        MemoryUtil.memPutShort(ptr + ParticleBuffer.LIGHT, l);
+    private static void l(ByteBuffer buffer, CompiledVertex vertex, int ptr, float x, float y, float z, long c, short l) {
+        buffer.putFloat(ptr + ParticleBuffer.POS_X, x);
+        buffer.putFloat(ptr + ParticleBuffer.POS_Y, y);
+        buffer.putFloat(ptr + ParticleBuffer.POS_Z, z);
+        buffer.putLong(ptr + ParticleBuffer.COLOR, fullModelColor | c);
+        buffer.putLong(ptr + ParticleBuffer.UV, vertex.uv);
+        buffer.putShort(ptr + ParticleBuffer.LIGHT, l);
     }
 
     private void b(TDParticle particle, Matrix4f pose, ParticleBuffer buffer) {
+        int ptr = buffer.pushPtr(maxBytes);
+        if (ptr == -1) return;
+        ByteBuffer byteBuffer = buffer.buffer.buffer;
         float m00 = pose.m00(), m10 = pose.m10(), m20 = pose.m20(), m30 = pose.m30(),
                 m01 = pose.m01(), m11 = pose.m11(), m21 = pose.m21(), m31 = pose.m31(),
                 m02 = pose.m02(), m12 = pose.m12(), m22 = pose.m22(), m32 = pose.m32();
         long c = particle.abgr & 0xFFFFFFFFL;
         short l = particle.light;
-        long ptr = buffer.pushPtr(maxBytes);
         for (CompiledVertex[] quad : quads) {
             CompiledVertex vertex0 = quad[0];
             float xa = vertex0.x;
@@ -182,23 +185,23 @@ public class GeckolibModel {
                 float y3 = m01 * xd + m11 * yd + m21 * zd + m31;
                 float z3 = m02 * xd + m12 * yd + m22 * zd + m32;
 
-                b(vertex0, ptr, x0, y0, z0, c, l);
-                b(vertex1, ptr += TDPRenderType.VERTEX_SIZE, x1, y1, z1, c, l);
-                b(vertex2, ptr += TDPRenderType.VERTEX_SIZE, x2, y2, z2, c, l);
-                b(vertex3, ptr += TDPRenderType.VERTEX_SIZE, x3, y3, z3, c, l);
+                b(byteBuffer, vertex0, ptr, x0, y0, z0, c, l);
+                b(byteBuffer, vertex1, ptr += TDPRenderType.VERTEX_SIZE, x1, y1, z1, c, l);
+                b(byteBuffer, vertex2, ptr += TDPRenderType.VERTEX_SIZE, x2, y2, z2, c, l);
+                b(byteBuffer, vertex3, ptr += TDPRenderType.VERTEX_SIZE, x3, y3, z3, c, l);
                 ptr += TDPRenderType.VERTEX_SIZE;
             }
         }
         buffer.popPtr(ptr);
     }
 
-    private static void b(CompiledVertex vertex, long ptr, float x, float y, float z, long c, short l) {
-        MemoryUtil.memPutFloat(ptr + ParticleBuffer.POS_X, x);
-        MemoryUtil.memPutFloat(ptr + ParticleBuffer.POS_Y, y);
-        MemoryUtil.memPutFloat(ptr + ParticleBuffer.POS_Z, z);
-        MemoryUtil.memPutLong(ptr + ParticleBuffer.COLOR, Long.reverseBytes(fullModelColor | c));
-        MemoryUtil.memPutLong(ptr + ParticleBuffer.UV, Long.reverseBytes(vertex.uv));
-        MemoryUtil.memPutShort(ptr + ParticleBuffer.LIGHT, l);
+    private static void b(ByteBuffer buffer, CompiledVertex vertex, int ptr, float x, float y, float z, long c, short l) {
+        buffer.putFloat(ptr + ParticleBuffer.POS_X, x);
+        buffer.putFloat(ptr + ParticleBuffer.POS_Y, y);
+        buffer.putFloat(ptr + ParticleBuffer.POS_Z, z);
+        buffer.putLong(ptr + ParticleBuffer.COLOR, Long.reverseBytes(fullModelColor | c));
+        buffer.putLong(ptr + ParticleBuffer.UV, Long.reverseBytes(vertex.uv));
+        buffer.putShort(ptr + ParticleBuffer.LIGHT, l);
     }
 
     public interface Renderer<M extends GeckolibModel> extends ModelRenderer<M> {}

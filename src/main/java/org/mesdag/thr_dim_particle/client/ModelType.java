@@ -11,9 +11,7 @@ import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.StringRepresentable;
-import net.neoforged.fml.common.asm.enumextension.ExtensionInfo;
-import net.neoforged.fml.common.asm.enumextension.IExtensibleEnum;
-import net.neoforged.fml.common.asm.enumextension.NamedEnum;
+import net.minecraftforge.common.IExtensibleEnum;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -27,7 +25,7 @@ public record ModelType(Variant variant, ResourceLocation modelId) {
 
     @Override
     public boolean equals(Object o) {
-        return o == this || (o instanceof ModelType(Variant v, ResourceLocation p) && variant == v && modelId == p);
+        return o == this || (o instanceof ModelType t && variant == t.variant && modelId.equals(t.modelId));
     }
 
     @Override
@@ -45,7 +43,6 @@ public record ModelType(Variant variant, ResourceLocation modelId) {
                 '}';
     }
 
-    @NamedEnum
     public enum Variant implements StringRepresentable, IExtensibleEnum {
         HARDCODE("hardcode"),
         GEOMETRY("geometry"),
@@ -69,8 +66,8 @@ public record ModelType(Variant variant, ResourceLocation modelId) {
             return name;
         }
 
-        public static ExtensionInfo getExtensionInfo() {
-            return ExtensionInfo.nonExtended(Variant.class);
+        public static Variant create(String name, String variantName) {
+            throw new IllegalStateException("Enum not extended");
         }
     }
 
@@ -88,7 +85,9 @@ public record ModelType(Variant variant, ResourceLocation modelId) {
             for (Map.Entry<ResourceLocation, Resource> entry : MODEL_LISTER.listMatchingResources(resourceManager).entrySet()) {
                 ResourceLocation id = MODEL_LISTER.fileToId(entry.getKey());
                 try (Reader reader = entry.getValue().openAsReader()) {
-                    builder.put(id, ModelType.CODEC.parse(JsonOps.INSTANCE, GsonHelper.parse(reader)).getOrThrow(JsonParseException::new));
+                    builder.put(id, ModelType.CODEC.parse(JsonOps.INSTANCE, GsonHelper.parse(reader)).getOrThrow(false, msg -> {
+                        throw new JsonParseException(msg);
+                    }));
                 } catch (IOException exception) {
                     throw new IllegalStateException("Failed to load model for particle " + id, exception);
                 }

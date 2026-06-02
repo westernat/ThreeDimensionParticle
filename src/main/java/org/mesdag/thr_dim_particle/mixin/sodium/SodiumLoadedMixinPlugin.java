@@ -1,6 +1,6 @@
 package org.mesdag.thr_dim_particle.mixin.sodium;
 
-import net.neoforged.fml.loading.LoadingModList;
+import net.minecraftforge.fml.loading.LoadingModList;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -13,7 +13,8 @@ public class SodiumLoadedMixinPlugin implements IMixinConfigPlugin {
 
     @Override
     public void onLoad(String mixinPackage) {
-        this.shouldApply = LoadingModList.get().getModFileById("sodium") != null;
+        LoadingModList list = LoadingModList.get();
+        this.shouldApply = list.getModFileById("embeddium") != null || list.getModFileById("rubidium") != null;
     }
 
     @Override

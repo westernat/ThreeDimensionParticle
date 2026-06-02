@@ -9,9 +9,9 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.bus.api.Event;
-import net.neoforged.fml.ModLoader;
-import net.neoforged.fml.event.IModBusEvent;
+import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.fml.ModLoader;
+import net.minecraftforge.fml.event.IModBusEvent;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.MutableTriple;
 import org.jetbrains.annotations.Nullable;
@@ -24,12 +24,13 @@ import java.util.Map;
 import java.util.function.*;
 
 public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
+    public static final String TDP_VARTIANT = "tdp";
     private static Map<ModelType, ImmutableTriple<Function<EntityRendererProvider.Context, HardcodeModel.Renderer<?>>, @Nullable ModelLayerLocation, @Nullable Supplier<LayerDefinition>>> hardcodeCache;
     private static Map<ModelType, MutableTriple<@Nullable Function<EntityRendererProvider.Context, GeometryModel.Renderer<?>>, @Nullable ResourceLocation, @Nullable ModelResourceLocation>> geometryCache;
     private static Map<ModelType, Function<EntityRendererProvider.Context, ModelRenderer<?>>> customCache;
     private static Map<ModelType, ModelRenderer<?>> map;
 
-    private RegisterTDPRendererEvent() {}
+    public RegisterTDPRendererEvent() {}
 
     public void registerHardcode(
             ResourceLocation modelId,
@@ -45,7 +46,7 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
 
     /// To invoke this method, you should register {@link LayerDefinition} by your self
     ///
-    /// @see net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterLayerDefinitions
+    /// @see net.minecraftforge.client.event.EntityRenderersEvent.RegisterLayerDefinitions
     public void registerHardcode(ResourceLocation modelId, Function<EntityRendererProvider.Context, HardcodeModel.Renderer<?>> provider) {
         registerHardcode(modelId, provider, null, null);
     }
@@ -65,7 +66,7 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
     }
 
     public void registerGeometry(ResourceLocation modelId) {
-        geometryCache.put(new ModelType(ModelType.Variant.GEOMETRY, modelId), new MutableTriple<>(null, modelId, ModelResourceLocation.standalone(modelId)));
+        geometryCache.put(new ModelType(ModelType.Variant.GEOMETRY, modelId), new MutableTriple<>(null, modelId, new ModelResourceLocation(modelId, TDP_VARTIANT)));
     }
 
     public void registerCustom(ResourceLocation modelId, Function<EntityRendererProvider.Context, ModelRenderer<?>> provider) {
@@ -83,7 +84,7 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
     }
 
     public static void postEvent() {
-        ModLoader.postEvent(new RegisterTDPRendererEvent());
+        ModLoader.get().postEvent(new RegisterTDPRendererEvent());
         ImmutableMap.Builder<ResourceLocation, ModelType> builder = ImmutableMap.builder();
         for (ModelType type : hardcodeCache.keySet()) {
             builder.put(type.modelId(), type);
@@ -107,7 +108,7 @@ public class RegisterTDPRendererEvent extends Event implements IModBusEvent {
             ModelType type = entry.getValue();
             if (type.variant() != ModelType.Variant.GEOMETRY) continue;
             ResourceLocation modelId = type.modelId();
-            geometryCache.put(type, new MutableTriple<>(null, modelId, ModelResourceLocation.standalone(modelId)));
+            geometryCache.put(type, new MutableTriple<>(null, modelId, new ModelResourceLocation(modelId, TDP_VARTIANT)));
         }
         for (var triple : geometryCache.values()) {
             if (triple.right == null) continue;

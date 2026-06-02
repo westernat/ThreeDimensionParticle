@@ -3,9 +3,9 @@ package org.mesdag.thr_dim_particle.client;
 import it.unimi.dsi.fastutil.objects.ObjectBooleanImmutablePair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.config.ModConfig;
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.config.ModConfig;
 import org.jetbrains.annotations.Nullable;
 import org.mesdag.thr_dim_particle.TDP;
 import org.mesdag.thr_dim_particle.client.impl.emitter.WithBlockParticleEmitter;
@@ -13,13 +13,13 @@ import org.mesdag.thr_dim_particle.client.impl.emitter.WithBlockParticleEmitter;
 import java.util.List;
 
 public final class ClientConfigs {
-    private static ModConfigSpec.IntValue EMITTER_LIMIT;
-    private static ModConfigSpec.IntValue FPS_THRESHOLD;
-    private static ModConfigSpec.BooleanValue ALLOWS_VANILLA_PARTICLE_WHEN_REACH_LIMIT;
-    private static ModConfigSpec.IntValue EMITTER_AUTO_REMOVE_INTERVAL_TICK;
-    private static ModConfigSpec.IntValue EMITTER_AUTO_REMOVE_MINIMUM_DISTANCE;
-    private static ModConfigSpec.IntValue EMITTER_AUTO_REMOVE_ATTENUATION_DISTANCE;
-    private static ModConfigSpec.DoubleValue EMITTER_AUTO_REMOVE_ATTENUATION_COEFFICIENT;
+    private static ForgeConfigSpec.IntValue EMITTER_LIMIT;
+    private static ForgeConfigSpec.IntValue FPS_THRESHOLD;
+    private static ForgeConfigSpec.BooleanValue ALLOWS_VANILLA_PARTICLE_WHEN_REACH_LIMIT;
+    private static ForgeConfigSpec.IntValue EMITTER_AUTO_REMOVE_INTERVAL_TICK;
+    private static ForgeConfigSpec.IntValue EMITTER_AUTO_REMOVE_MINIMUM_DISTANCE;
+    private static ForgeConfigSpec.IntValue EMITTER_AUTO_REMOVE_ATTENUATION_DISTANCE;
+    private static ForgeConfigSpec.DoubleValue EMITTER_AUTO_REMOVE_ATTENUATION_COEFFICIENT;
 
     public static int emitterLimit = 50;
     public static int fpsThreshold = 30;
@@ -29,8 +29,8 @@ public final class ClientConfigs {
     public static int emitterAutoRemoveAttenuationDistance = 16;
     public static double emitterAutoRemoveAttenuationCoefficient = 0.25;
 
-    public static void register(ModContainer container) {
-        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
+    public static void register(ModLoadingContext context) {
+        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
 
         builder.push("Emitter");
         EMITTER_LIMIT = builder.defineInRange("emitterLimit", 50, 20, 1000);
@@ -42,7 +42,7 @@ public final class ClientConfigs {
         EMITTER_AUTO_REMOVE_ATTENUATION_COEFFICIENT = builder.defineInRange("minimumEmitterAutoRemoveAttenuationCoefficient", 0.25, 0, 1);
         builder.pop();
 
-        container.registerConfig(ModConfig.Type.CLIENT, builder.build());
+        context.registerConfig(ModConfig.Type.CLIENT, builder.build());
     }
 
     public static void onLoad(boolean reloading) {
@@ -63,18 +63,18 @@ public final class ClientConfigs {
 
         private final String configPath;
         private final @Nullable Runnable onLoadCallback;
-        private final ModConfigSpec.BooleanValue ENABLE;
-        private final ModConfigSpec.ConfigValue<String> PARTICLE;
+        private final ForgeConfigSpec.BooleanValue ENABLE;
+        private final ForgeConfigSpec.ConfigValue<String> PARTICLE;
 
-        public ParticleConfig(ModConfigSpec.Builder builder, String configPath, String particlePath) {
+        public ParticleConfig(ForgeConfigSpec.Builder builder, String configPath, String particlePath) {
             this(builder, configPath, particlePath, true, null);
         }
 
-        public ParticleConfig(ModConfigSpec.Builder builder, String configPath, String particlePath, @Nullable Runnable onLoadCallback) {
+        public ParticleConfig(ForgeConfigSpec.Builder builder, String configPath, String particlePath, @Nullable Runnable onLoadCallback) {
             this(builder, configPath, particlePath, true, onLoadCallback);
         }
 
-        public ParticleConfig(ModConfigSpec.Builder builder, String configPath, String particlePath, boolean enabled, @Nullable Runnable onLoadCallback) {
+        public ParticleConfig(ForgeConfigSpec.Builder builder, String configPath, String particlePath, boolean enabled, @Nullable Runnable onLoadCallback) {
             this.configPath = configPath;
             this.onLoadCallback = onLoadCallback;
             this.ENABLE = builder.define(configPath, enabled);

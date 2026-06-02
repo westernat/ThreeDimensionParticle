@@ -1,13 +1,16 @@
 {
     "required": true,
     "package": "org.mesdag.thr_dim_particle.mixin",
-    "compatibilityLevel": "JAVA_21",
+    "compatibilityLevel": "JAVA_17",
     "mixins": [
     ],
     "client": [
         "client.BlockModel$DeserializerMixin",
         "client.MinecraftMixin",
+        "client.ModelBakeryMixin",
+        "client.ModelManagerMixin",
         "client.MolangParticleEngineMixin",
+        "client.ResourceLoadStateTrackerMixin",
         "client.effect.ClientLevelMixin"
     ],
     "injectors": {

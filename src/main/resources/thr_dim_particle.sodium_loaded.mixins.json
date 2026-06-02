@@ -1,7 +1,7 @@
 {
     "required": true,
     "package": "org.mesdag.thr_dim_particle.mixin.sodium",
-    "compatibilityLevel": "JAVA_21",
+    "compatibilityLevel": "JAVA_17",
     "plugin": "org.mesdag.thr_dim_particle.mixin.sodium.SodiumLoadedMixinPlugin",
     "mixins": [
     ],

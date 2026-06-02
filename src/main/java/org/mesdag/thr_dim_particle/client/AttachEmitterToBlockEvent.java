@@ -9,9 +9,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.bus.api.Event;
-import net.neoforged.fml.ModLoader;
-import net.neoforged.fml.event.IModBusEvent;
+import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.fml.ModLoader;
+import net.minecraftforge.fml.event.IModBusEvent;
 import org.jetbrains.annotations.Nullable;
 import org.mesdag.particlestorm.data.molang.MolangExp;
 import org.mesdag.particlestorm.particle.MolangParticleEngine;
@@ -31,7 +31,7 @@ public class AttachEmitterToBlockEvent extends Event implements IModBusEvent {
         defaultParticle = TDPClient.asParticle("test");
         stateMap = new Object2ObjectOpenHashMap<>();
         blockMap = new Object2ObjectOpenHashMap<>();
-        ModLoader.postEvent(new AttachEmitterToBlockEvent());
+        ModLoader.get().postEvent(new AttachEmitterToBlockEvent());
         defaultParticle = null;
     }
 

@@ -3,9 +3,8 @@ package org.mesdag.thr_dim_particle.client;
 import com.google.common.collect.Iterables;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.ByteBufferBuilder;
-import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexSorting;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.CrashReport;
 import net.minecraft.CrashReportCategory;
@@ -26,25 +25,23 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceProvider;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.ModList;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.config.ModConfigEvent;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.fml.loading.LoadingModList;
-import net.neoforged.neoforge.client.event.*;
-import net.neoforged.neoforge.client.gui.ConfigurationScreen;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
-import net.neoforged.neoforge.registries.RegisterEvent;
-import org.jetbrains.annotations.Nullable;
-import org.mesdag.particlestorm.api.IComponent;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
+import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.ModelEvent;
+import net.minecraftforge.client.event.RegisterShadersEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.registries.RegisterEvent;
 import org.mesdag.particlestorm.api.ParticlePresetLoadedEvent;
+import org.mesdag.particlestorm.api.RegisterCustomComponentEvent;
 import org.mesdag.particlestorm.api.RegisterCustomEmitterTypeEvent;
 import org.mesdag.particlestorm.api.RegisterCustomParticleTypeEvent;
 import org.mesdag.particlestorm.data.molang.compiler.value.Variable;
@@ -53,7 +50,6 @@ import org.mesdag.particlestorm.particle.MolangParticleEngine;
 import org.mesdag.particlestorm.particle.ParticleEmitter;
 import org.mesdag.particlestorm.particle.ParticlePreset;
 import org.mesdag.thr_dim_particle.TDP;
-import org.mesdag.thr_dim_particle.client.compat.sodium.IrisHelper;
 import org.mesdag.thr_dim_particle.client.impl.TDParticleAppearance;
 import org.mesdag.thr_dim_particle.client.impl.emitter.PresetVarsParticleEmitter;
 import org.mesdag.thr_dim_particle.client.impl.emitter.TDParticleEmitter;
@@ -62,15 +58,14 @@ import org.mesdag.thr_dim_particle.client.impl.emitter.WithBlockParticleEmitter;
 import java.io.IOException;
 import java.util.*;
 
-@Mod(value = TDP.MODID, dist = Dist.CLIENT)
-@EventBusSubscriber(modid = TDP.MODID, value = Dist.CLIENT)
+@Mod.EventBusSubscriber(modid = TDP.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class TDPClient {
-    public static final boolean IRIS_LOADED = LoadingModList.get().getModFileById("iris") != null;
     public static final ParticleRenderType TDP_RENDER_TYPE = new ParticleRenderType() {
         @Override
-        public @Nullable BufferBuilder begin(Tesselator tesselator, TextureManager textureManager) {
-            return null;
-        }
+        public void begin(BufferBuilder builder, TextureManager textureManager) {}
+
+        @Override
+        public void end(Tesselator tesselator) {}
 
         @Override
         public String toString() {
@@ -87,24 +82,23 @@ public class TDPClient {
     private static TextureAtlas atlas;
     public static ParticleBuffer[] buffers;
 
-    public TDPClient(ModContainer container) {
-        ClientConfigs.register(container);
-        container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+    public static void init(ModLoadingContext context) {
+        ClientConfigs.register(context);
         RegisterTDPRendererEvent.start();
+        MinecraftForge.EVENT_BUS.addListener(TDPClient::particlePresetLoaded);
+        MinecraftForge.EVENT_BUS.addListener(TDPClient::clientTick$Post);
+        MinecraftForge.EVENT_BUS.addListener(TDPClient::clientPlayerNetwork$LoggingOut);
     }
 
     @SubscribeEvent
     public static void fmlClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
-            if (ModList.get().isLoaded("iris")) {
-                IrisHelper.setAllowUnknownShaders();
-            }
             AttachEmitterToBlockEvent.postEvent();
             buffers = new ParticleBuffer[]{
-                    new ParticleBuffer(new ByteBufferBuilder(BUFFER_SIZE)),
-                    new ParticleBuffer(new ByteBufferBuilder(BUFFER_SIZE)),
-                    new ParticleBuffer(new ByteBufferBuilder(BUFFER_SIZE)),
-                    new ParticleBuffer(new ByteBufferBuilder(BUFFER_SIZE))
+                    new ParticleBuffer(new BufferBuilder(BUFFER_SIZE)),
+                    new ParticleBuffer(new BufferBuilder(BUFFER_SIZE)),
+                    new ParticleBuffer(new BufferBuilder(BUFFER_SIZE)),
+                    new ParticleBuffer(new BufferBuilder(BUFFER_SIZE))
             };
         });
     }
@@ -159,8 +153,8 @@ public class TDPClient {
     }
 
     @SubscribeEvent
-    public static void registerClientReloadListeners(RegisterClientReloadListenersEvent event) {
-        IComponent.register(TDParticleAppearance.ID, TDParticleAppearance.CODEC);
+    public static void registerCustomComponent(RegisterCustomComponentEvent event) {
+        event.register(TDParticleAppearance.ID, TDParticleAppearance.CODEC);
     }
 
     @SubscribeEvent
@@ -172,8 +166,7 @@ public class TDPClient {
         event.registerShader(new ShaderInstance(provider, TDP.asResource("particle_translucent"), TDPRenderType.FORMAT), instance -> particleTranslucentShaderInstance = instance);
     }
 
-    @SubscribeEvent
-    public static void particlePresetLoaded(ParticlePresetLoadedEvent event) {
+    private static void particlePresetLoaded(ParticlePresetLoadedEvent event) {
         ParticlePreset preset = event.getPreset();
         if (preset.effect.description.type() == TDP.TDP.get() &&
                 preset.effect.components.get(TDParticleAppearance.ID) instanceof TDParticleAppearance component &&
@@ -183,13 +176,8 @@ public class TDPClient {
         }
     }
 
-    @SubscribeEvent
-    public static void registerMaterialAtlasesEvent(RegisterMaterialAtlasesEvent event) {
-        event.register(ATLAS_LOCATION, TDP.asResource("particles"));
-    }
-
-    @SubscribeEvent
-    public static void clientTick$Post(ClientTickEvent.Post event) {
+    private static void clientTick$Post(TickEvent.ClientTickEvent event) {
+        if (event.phase == TickEvent.Phase.START) return;
         Minecraft minecraft = Minecraft.getInstance();
         ClientLevel level = minecraft.level;
         if (level != null) {
@@ -204,13 +192,18 @@ public class TDPClient {
         }
     }
 
-    @SubscribeEvent
-    public static void clientPlayerNetwork$LoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+    private static void clientPlayerNetwork$LoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         AttachEmitterToBlockEvent.clearEmitters();
     }
 
     @SuppressWarnings("WhileLoopReplaceableByForEach")
     public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum, boolean isOpaque) {
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.depthMask(true);
+        for (ParticleBuffer buffer : buffers) {
+            buffer.begin();
+        }
         Iterator<Particle> iterator = queue.iterator();
         while (iterator.hasNext()) {
             TDParticle tdp = (TDParticle) iterator.next();
@@ -221,31 +214,22 @@ public class TDPClient {
             if (buffer == null) {
                 continue;
             }
-            AABB aabb = tdp.renderBoundingBox;
-            if (!frustum.cubeInFrustum(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ)) {
+            if (!tdp.isVisible(camera, frustum, partialTick)) {
                 continue;
             }
             try {
                 tdp.render(buffer, camera, partialTick);
             } catch (Throwable throwable) {
-                CrashReport report = CrashReport.forThrowable(throwable, "Rendering Particle");
-                CrashReportCategory category = report.addCategory("Particle being rendered");
-                category.setDetail("Particle", tdp::toString);
-                category.setDetail("Particle Type", TDPClient.TDP_RENDER_TYPE::toString);
+                CrashReport report = CrashReport.forThrowable(throwable, "Rendering 3D Particle");
+                CrashReportCategory category = report.addCategory("3D Particle being rendered");
+                category.setDetail("3D Particle", tdp.emitter.particleId::toString);
                 throw new ReportedException(report);
             }
         }
-        RenderSystem.depthMask(true);
-        RenderSystem.enableBlend();
-        if (TDPClient.IRIS_LOADED && IrisHelper.hasShader()) {
-            for (int i = 0; i < 4; i++) {
-                MeshData meshData = buffers[i].storeMesh();
-                if (meshData == null) continue;
-                TDPRenderType.get(i).draw(meshData);
-            }
-        } else {
-            for (int i = 0; i < 4; i++) {
-                buffers[i].draw(TDPRenderType.get(i));
+        for (int i = 0; i < 4; i++) {
+            BufferBuilder buffer = buffers[i].end();
+            if (buffer != null) {
+                TDPRenderType.get(i).end(buffer, VertexSorting.DISTANCE_TO_ORIGIN);
             }
         }
     }

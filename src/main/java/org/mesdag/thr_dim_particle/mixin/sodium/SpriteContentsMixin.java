@@ -1,13 +1,12 @@
 package org.mesdag.thr_dim_particle.mixin.sodium;
 
-import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.platform.NativeImage;
-import net.caffeinemc.mods.sodium.client.render.texture.SpriteContentsExtension;
+import me.jellysquid.mods.sodium.client.render.texture.SpriteContentsExtended;
 import net.minecraft.client.renderer.texture.SpriteContents;
 import net.minecraft.client.resources.metadata.animation.AnimationMetadataSection;
 import net.minecraft.client.resources.metadata.animation.FrameSize;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceMetadata;
+import net.minecraftforge.client.textures.ForgeTextureMetadata;
 import org.jetbrains.annotations.Nullable;
 import org.mesdag.thr_dim_particle.client.compat.sodium.SodiumTickerOptimizationIgnorer;
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,14 +31,14 @@ public class SpriteContentsMixin implements SodiumTickerOptimizationIgnorer {
         return tdp$ignored;
     }
 
-    @Inject(method = "<init>", at = @At("TAIL"))
-    private void save(ResourceLocation name, FrameSize frameSize, NativeImage originalImage, ResourceMetadata metadata, CallbackInfo ci, @Local AnimationMetadataSection section) {
-        if (SodiumTickerOptimizationIgnorer.isIgnored(section)) {
+    @Inject(method = "<init>(Lnet/minecraft/resources/ResourceLocation;Lnet/minecraft/client/resources/metadata/animation/FrameSize;Lcom/mojang/blaze3d/platform/NativeImage;Lnet/minecraft/client/resources/metadata/animation/AnimationMetadataSection;Lnet/minecraftforge/client/textures/ForgeTextureMetadata;)V", at = @At("TAIL"), remap = false)
+    private void save(ResourceLocation name, FrameSize frameSize, NativeImage originalImage, AnimationMetadataSection metadata, ForgeTextureMetadata forgeMeta, CallbackInfo ci) {
+        if (SodiumTickerOptimizationIgnorer.isIgnored(metadata)) {
             tdp$setIgnored();
         }
     }
 
-    /// @see net.caffeinemc.mods.sodium.mixin.features.textures.animations.tracking.SpriteContentsTickerMixin
+    /// @see me.jellysquid.mods.sodium.mixin.features.textures.animations.tracking.SpriteContentsAnimatorImplMixin
     @Mixin(targets = "net.minecraft.client.renderer.texture.SpriteContents$Ticker", priority = 900)
     public static class TickerMixin {
         @Unique
@@ -55,7 +54,7 @@ public class SpriteContentsMixin implements SodiumTickerOptimizationIgnorer {
         @Inject(method = "tickAndUpload", at = @At("HEAD"))
         private void preActive(int x, int y, CallbackInfo ci) {
             if (tdp$parent != null) {
-                ((SpriteContentsExtension) tdp$parent).sodium$setActive(true);
+                ((SpriteContentsExtended) tdp$parent).sodium$setActive(true);
             }
         }
     }
