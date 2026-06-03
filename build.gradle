@@ -143,10 +143,7 @@ mixin {
 
 jar {
     manifest.attributes([
-            "MixinConfigs": [
-                    "${mod_id}.mixins.json",
-                    "${mod_id}.sodium_loaded.mixins.json"
-            ]
+            "MixinConfigs": "${mod_id}.mixins.json,${mod_id}.sodium_loaded.mixins.json"
     ])
 }
 

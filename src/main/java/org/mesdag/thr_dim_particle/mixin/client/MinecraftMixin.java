@@ -11,8 +11,8 @@ import java.util.concurrent.CompletableFuture;
 
 @Mixin(Minecraft.class)
 public abstract class MinecraftMixin {
-    @Inject(method = "reloadResourcePacks(Z)Ljava/util/concurrent/CompletableFuture;", at = @At("HEAD"), remap = false)
-    private void start(boolean error, CallbackInfoReturnable<CompletableFuture<Void>> cir) {
+    @Inject(method = "reloadResourcePacks(Z)Ljava/util/concurrent/CompletableFuture;", at = @At("HEAD"))
+    private void start(CallbackInfoReturnable<CompletableFuture<Void>> cir) {
         RegisterTDPRendererEvent.start();
     }
 }
