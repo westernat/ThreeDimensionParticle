@@ -10,9 +10,9 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.util.random.Weight;
 import net.minecraft.util.random.WeightedEntry;
 import net.minecraft.util.random.WeightedRandomList;
+import net.neoforged.neoforge.common.util.NeoForgeExtraCodecs;
 import org.mesdag.particlestorm.api.IMolangParticleInstance;
 import org.mesdag.particlestorm.api.IParticleComponent;
-import org.mesdag.particlestorm.data.DuplicateFieldDecoder;
 import org.mesdag.particlestorm.data.molang.FloatMolangExp3;
 import org.mesdag.particlestorm.data.molang.MolangExp;
 import org.mesdag.thr_dim_particle.TDP;
@@ -37,7 +37,10 @@ public record TDParticleAppearance(
     public static final ResourceLocation ID = TDP.asResource("appearance");
     public static final Codec<TDParticleAppearance> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             FloatMolangExp3.CODEC.fieldOf("size").forGetter(TDParticleAppearance::size),
-            DuplicateFieldDecoder.optionalFieldOf(FaceCameraMode.CODEC, "face_camera_mode", "facing_camera_mode").forGetter(TDParticleAppearance::faceCameraMode),
+            NeoForgeExtraCodecs.withAlternative(
+                    FaceCameraMode.CODEC.optionalFieldOf("face_camera_mode"),
+                    FaceCameraMode.CODEC.optionalFieldOf("facing_camera_mode")
+            ).forGetter(TDParticleAppearance::faceCameraMode),
             Direction.CODEC.lenientOptionalFieldOf("direction", Direction.DEFAULT).forGetter(TDParticleAppearance::direction),
             ModelAnimation.CODEC.lenientOptionalFieldOf("model_animation", ModelAnimation.EMPTY).forGetter(TDParticleAppearance::modelAnimation)
     ).apply(instance, TDParticleAppearance::new));
@@ -88,14 +91,17 @@ public record TDParticleAppearance(
         particle.setMaxFrame(modelAnimation.typeFrames.size());
     }
 
+    @Override
+    public int order() {
+        return 700; // 与ParticleAppearanceBillboard一致
+    }
+
     private void doInit(TDParticle particle) {
         if (faceCameraMode.isEmpty() || faceCameraMode.get().isDirection()) {
             if (direction.mode() == Direction.Mode.CUSTOM_DIRECTION) {
                 float[] values = direction.customDirection().calculate(particle);
-                particle.setXRot(values[0]);
-                particle.setYRot(values[1]);
-                particle.setZRot(values[2]);
-            } else if (direction.minSpeedThreshold() > 0.0F && Mth.lengthSquared(particle.getXd(), particle.getYd(), particle.getZd()) > particle.getPreset().minSpeedThresholdSqr) {
+                particle.getFacingDirection().set(values[0], values[1], values[2]).normalize();
+            } else if (Mth.length(particle.getXd(), particle.getYd(), particle.getZd()) >= direction.minSpeedThreshold()) {
                 particle.getFacingDirection().set(particle.getXd(), particle.getYd(), particle.getZd()).normalize();
             }
         }

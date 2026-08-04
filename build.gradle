@@ -17,27 +17,6 @@ tasks.named('wrapper', Wrapper).configure {
 version = mod_version
 group = mod_group_id
 
-repositories {
-    flatDir {
-        dirs 'libs'
-    }
-    maven {
-        name "magicTeam MavenReleases"
-        url "https://maven.confluence.ink/releases"
-    }
-    maven {
-        name = "Modrinth"
-        url = "https://api.modrinth.com/maven"
-    }
-    maven {
-        name = 'GeckoLib'
-        url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
-        content {
-            includeGroup("software.bernie.geckolib")
-        }
-    }
-}
-
 base {
     archivesName = "ThreeDimensionParticle-core"
 }
@@ -141,15 +120,33 @@ configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
 
+repositories {
+    mavenLocal()
+    flatDir {
+        dirs 'libs'
+    }
+    maven {
+        name "magicTeam MavenReleases"
+        url "https://maven.confluence.ink/releases"
+    }
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+    }
+    maven {
+        name = 'GeckoLib'
+        url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
+        content {
+            includeGroup("software.bernie.geckolib")
+        }
+    }
+}
+
 boolean iris = true
 boolean nvidium = false
 
 dependencies {
-    if (false) {
-        implementation(jarJar(files("libs/particlestorm-${particlestorm_version}.jar")))
-    } else {
-        implementation "org.mesdag:ParticleStorm:${particlestorm_version}"
-    }
+    implementation "org.mesdag:ParticleStorm:${particlestorm_version}"
 
     compileOnly "maven.modrinth:sodium:mc1.21.1-0.6.13-neoforge"
     compileOnly "maven.modrinth:iris:1.8.12+1.21.1-neoforge"

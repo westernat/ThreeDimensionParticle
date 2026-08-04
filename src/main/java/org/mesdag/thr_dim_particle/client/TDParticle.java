@@ -27,7 +27,10 @@ import org.mesdag.particlestorm.api.IMolangParticleInstance;
 import org.mesdag.particlestorm.api.IParticleComponent;
 import org.mesdag.particlestorm.data.component.ParticleMotionCollision;
 import org.mesdag.particlestorm.data.molang.VariableTable;
-import org.mesdag.particlestorm.particle.*;
+import org.mesdag.particlestorm.particle.FaceCameraMode;
+import org.mesdag.particlestorm.particle.ParticleEmitter;
+import org.mesdag.particlestorm.particle.ParticlePreset;
+import org.mesdag.particlestorm.particle.ParticleVariableTable;
 
 import java.util.List;
 import java.util.Optional;
@@ -122,18 +125,27 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     }
 
     @Override
-    public void setXRot(float x) {
+    public void setXRot(float x, boolean o) {
         this.xRot = x;
+        if (o) {
+            this.xRotO = x;
+        }
     }
 
     @Override
-    public void setYRot(float y) {
+    public void setYRot(float y, boolean o) {
         this.yRot = y;
+        if (o) {
+            this.yRotO = y;
+        }
     }
 
     @Override
-    public void setZRot(float z) {
+    public void setZRot(float z, boolean o) {
         this.roll = z;
+        if (o) {
+            this.oRoll = z;
+        }
     }
 
     @Override
@@ -284,13 +296,16 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     }
 
     @Override
-    public void setPosO(double x, double y, double z) {
-        this.xo = x;
-        this.yo = y;
-        this.zo = z;
+    public void setPos(double x, double y, double z, boolean o) {
+        setPos(x, y, z);
+        if (o) {
+            this.xo = x;
+            this.yo = y;
+            this.zo = z;
+        }
     }
 
-    /// @see MolangParticleInstance#setZRot(float)
+    /// @see TDParticle#setZRot(float)
     /// @deprecated
     public void setRoll(float roll) {
         this.roll = roll;
@@ -385,9 +400,9 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     @Override
     public void render(VertexConsumer buffer, Camera camera, float partialTicks) {}
 
-    private static final Matrix4f pose = new Matrix4f();
-    private static final Quaternionf quat = new Quaternionf();
-    private static final Vector3f vec = new Vector3f();
+    protected static final Matrix4f pose = new Matrix4f();
+    protected static final Quaternionf quat = new Quaternionf();
+    protected static final Vector3f vec = new Vector3f();
 
     // 在render前调用
     @Override
@@ -448,7 +463,11 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
 
     @Override
     public void move(double x, double y, double z) {
-        if (stoppedByCollision) return;
+        if (stoppedByCollision) {
+            collisionEvent();
+            return;
+        }
+
         double d0 = x;
         double d1 = y;
         double d2 = z;
@@ -490,18 +509,21 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
             boolean collided = d0 != x || d2 != z;
 
             if (onGround || collided) {
-                if (!preset.collisionEvents.isEmpty()) {
-                    for (ParticleMotionCollision.Event event : preset.collisionEvents) {
-                        float tickSpeed = event.minSpeed() * getInvTickRate();
-                        if (tickSpeed * tickSpeed < xd * xd + yd * yd + zd * zd) {
-                            for (IEventNode node : preset.effect.events.get(event.event()).values()) {
-                                node.execute(this);
-                            }
-                        }
-                    }
-                }
+                collisionEvent();
                 if (expireOnContact) {
                     remove();
+                }
+            }
+        }
+    }
+
+    protected void collisionEvent() {
+        if (preset.collisionEvents.isEmpty()) return;
+        for (ParticleMotionCollision.Event event : preset.collisionEvents) {
+            float tickSpeed = event.minSpeed() * getInvTickRate();
+            if (tickSpeed * tickSpeed < Mth.lengthSquared(xd, yd, zd)) {
+                for (IEventNode node : preset.effect.events.get(event.event()).values()) {
+                    node.execute(this);
                 }
             }
         }

@@ -8,7 +8,6 @@
         "client.BlockModel$DeserializerMixin",
         "client.MinecraftMixin",
         "client.MolangParticleEngineMixin",
-        "client.effect.ClientLevelMixin"
     ],
     "injectors": {
         "defaultRequire": 1
