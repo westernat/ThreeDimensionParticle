@@ -1,7 +1,7 @@
 package org.mesdag.thr_dim_particle.client.compat.geckolib;
 
 import net.minecraft.resources.ResourceLocation;
-import org.joml.Matrix4f;
+import org.joml.Matrix4x3f;
 import org.mesdag.thr_dim_particle.client.ParticleBuffer;
 import org.mesdag.thr_dim_particle.client.TDPRenderType;
 import org.mesdag.thr_dim_particle.client.TDParticle;
@@ -31,7 +31,7 @@ public class SimpleGeckolibModelRenderer implements GeckolibModel.Renderer<Gecko
     }
 
     @Override
-    public void render(TDParticle particle, Matrix4f pose, ParticleBuffer buffer) {
+    public void render(TDParticle particle, Matrix4x3f pose, ParticleBuffer buffer) {
         model.renderToBuffer(particle, pose, buffer);
     }
 }

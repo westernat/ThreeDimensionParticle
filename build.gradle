@@ -142,7 +142,7 @@ repositories {
     }
 }
 
-boolean iris = true
+boolean iris = false
 boolean nvidium = false
 
 dependencies {

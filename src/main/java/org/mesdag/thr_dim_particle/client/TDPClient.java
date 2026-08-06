@@ -20,7 +20,6 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceProvider;
-import net.minecraft.world.phys.AABB;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -148,29 +147,20 @@ public class TDPClient {
         event.register(ATLAS_LOCATION, TDP.asResource("particles"));
     }
 
-    @SuppressWarnings("WhileLoopReplaceableByForEach")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public static void render(Queue<Particle> queue, Camera camera, float partialTick, Frustum frustum, boolean isOpaque) {
-        Iterator<Particle> iterator = queue.iterator();
+        Iterator<TDParticle> iterator = (Iterator) queue.iterator();
         while (iterator.hasNext()) {
-            TDParticle tdp = (TDParticle) iterator.next();
-            if (isOpaque == tdp.translucent) {
-                continue;
-            }
-            ParticleBuffer buffer = tdp.buffer;
-            if (buffer == null) {
-                continue;
-            }
-            AABB aabb = tdp.renderBoundingBox;
-            if (!frustum.cubeInFrustum(aabb.minX, aabb.minY, aabb.minZ, aabb.maxX, aabb.maxY, aabb.maxZ)) {
+            TDParticle tdp = iterator.next();
+            if (isOpaque == tdp.translucent || tdp.buffer == null || !tdp.isVisible(camera, frustum, partialTick)) {
                 continue;
             }
             try {
-                tdp.render(buffer, camera, partialTick);
+                tdp.render(tdp.buffer, camera, partialTick);
             } catch (Throwable throwable) {
-                CrashReport report = CrashReport.forThrowable(throwable, "Rendering Particle");
-                CrashReportCategory category = report.addCategory("Particle being rendered");
-                category.setDetail("Particle", tdp::toString);
-                category.setDetail("Particle Type", TDPClient.TDP_RENDER_TYPE::toString);
+                CrashReport report = CrashReport.forThrowable(throwable, "Rendering 3D Particle");
+                CrashReportCategory category = report.addCategory("3D Particle being rendered");
+                category.setDetail("3D Particle id", tdp.preset.effect.description.identifier()::toString);
                 throw new ReportedException(report);
             }
         }

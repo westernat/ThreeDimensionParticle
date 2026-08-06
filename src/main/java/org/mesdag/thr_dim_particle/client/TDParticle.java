@@ -19,7 +19,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
+import org.joml.Matrix4x3f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.mesdag.particlestorm.api.IEventNode;
@@ -71,7 +71,6 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     public short light;
     public float[] renderSize = new float[3];
     public float[] renderSizeO = new float[3];
-    public AABB renderBoundingBox;
     protected int maxFrame = 1;
     protected int currentFrame = 0;
 
@@ -400,7 +399,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     @Override
     public void render(VertexConsumer buffer, Camera camera, float partialTicks) {}
 
-    protected static final Matrix4f pose = new Matrix4f();
+    protected static final Matrix4x3f pose = new Matrix4x3f();
     protected static final Quaternionf quat = new Quaternionf();
     protected static final Vector3f vec = new Vector3f();
 
@@ -547,6 +546,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         return preset.environmentLighting ? super.getLightColor(partialTick) : 0xF000F0;
     }
 
+    @SuppressWarnings("deprecation")
     public short getLightColor() {
         if (preset.environmentLighting) {
             BlockPos pos = BlockPos.containing(x, y, z);
@@ -570,11 +570,5 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     @Override
     public Optional<ParticleGroup> getParticleGroup() {
         return Optional.ofNullable(particleGroup);
-    }
-
-    @Override
-    public void setBoundingBox(AABB bb) {
-        super.setBoundingBox(bb);
-        this.renderBoundingBox = getBoundingBox().inflate(1.0);
     }
 }
