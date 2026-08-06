@@ -81,7 +81,7 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
     }
 
     @SuppressWarnings("all")
-    public void draw(long address, int capacity, int vertices, Runnable close) {
+    public void draw(long address, int capacity, int vertices) {
         // region net.minecraft.client.renderer.RenderStateShard.setupRenderState
         for (RenderStateShard shard : state.states) {
             shard.setupState.run();
@@ -100,31 +100,21 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
             BufferUploader.lastImmediateBuffer = vb;
         }
         //          region com.mojang.blaze3d.vertex.VertexBuffer.upload
-        try {
-            GL15.glBindBuffer(34962, vb.vertexBufferId);
-            if (vb.format == null) {
-                FORMAT._setupBufferState();
-                vb.format = FORMAT;
-            }
-            GL15C.nglBufferData(34962, capacity, address, GL15C.GL_DYNAMIC_DRAW);
-
-            int indexCount = vertices / 4 * 6;
-            RenderSystem.AutoStorageIndexBuffer asib = RenderSystem.sharedSequentialQuad;
-            if (asib != vb.sequentialIndices || !asib.hasStorage(indexCount)) {
-                asib.bind(indexCount);
-            }
-            vb.sequentialIndices = asib;
-            vb.indexCount = indexCount;
-            vb.indexType = (vertices & -65536) == 0 ? VertexFormat.IndexType.SHORT : VertexFormat.IndexType.INT;
-        } catch (Throwable throwable1) {
-            try {
-                close.run();
-            } catch (Throwable throwable) {
-                throwable1.addSuppressed(throwable);
-            }
-            throw throwable1;
+        GL15.glBindBuffer(34962, vb.vertexBufferId);
+        if (vb.format == null) {
+            FORMAT._setupBufferState();
+            vb.format = FORMAT;
         }
-        close.run();
+        GL15C.nglBufferData(34962, capacity, address, GL15C.GL_DYNAMIC_DRAW);
+
+        int indexCount = vertices / 4 * 6;
+        RenderSystem.AutoStorageIndexBuffer asib = RenderSystem.sharedSequentialQuad;
+        if (asib != vb.sequentialIndices || !asib.hasStorage(indexCount)) {
+            asib.bind(indexCount);
+        }
+        vb.sequentialIndices = asib;
+        vb.indexCount = indexCount;
+        vb.indexType = (vertices & -65536) == 0 ? VertexFormat.IndexType.SHORT : VertexFormat.IndexType.INT;
         //          endregion
         //      endregion
 

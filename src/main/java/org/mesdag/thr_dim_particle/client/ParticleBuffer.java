@@ -53,10 +53,10 @@ public class ParticleBuffer {
         if (capacity == 0) {
             return;
         }
-        buffer.nextResultOffset = buffer.writeOffset;
-        buffer.resultCount++;
 
-        renderType.draw(buffer.pointer + offset, capacity, vertices, buffer::freeResult);
+        buffer.writeOffset = 0;
+        buffer.nextResultOffset = 0;
+        renderType.draw(buffer.pointer + offset, capacity, vertices);
     }
 
     public @Nullable MeshData storeMesh() {
