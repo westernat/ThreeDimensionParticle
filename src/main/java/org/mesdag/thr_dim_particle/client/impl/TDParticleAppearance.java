@@ -178,7 +178,7 @@ public record TDParticleAppearance(
         ).apply(instance, WeightedModelEntry::new));
 
         public WeightedModelEntry(ResourceLocation modelType) {
-            this(modelType, Weight.ONE);
+            this(modelType, Weight.of(1));
         }
 
         @Override
