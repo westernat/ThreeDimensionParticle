@@ -146,7 +146,7 @@ boolean iris = false
 boolean nvidium = false
 
 dependencies {
-    implementation "org.mesdag:ParticleStorm:${particlestorm_version}"
+    implementation "org.mesdag:ParticleStorm:${particlestorm_version}+1.21.1"
 
     compileOnly "maven.modrinth:sodium:mc1.21.1-0.6.13-neoforge"
     compileOnly "maven.modrinth:iris:1.8.12+1.21.1-neoforge"
