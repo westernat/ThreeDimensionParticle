@@ -2,8 +2,10 @@ package org.mesdag.thr_dim_particle.client;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
+import org.jetbrains.annotations.ApiStatus;
 import org.lwjgl.opengl.GL30;
 
+@ApiStatus.Internal
 public final class EnumProxy<E extends Enum<E>> {
     private E value;
 

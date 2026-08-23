@@ -19,7 +19,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
+import org.joml.Matrix4x3f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.mesdag.particlestorm.api.IEventNode;
@@ -27,7 +27,10 @@ import org.mesdag.particlestorm.api.IMolangParticleInstance;
 import org.mesdag.particlestorm.api.IParticleComponent;
 import org.mesdag.particlestorm.data.component.ParticleMotionCollision;
 import org.mesdag.particlestorm.data.molang.VariableTable;
-import org.mesdag.particlestorm.particle.*;
+import org.mesdag.particlestorm.particle.FaceCameraMode;
+import org.mesdag.particlestorm.particle.ParticleEmitter;
+import org.mesdag.particlestorm.particle.ParticlePreset;
+import org.mesdag.particlestorm.particle.ParticleVariableTable;
 
 import java.util.List;
 import java.util.Optional;
@@ -121,18 +124,27 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     }
 
     @Override
-    public void setXRot(float x) {
+    public void setXRot(float x, boolean o) {
         this.xRot = x;
+        if (o) {
+            this.xRotO = x;
+        }
     }
 
     @Override
-    public void setYRot(float y) {
+    public void setYRot(float y, boolean o) {
         this.yRot = y;
+        if (o) {
+            this.yRotO = y;
+        }
     }
 
     @Override
-    public void setZRot(float z) {
+    public void setZRot(float z, boolean o) {
         this.roll = z;
+        if (o) {
+            this.oRoll = z;
+        }
     }
 
     @Override
@@ -283,13 +295,16 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     }
 
     @Override
-    public void setPosO(double x, double y, double z) {
-        this.xo = x;
-        this.yo = y;
-        this.zo = z;
+    public void setPos(double x, double y, double z, boolean o) {
+        setPos(x, y, z);
+        if (o) {
+            this.xo = x;
+            this.yo = y;
+            this.zo = z;
+        }
     }
 
-    /// @see MolangParticleInstance#setZRot(float)
+    /// @see TDParticle#setZRot(float)
     /// @deprecated
     public void setRoll(float roll) {
         this.roll = roll;
@@ -384,31 +399,38 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     @Override
     public void render(VertexConsumer buffer, Camera camera, float partialTicks) {}
 
-    private static final Matrix4f pose = new Matrix4f();
-    private static final Quaternionf quat = new Quaternionf();
-    private static final Vector3f vec = new Vector3f();
+    protected static final Matrix4x3f pose = new Matrix4x3f();
+    protected static final Quaternionf quat = new Quaternionf();
+    protected static final Vector3f vec = new Vector3f();
 
     // 在render前调用
     @Override
     public boolean isVisible(Camera camera, Frustum frustum, float partialTick) {
         Vec3 camPos = camera.getPosition();
+        if (emitter.isLocalSpace()) {
+            emitter.local2World(vec.set(
+                    (float) Mth.lerp(partialTick, xo, x),
+                    (float) Mth.lerp(partialTick, yo, y),
+                    (float) Mth.lerp(partialTick, zo, z)
+            ), partialTick);
+            float size = Math.max(Math.max(renderSize[0], renderSize[1]), renderSize[2]);
+            boolean inFrustum = frustum.cubeInFrustum(
+                    vec.x - size,
+                    vec.y - size,
+                    vec.z - size,
+                    vec.x + size,
+                    vec.y + size,
+                    vec.z + size
+            );
+            vec.sub((float) camPos.x, (float) camPos.y, (float) camPos.z);
+            return inFrustum;
+        }
         vec.set(
-                (float) Mth.lerp(partialTick, xo, x),
-                (float) Mth.lerp(partialTick, yo, y),
-                (float) Mth.lerp(partialTick, zo, z)
+                (float) (Mth.lerp(partialTick, xo, x) - camPos.x),
+                (float) (Mth.lerp(partialTick, yo, y) - camPos.y),
+                (float) (Mth.lerp(partialTick, zo, z) - camPos.z)
         );
-        emitter.local2World(vec, partialTick);
-        float size = Mth.abs(Math.max(Math.max(renderSize[0], renderSize[1]), renderSize[2]));
-        boolean inFrustum = frustum.cubeInFrustum(
-                vec.x - size,
-                vec.y - size,
-                vec.z - size,
-                vec.x + size,
-                vec.y + size,
-                vec.z + size
-        );
-        vec.sub((float) camPos.x, (float) camPos.y, (float) camPos.z);
-        return inFrustum;
+        return IMolangParticleInstance.super.isVisible(camera, frustum, partialTick);
     }
 
     // 在isVisible后调用
@@ -440,7 +462,11 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
 
     @Override
     public void move(double x, double y, double z) {
-        if (stoppedByCollision) return;
+        if (stoppedByCollision) {
+            collisionEvent();
+            return;
+        }
+
         double d0 = x;
         double d1 = y;
         double d2 = z;
@@ -482,18 +508,21 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
             boolean collided = d0 != x || d2 != z;
 
             if (onGround || collided) {
-                if (!preset.collisionEvents.isEmpty()) {
-                    for (ParticleMotionCollision.Event event : preset.collisionEvents) {
-                        float tickSpeed = event.minSpeed() * getInvTickRate();
-                        if (tickSpeed * tickSpeed < xd * xd + yd * yd + zd * zd) {
-                            for (IEventNode node : preset.effect.events.get(event.event()).values()) {
-                                node.execute(this);
-                            }
-                        }
-                    }
-                }
+                collisionEvent();
                 if (expireOnContact) {
                     remove();
+                }
+            }
+        }
+    }
+
+    protected void collisionEvent() {
+        if (preset.collisionEvents.isEmpty()) return;
+        for (ParticleMotionCollision.Event event : preset.collisionEvents) {
+            float tickSpeed = event.minSpeed() * getInvTickRate();
+            if (tickSpeed * tickSpeed < Mth.lengthSquared(xd, yd, zd)) {
+                for (IEventNode node : preset.effect.events.get(event.event()).values()) {
+                    node.execute(this);
                 }
             }
         }
@@ -517,6 +546,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         return preset.environmentLighting ? super.getLightColor(partialTick) : 0xF000F0;
     }
 
+    @SuppressWarnings("deprecation")
     public short getLightColor() {
         if (preset.environmentLighting) {
             BlockPos pos = BlockPos.containing(x, y, z);

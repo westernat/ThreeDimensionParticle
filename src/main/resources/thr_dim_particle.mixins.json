@@ -12,8 +12,7 @@
         "client.ModelBakeryMixin",
         "client.ModelManagerMixin",
         "client.MolangParticleEngineMixin",
-        "client.ResourceLoadStateTrackerMixin",
-        "client.effect.ClientLevelMixin"
+        "client.ResourceLoadStateTrackerMixin"
     ],
     "injectors": {
         "defaultRequire": 1

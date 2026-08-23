@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix4f;
+import org.joml.Matrix4x3f;
 import org.joml.Vector3f;
 import org.mesdag.thr_dim_particle.client.*;
 import software.bernie.geckolib.cache.object.*;
@@ -64,15 +65,7 @@ public class GeckolibModel {
         poseStack.popPose();
     }
 
-    public void renderToBuffer(TDParticle particle, Matrix4f pose, ParticleBuffer buffer) {
-        if (TDPRenderType.IS_LITTLE_ENDIAN) {
-            l(particle, pose, buffer);
-        } else {
-            b(particle, pose, buffer);
-        }
-    }
-
-    private void l(TDParticle particle, Matrix4f pose, ParticleBuffer buffer) {
+    public void renderToBuffer(TDParticle particle, Matrix4x3f pose, ParticleBuffer buffer) {
         int ptr = buffer.pushPtr(maxBytes);
         if (ptr == -1) return;
         ByteBuffer byteBuffer = buffer.buffer.buffer;
@@ -119,88 +112,25 @@ public class GeckolibModel {
                 float y3 = Math.fma(m01, xd, Math.fma(m11, yd, Math.fma(m21, zd, m31)));
                 float z3 = Math.fma(m02, xd, Math.fma(m12, yd, Math.fma(m22, zd, m32)));
 
-                l(byteBuffer, vertex0, ptr, x0, y0, z0, c, l);
-                l(byteBuffer, vertex1, ptr += TDPRenderType.VERTEX_SIZE, x1, y1, z1, c, l);
-                l(byteBuffer, vertex2, ptr += TDPRenderType.VERTEX_SIZE, x2, y2, z2, c, l);
-                l(byteBuffer, vertex3, ptr += TDPRenderType.VERTEX_SIZE, x3, y3, z3, c, l);
+                v(byteBuffer, vertex0, ptr, x0, y0, z0, c, l);
+                ptr += TDPRenderType.VERTEX_SIZE;
+                v(byteBuffer, vertex1, ptr, x1, y1, z1, c, l);
+                ptr += TDPRenderType.VERTEX_SIZE;
+                v(byteBuffer, vertex2, ptr, x2, y2, z2, c, l);
+                ptr += TDPRenderType.VERTEX_SIZE;
+                v(byteBuffer, vertex3, ptr, x3, y3, z3, c, l);
                 ptr += TDPRenderType.VERTEX_SIZE;
             }
         }
         buffer.popPtr(ptr);
     }
 
-    private static void l(ByteBuffer buffer, CompiledVertex vertex, int ptr, float x, float y, float z, long c, short l) {
+    private static void v(ByteBuffer buffer, CompiledVertex vertex, int ptr, float x, float y, float z, long c, short l) {
         buffer.putFloat(ptr + ParticleBuffer.POS_X, x);
         buffer.putFloat(ptr + ParticleBuffer.POS_Y, y);
         buffer.putFloat(ptr + ParticleBuffer.POS_Z, z);
         buffer.putLong(ptr + ParticleBuffer.COLOR, fullModelColor | c);
         buffer.putLong(ptr + ParticleBuffer.UV, vertex.uv);
-        buffer.putShort(ptr + ParticleBuffer.LIGHT, l);
-    }
-
-    private void b(TDParticle particle, Matrix4f pose, ParticleBuffer buffer) {
-        int ptr = buffer.pushPtr(maxBytes);
-        if (ptr == -1) return;
-        ByteBuffer byteBuffer = buffer.buffer.buffer;
-        float m00 = pose.m00(), m10 = pose.m10(), m20 = pose.m20(), m30 = pose.m30(),
-                m01 = pose.m01(), m11 = pose.m11(), m21 = pose.m21(), m31 = pose.m31(),
-                m02 = pose.m02(), m12 = pose.m12(), m22 = pose.m22(), m32 = pose.m32();
-        long c = particle.abgr & 0xFFFFFFFFL;
-        short l = particle.light;
-        for (CompiledVertex[] quad : quads) {
-            CompiledVertex vertex0 = quad[0];
-            float xa = vertex0.x;
-            float ya = vertex0.y;
-            float za = vertex0.z;
-            float x0 = m00 * xa + m10 * ya + m20 * za + m30;
-            float y0 = m01 * xa + m11 * ya + m21 * za + m31;
-            float z0 = m02 * xa + m12 * ya + m22 * za + m32;
-            CompiledVertex vertex1 = quad[1];
-            float xb = vertex1.x;
-            float yb = vertex1.y;
-            float zb = vertex1.z;
-            float x1 = m00 * xb + m10 * yb + m20 * zb + m30;
-            float y1 = m01 * xb + m11 * yb + m21 * zb + m31;
-            float z1 = m02 * xb + m12 * yb + m22 * zb + m32;
-            CompiledVertex vertex2 = quad[2];
-            float xc = vertex2.x;
-            float yc = vertex2.y;
-            float zc = vertex2.z;
-            float x2 = m00 * xc + m10 * yc + m20 * zc + m30;
-            float y2 = m01 * xc + m11 * yc + m21 * zc + m31;
-            float z2 = m02 * xc + m12 * yc + m22 * zc + m32;
-
-            float x01 = x1 - x0;
-            float y01 = y1 - y0;
-            float z01 = z1 - z0;
-            float x02 = x2 - x0;
-            float y02 = y2 - y0;
-            float z02 = z2 - z0;
-            if (x2 * (y01 * z02 - z01 * y02) + y2 * (z01 * x02 - x01 * z02) + z2 * (x01 * y02 - y01 * x02) >= 0) { // 背面剔除
-                CompiledVertex vertex3 = quad[3];
-                float xd = vertex3.x;
-                float yd = vertex3.y;
-                float zd = vertex3.z;
-                float x3 = m00 * xd + m10 * yd + m20 * zd + m30;
-                float y3 = m01 * xd + m11 * yd + m21 * zd + m31;
-                float z3 = m02 * xd + m12 * yd + m22 * zd + m32;
-
-                b(byteBuffer, vertex0, ptr, x0, y0, z0, c, l);
-                b(byteBuffer, vertex1, ptr += TDPRenderType.VERTEX_SIZE, x1, y1, z1, c, l);
-                b(byteBuffer, vertex2, ptr += TDPRenderType.VERTEX_SIZE, x2, y2, z2, c, l);
-                b(byteBuffer, vertex3, ptr += TDPRenderType.VERTEX_SIZE, x3, y3, z3, c, l);
-                ptr += TDPRenderType.VERTEX_SIZE;
-            }
-        }
-        buffer.popPtr(ptr);
-    }
-
-    private static void b(ByteBuffer buffer, CompiledVertex vertex, int ptr, float x, float y, float z, long c, short l) {
-        buffer.putFloat(ptr + ParticleBuffer.POS_X, x);
-        buffer.putFloat(ptr + ParticleBuffer.POS_Y, y);
-        buffer.putFloat(ptr + ParticleBuffer.POS_Z, z);
-        buffer.putLong(ptr + ParticleBuffer.COLOR, Long.reverseBytes(fullModelColor | c));
-        buffer.putLong(ptr + ParticleBuffer.UV, Long.reverseBytes(vertex.uv));
         buffer.putShort(ptr + ParticleBuffer.LIGHT, l);
     }
 

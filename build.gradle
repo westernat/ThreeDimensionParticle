@@ -9,11 +9,11 @@ tasks.named('wrapper', Wrapper).configure {
     distributionType = Wrapper.DistributionType.BIN
 }
 
-version = mod_version + "-forge"
+version = mod_version
 group = mod_group_id
 
 base {
-    archivesName = "ThreeDimensionParticle-core"
+    archivesName = "ThreeDimensionParticle-forge-${minecraft_version}"
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
@@ -107,7 +107,8 @@ repositories {
         name = 'GeckoLib'
         url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
         content {
-            includeGroup("software.bernie.geckolib")
+            includeGroupByRegex("software\\.bernie.*")
+            includeGroup("com.eliotlash.mclib")
         }
     }
 }
@@ -115,7 +116,7 @@ repositories {
 boolean slim = true
 
 dependencies {
-    modImplementation "org.mesdag:ParticleStorm:${particlestorm_version}-forge"
+    modImplementation "org.mesdag:ParticleStorm-forge-${minecraft_version}:${particlestorm_version}"
 
     modCompileOnly "curse.maven:embeddium-908741:5681725"
     modCompileOnly "curse.maven:oculus-581495:6020952"
@@ -125,6 +126,7 @@ dependencies {
     }
 
     modCompileOnly "software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}"
+    implementation("com.eliotlash.mclib:mclib:20")
 
     compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.0"))
     if (slim) {
@@ -178,7 +180,7 @@ publishing {
     publications {
         register('mavenJava', MavenPublication) {
             from components.java
-            artifactId = 'ThreeDimensionParticle-core'
+            artifactId = "ThreeDimensionParticle-forge-${minecraft_version}"
         }
     }
     repositories {

@@ -3,7 +3,7 @@ package org.mesdag.thr_dim_particle.client.impl;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
-import org.joml.Matrix4f;
+import org.joml.Matrix4x3f;
 import org.mesdag.thr_dim_particle.client.HardcodeModel;
 import org.mesdag.thr_dim_particle.client.ParticleBuffer;
 import org.mesdag.thr_dim_particle.client.TDPRenderType;
@@ -34,7 +34,7 @@ public class SimpleHardcodeModelRenderer implements HardcodeModel.Renderer<Hardc
     }
 
     @Override
-    public void render(TDParticle particle, Matrix4f pose, ParticleBuffer buffer) {
+    public void render(TDParticle particle, Matrix4x3f pose, ParticleBuffer buffer) {
         model.renderToBuffer(particle, pose, buffer);
     }
 }

@@ -26,7 +26,7 @@ public class TDP {
     public TDP(FMLJavaModLoadingContext context) {
         REGISTER.register(context.getModEventBus());
         if (FMLEnvironment.dist.isClient()) {
-            TDPClient.init(context);
+            TDPClient.init();
         }
     }
 

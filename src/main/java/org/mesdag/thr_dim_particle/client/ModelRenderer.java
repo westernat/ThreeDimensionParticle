@@ -1,13 +1,13 @@
 package org.mesdag.thr_dim_particle.client;
 
-import org.joml.Matrix4f;
+import org.joml.Matrix4x3f;
 
 public interface ModelRenderer<M> {
     M getModel();
 
     TDPRenderType getRenderType();
 
-    void render(TDParticle particle, Matrix4f pose, ParticleBuffer buffer);
+    void render(TDParticle particle, Matrix4x3f pose, ParticleBuffer buffer);
 
     ModelRenderer<?> DO_NOTHING = new ModelRenderer<>() {
         @Override
@@ -21,6 +21,6 @@ public interface ModelRenderer<M> {
         }
 
         @Override
-        public void render(TDParticle particle, Matrix4f pose, ParticleBuffer buffer) {}
+        public void render(TDParticle particle, Matrix4x3f pose, ParticleBuffer buffer) {}
     };
 }

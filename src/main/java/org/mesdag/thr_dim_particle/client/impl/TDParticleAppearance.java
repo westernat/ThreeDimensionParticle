@@ -88,14 +88,17 @@ public record TDParticleAppearance(
         particle.setMaxFrame(modelAnimation.typeFrames.size());
     }
 
+    @Override
+    public int order() {
+        return 700; // 与ParticleAppearanceBillboard一致
+    }
+
     private void doInit(TDParticle particle) {
         if (faceCameraMode.isEmpty() || faceCameraMode.get().isDirection()) {
             if (direction.mode() == Direction.Mode.CUSTOM_DIRECTION) {
                 float[] values = direction.customDirection().calculate(particle);
-                particle.setXRot(values[0]);
-                particle.setYRot(values[1]);
-                particle.setZRot(values[2]);
-            } else if (direction.minSpeedThreshold() > 0.0F && Mth.lengthSquared(particle.getXd(), particle.getYd(), particle.getZd()) > particle.getPreset().minSpeedThresholdSqr) {
+                particle.getFacingDirection().set(values[0], values[1], values[2]).normalize();
+            } else if (Mth.length(particle.getXd(), particle.getYd(), particle.getZd()) >= direction.minSpeedThreshold()) {
                 particle.getFacingDirection().set(particle.getXd(), particle.getYd(), particle.getZd()).normalize();
             }
         }
