@@ -27,12 +27,15 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.loading.LoadingModList;
-import net.neoforged.neoforge.client.event.*;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RegisterMaterialAtlasesEvent;
+import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jetbrains.annotations.Nullable;
 import org.mesdag.particlestorm.ParticleStorm;
-import org.mesdag.particlestorm.api.IComponent;
 import org.mesdag.particlestorm.api.ParticlePresetLoadedEvent;
+import org.mesdag.particlestorm.api.RegisterCustomComponentEvent;
 import org.mesdag.particlestorm.api.RegisterCustomParticleTypeEvent;
 import org.mesdag.particlestorm.particle.FaceCameraMode;
 import org.mesdag.particlestorm.particle.ParticlePreset;
@@ -118,8 +121,8 @@ public class TDPClient {
     }
 
     @SubscribeEvent
-    public static void registerClientReloadListeners(RegisterClientReloadListenersEvent event) {
-        IComponent.register(TDParticleAppearance.ID, TDParticleAppearance.CODEC);
+    public static void registerCustomComponent(RegisterCustomComponentEvent event) {
+        event.register(TDParticleAppearance.ID, TDParticleAppearance.CODEC);
     }
 
     @SubscribeEvent
@@ -165,6 +168,7 @@ public class TDPClient {
             }
         }
         RenderSystem.depthMask(true);
+        RenderSystem.defaultBlendFunc();
         RenderSystem.enableBlend();
         if (TDPClient.IRIS_LOADED && IrisHelper.hasShader()) {
             for (int i = 0; i < 4; i++) {

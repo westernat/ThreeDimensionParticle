@@ -2,8 +2,10 @@ package org.mesdag.thr_dim_particle.client;
 
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 import net.neoforged.fml.common.asm.enumextension.EnumProxy;
+import org.jetbrains.annotations.ApiStatus;
 import org.lwjgl.opengl.GL30;
 
+@ApiStatus.Internal
 public final class EnumProxes {
     public static final EnumProxy<VertexFormatElement.Usage> LIGHT = new EnumProxy<>(
             VertexFormatElement.Usage.class,

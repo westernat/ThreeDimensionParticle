@@ -18,7 +18,7 @@ version = mod_version
 group = mod_group_id
 
 base {
-    archivesName = "ThreeDimensionParticle-core"
+    archivesName = "ThreeDimensionParticle-neoforge-${minecraft_version}"
 }
 
 // Mojang ships Java 21 to end users in 1.21.1, so mods should target Java 21.
@@ -88,10 +88,7 @@ neoForge {
                     // 忽略无效指令，避免有的人没安装 JetBrain Runtime 无法启动游戏
                     "-XX:+IgnoreUnrecognizedVMOptions",
                     // 启用 JetBrain Runtime 热重载功能
-                    "-XX:+AllowEnhancedClassRedefinition",
-                    // 启用FMA指令
-//                    "-XX:+UseFMA",
-//                    "-XX:UseAVX=2"
+                    "-XX:+AllowEnhancedClassRedefinition"
             ])
             if (isRunningInIdea) {
                 systemProperty "terminal.jline", "true"
@@ -146,7 +143,7 @@ boolean iris = false
 boolean nvidium = false
 
 dependencies {
-    implementation "org.mesdag:ParticleStorm:${particlestorm_version}+1.21.1"
+    implementation "org.mesdag:ParticleStorm-neoforge-${minecraft_version}:${particlestorm_version}"
 
     compileOnly "maven.modrinth:sodium:mc1.21.1-0.6.13-neoforge"
     compileOnly "maven.modrinth:iris:1.8.12+1.21.1-neoforge"
@@ -194,7 +191,7 @@ publishing {
     publications {
         register('mavenJava', MavenPublication) {
             from components.java
-            artifactId = 'ThreeDimensionParticle-core'
+            artifactId = "ThreeDimensionParticle-neoforge-${minecraft_version}"
         }
     }
     repositories {
