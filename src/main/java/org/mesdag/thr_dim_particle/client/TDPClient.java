@@ -185,9 +185,13 @@ public class TDPClient {
 
     public static TextureAtlas getAtlas() {
         if (atlas == null) {
-            atlas = Minecraft.getInstance().getModelManager().getAtlas(ATLAS_LOCATION);
+            resetAtlas();
         }
         return atlas;
+    }
+
+    public static void resetAtlas() {
+        atlas = Minecraft.getInstance().getModelManager().getAtlas(ATLAS_LOCATION);
     }
 
     public static short light2Short(int packetLight) {
