@@ -65,7 +65,6 @@ public class TDPClient {
     public static ParticleBuffer[] buffers;
 
     public static void init() {
-        RegisterTDPRendererEvent.start();
         MinecraftForge.EVENT_BUS.addListener(TDPClient::particlePresetLoaded);
     }
 
