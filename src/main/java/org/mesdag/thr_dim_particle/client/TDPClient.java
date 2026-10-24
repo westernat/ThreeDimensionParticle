@@ -35,13 +35,16 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jetbrains.annotations.Nullable;
 import org.mesdag.particlestorm.ParticleStorm;
 import org.mesdag.particlestorm.api.ParticlePresetLoadedEvent;
+import org.mesdag.particlestorm.api.RegisterComponentGridEvent;
 import org.mesdag.particlestorm.api.RegisterCustomComponentEvent;
 import org.mesdag.particlestorm.api.RegisterCustomParticleTypeEvent;
 import org.mesdag.particlestorm.particle.FaceCameraMode;
+import org.mesdag.particlestorm.particle.MolangParticleEngine;
 import org.mesdag.particlestorm.particle.ParticlePreset;
 import org.mesdag.thr_dim_particle.TDP;
 import org.mesdag.thr_dim_particle.client.compat.sodium.IrisHelper;
 import org.mesdag.thr_dim_particle.client.impl.TDParticleAppearance;
+import org.mesdag.thr_dim_particle.client.impl.TDParticleAppearanceGrid;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -126,6 +129,11 @@ public class TDPClient {
     }
 
     @SubscribeEvent
+    public static void registerComponentGrid(RegisterComponentGridEvent event) {
+        event.register(TDParticleAppearance.ID, (screen, font) -> new TDParticleAppearanceGrid(screen, font));
+    }
+
+    @SubscribeEvent
     public static void registerShaders(RegisterShadersEvent event) throws IOException {
         ResourceProvider provider = event.getResourceProvider();
         event.registerShader(new ShaderInstance(provider, TDP.asResource("particle_solid"), TDPRenderType.FORMAT), instance -> particleSolidShaderInstance = instance);
@@ -155,9 +163,10 @@ public class TDPClient {
         Iterator<TDParticle> iterator = (Iterator) queue.iterator();
         while (iterator.hasNext()) {
             TDParticle tdp = iterator.next();
-            if (isOpaque == tdp.translucent || tdp.buffer == null || !tdp.isVisible(camera, frustum, partialTick)) {
-                continue;
-            }
+            if ((isOpaque == tdp.translucent && MolangParticleEngine.getScreenManager() == null) ||
+                    tdp.buffer == null ||
+                    !tdp.isVisible(camera, frustum, partialTick)
+            ) continue;
             try {
                 tdp.render(tdp.buffer, camera, partialTick);
             } catch (Throwable throwable) {

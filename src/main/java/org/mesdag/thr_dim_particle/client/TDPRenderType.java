@@ -21,7 +21,7 @@ public final class TDPRenderType extends RenderType.CompositeRenderType {
     static final TextureStateShard NO_MIPMAP_TEXTURE = new TextureStateShard(TDPClient.ATLAS_LOCATION, false, false);
     static final TransparencyStateShard SKIP_TRANSPARENCY = new TransparencyStateShard("skip_transparency", () -> {}, () -> {});
     static final VertexFormatElement COLOR1 = VertexFormatElement.register(VertexFormatElement.findNextId(), 0, VertexFormatElement.Type.UBYTE, VertexFormatElement.Usage.COLOR, 4);
-    static final VertexFormatElement LIGHT = VertexFormatElement.register(VertexFormatElement.findNextId(), 0, VertexFormatElement.Type.USHORT, EnumProxes.LIGHT.getValue(), 1);
+    static final VertexFormatElement LIGHT = VertexFormatElement.register(VertexFormatElement.findNextId(), 0, VertexFormatElement.Type.USHORT, TDPEnumProxes.LIGHT.getValue(), 1);
     static final VertexFormat FORMAT = VertexFormat.builder()
             .add("Position", VertexFormatElement.POSITION)
             .add("Color", VertexFormatElement.COLOR)

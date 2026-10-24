@@ -6,11 +6,9 @@ import org.jetbrains.annotations.ApiStatus;
 import org.lwjgl.opengl.GL30;
 
 @ApiStatus.Internal
-public final class EnumProxes {
+public final class TDPEnumProxes {
     public static final EnumProxy<VertexFormatElement.Usage> LIGHT = new EnumProxy<>(
             VertexFormatElement.Usage.class,
             "thr_dim_particle:light",
-            (VertexFormatElement.Usage.SetupState) (size, type, stride, pointer, index) -> {
-                GL30.glVertexAttribIPointer(index, size, type, stride, pointer);
-            });
+            (VertexFormatElement.Usage.SetupState) (size, type, stride, pointer, index) -> GL30.glVertexAttribIPointer(index, size, type, stride, pointer));
 }
