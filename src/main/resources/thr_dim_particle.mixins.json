@@ -10,7 +10,7 @@
         "client.BlockModel$DeserializerMixin",
         "client.ModelBakeryMixin",
         "client.ModelManagerMixin",
-        "client.MolangParticleEngineMixin",
+        "client.MolangParticleManagerMixin",
         "client.ResourceLoadStateTrackerMixin"
     ],
     "injectors": {

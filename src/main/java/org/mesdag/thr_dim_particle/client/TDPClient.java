@@ -30,12 +30,15 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.RegisterEvent;
 import org.mesdag.particlestorm.api.ParticlePresetLoadedEvent;
+import org.mesdag.particlestorm.api.RegisterComponentGridEvent;
 import org.mesdag.particlestorm.api.RegisterCustomComponentEvent;
 import org.mesdag.particlestorm.api.RegisterCustomParticleTypeEvent;
 import org.mesdag.particlestorm.particle.FaceCameraMode;
+import org.mesdag.particlestorm.particle.MolangParticleEngine;
 import org.mesdag.particlestorm.particle.ParticlePreset;
 import org.mesdag.thr_dim_particle.TDP;
 import org.mesdag.thr_dim_particle.client.impl.TDParticleAppearance;
+import org.mesdag.thr_dim_particle.client.impl.TDParticleAppearanceGrid;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -66,6 +69,11 @@ public class TDPClient {
 
     public static void init() {
         MinecraftForge.EVENT_BUS.addListener(TDPClient::particlePresetLoaded);
+        MinecraftForge.EVENT_BUS.addListener(TDPClient::registerComponentGrid);
+    }
+
+    public static void registerComponentGrid(RegisterComponentGridEvent event) {
+        event.register(TDParticleAppearance.ID, (screen, font) -> new TDParticleAppearanceGrid(screen, font));
     }
 
     @SubscribeEvent
@@ -145,9 +153,10 @@ public class TDPClient {
         Iterator<Particle> iterator = queue.iterator();
         while (iterator.hasNext()) {
             TDParticle tdp = (TDParticle) iterator.next();
-            if (isOpaque == tdp.translucent || tdp.buffer == null || !tdp.isVisible(camera, frustum, partialTick)) {
-                continue;
-            }
+            if ((isOpaque == tdp.translucent && MolangParticleEngine.getScreenManager() == null) ||
+                    tdp.buffer == null ||
+                    !tdp.isVisible(camera, frustum, partialTick)
+            ) continue;
             try {
                 tdp.render(tdp.buffer, camera, partialTick);
             } catch (Throwable throwable) {

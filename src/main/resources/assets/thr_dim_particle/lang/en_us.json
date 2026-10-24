@@ -1,0 +1,22 @@
+{
+    "particle_editor.thr_dim_particle.appearance": "3D Particle Appearance",
+    "particle_editor.thr_dim_particle.appearance.size": "Size",
+    "particle_editor.thr_dim_particle.appearance.face_camera_mode": "Face camera mode",
+    "particle_editor.thr_dim_particle.appearance.face_camera_mode_none": "(none)",
+    "particle_editor.thr_dim_particle.appearance.direction_mode": "Direction mode",
+    "particle_editor.thr_dim_particle.appearance.min_speed_threshold": "Min speed threshold",
+    "particle_editor.thr_dim_particle.appearance.custom_direction": "Custom direction",
+    "particle_editor.thr_dim_particle.appearance.model_animation": "Model animation",
+    "particle_editor.thr_dim_particle.appearance.frame_count": "%s frame(s)",
+    "particle_editor.thr_dim_particle.appearance.frame": "Frame %s",
+    "particle_editor.thr_dim_particle.appearance.frame_entries": "%s model(s)",
+    "particle_editor.thr_dim_particle.appearance.model_entry": "Frame %s model %s",
+    "particle_editor.thr_dim_particle.appearance.weight_entry": "Frame %s model %s weight",
+    "particle_editor.thr_dim_particle.appearance.add_entry": "+ Add model",
+    "particle_editor.thr_dim_particle.appearance.remove_entry": "- Remove model",
+    "particle_editor.thr_dim_particle.appearance.add_frame": "+ Add frame",
+    "particle_editor.thr_dim_particle.appearance.remove_frame": "- Remove frame",
+    "particle_editor.thr_dim_particle.appearance.frames_per_second": "Frames per second",
+    "particle_editor.thr_dim_particle.appearance.stretch_to_lifetime": "Stretch to lifetime",
+    "particle_editor.thr_dim_particle.appearance.loop": "Loop"
+}

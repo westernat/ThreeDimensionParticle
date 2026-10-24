@@ -42,15 +42,15 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     protected Vector3f acceleration = new Vector3f();
     protected Vector3f facingDirection = new Vector3f();
     protected Vector3f initialSpeed = new Vector3f();
-    protected float xRot = 0.0F;
-    protected float yRot = 0.0F;
-    protected float xRotO = 0.0F;
-    protected float yRotO = 0.0F;
-    protected float zRotD = 0.0F;
-    protected boolean hasCollision = false;
-    protected float collisionDrag = 0.0F;
-    protected float coefficientOfRestitution = 0.0F;
-    protected boolean expireOnContact = false;
+    protected float xRot;
+    protected float yRot;
+    protected float xRotO;
+    protected float yRotO;
+    protected float zRotD;
+    protected boolean hasCollision;
+    protected float collisionDrag;
+    protected float coefficientOfRestitution;
+    protected boolean expireOnContact;
     protected float collisionRadius;
 
     protected final float particleRandom1;
@@ -61,8 +61,8 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     protected ParticleEmitter emitter;
 
     protected boolean insideKillPlane;
-    protected ParticleGroup particleGroup;
-    protected int lastTimeline = 0;
+    protected Optional<ParticleGroup> particleGroup = Optional.empty();
+    protected int lastTimeline;
 
     public ModelRenderer<?> renderer = ModelRenderer.DO_NOTHING;
     public @Nullable ParticleBuffer buffer;
@@ -72,7 +72,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
     public float[] renderSize = new float[3];
     public float[] renderSizeO = new float[3];
     protected int maxFrame = 1;
-    protected int currentFrame = 0;
+    protected int currentFrame;
 
     public TDParticle(ParticlePreset particlePreset, ClientLevel level, double x, double y, double z) {
         super(level, x, y, z);
@@ -251,7 +251,7 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
 
     @Override
     public void setParticleGroup(ParticleGroup group) {
-        this.particleGroup = group;
+        this.particleGroup = Optional.ofNullable(group);
     }
 
     @Override
@@ -302,17 +302,6 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
             this.yo = y;
             this.zo = z;
         }
-    }
-
-    /// @see TDParticle#setZRot(float)
-    /// @deprecated
-    public void setRoll(float roll) {
-        this.roll = roll;
-    }
-
-    @Deprecated
-    public float getRoll() {
-        return roll;
     }
 
     @Override
@@ -505,9 +494,8 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
 
         if (hasPhysics && hasCollision) {
             this.onGround = d1 != y && d1 < 0.0;
-            boolean collided = d0 != x || d2 != z;
 
-            if (onGround || collided) {
+            if (onGround || (d0 != x || d2 != z)) {
                 collisionEvent();
                 if (expireOnContact) {
                     remove();
@@ -541,6 +529,8 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
         return TDPClient.TDP_RENDER_TYPE;
     }
 
+    /// @see TDParticle#getLightColor()
+    /// @deprecated
     @Override
     public int getLightColor(float partialTick) {
         return preset.environmentLighting ? super.getLightColor(partialTick) : 0xF000F0;
@@ -569,6 +559,6 @@ public class TDParticle extends Particle implements IMolangParticleInstance {
 
     @Override
     public Optional<ParticleGroup> getParticleGroup() {
-        return Optional.ofNullable(particleGroup);
+        return particleGroup;
     }
 }

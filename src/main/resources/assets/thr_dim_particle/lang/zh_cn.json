@@ -1,0 +1,22 @@
+{
+    "particle_editor.thr_dim_particle.appearance": "三维粒子外观",
+    "particle_editor.thr_dim_particle.appearance.size": "尺寸",
+    "particle_editor.thr_dim_particle.appearance.face_camera_mode": "朝向相机模式",
+    "particle_editor.thr_dim_particle.appearance.face_camera_mode_none": "（无）",
+    "particle_editor.thr_dim_particle.appearance.direction_mode": "方向模式",
+    "particle_editor.thr_dim_particle.appearance.min_speed_threshold": "最小速度阈值",
+    "particle_editor.thr_dim_particle.appearance.custom_direction": "自定义方向",
+    "particle_editor.thr_dim_particle.appearance.model_animation": "模型动画",
+    "particle_editor.thr_dim_particle.appearance.frame_count": "%s 帧",
+    "particle_editor.thr_dim_particle.appearance.frame": "第 %s 帧",
+    "particle_editor.thr_dim_particle.appearance.frame_entries": "%s 个模型",
+    "particle_editor.thr_dim_particle.appearance.model_entry": "第 %s 帧 · 模型 %s",
+    "particle_editor.thr_dim_particle.appearance.weight_entry": "第 %s 帧 · 模型 %s 权重",
+    "particle_editor.thr_dim_particle.appearance.add_entry": "+ 添加模型",
+    "particle_editor.thr_dim_particle.appearance.remove_entry": "- 删除模型",
+    "particle_editor.thr_dim_particle.appearance.add_frame": "+ 添加帧",
+    "particle_editor.thr_dim_particle.appearance.remove_frame": "- 删除帧",
+    "particle_editor.thr_dim_particle.appearance.frames_per_second": "每秒帧数",
+    "particle_editor.thr_dim_particle.appearance.stretch_to_lifetime": "拉伸至寿命",
+    "particle_editor.thr_dim_particle.appearance.loop": "循环"
+}

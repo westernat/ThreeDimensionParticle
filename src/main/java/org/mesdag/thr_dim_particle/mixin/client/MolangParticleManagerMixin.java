@@ -10,7 +10,7 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.renderer.culling.Frustum;
 import org.jetbrains.annotations.Nullable;
-import org.mesdag.particlestorm.particle.MolangParticleEngine;
+import org.mesdag.particlestorm.particle.MolangParticleManager;
 import org.mesdag.thr_dim_particle.client.TDPClient;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,8 +18,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import java.util.Queue;
 import java.util.function.Predicate;
 
-@Mixin(value = MolangParticleEngine.class, remap = false)
-public abstract class MolangParticleEngineMixin {
+@Mixin(value = MolangParticleManager.class, remap = false)
+public abstract class MolangParticleManagerMixin {
     @WrapOperation(method = "renderParticles", at = @At(value = "INVOKE", target = "Ljava/util/function/Predicate;test(Ljava/lang/Object;)Z"))
     private <T> boolean skipCheck(
             Predicate<T> instance,

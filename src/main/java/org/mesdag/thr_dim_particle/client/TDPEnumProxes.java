@@ -6,10 +6,10 @@ import org.jetbrains.annotations.ApiStatus;
 import org.lwjgl.opengl.GL30;
 
 @ApiStatus.Internal
-public final class EnumProxy<E extends Enum<E>> {
+public final class TDPEnumProxes<E extends Enum<E>> {
     private E value;
 
-    private EnumProxy() {}
+    private TDPEnumProxes() {}
 
     public void setValue(E value) {
         this.value = value;
@@ -19,7 +19,7 @@ public final class EnumProxy<E extends Enum<E>> {
         return value;
     }
 
-    public static final EnumProxy<VertexFormatElement.Usage> LIGHT = new EnumProxy<>();
+    public static final TDPEnumProxes<VertexFormatElement.Usage> LIGHT = new TDPEnumProxes<>();
     public static final String LIGHT_NAME = "thr_dim_particle:light";
     public static final VertexFormatElement.Usage.ClearState LIGHT_CLEAR = (index, elementIndex) -> {
         GlStateManager._disableVertexAttribArray(elementIndex);

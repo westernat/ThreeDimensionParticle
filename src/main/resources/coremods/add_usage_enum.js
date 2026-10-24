@@ -50,7 +50,7 @@ function initializeCoreMod() {
                 clinit.maxLocals = baseLocals + 3;
 
                 var usage = 'com/mojang/blaze3d/vertex/VertexFormatElement$Usage';
-                var prox = 'org/mesdag/thr_dim_particle/client/EnumProxy';
+                var prox = 'org/mesdag/thr_dim_particle/client/TDPEnumProxes';
                 var list = new InsnList();
 
                 // oldArr = $VALUES
@@ -86,8 +86,8 @@ function initializeCoreMod() {
                 list.add(new MethodInsnNode(Opcodes.INVOKESPECIAL, usage, '<init>', '(Ljava/lang/String;ILjava/lang/String;Lcom/mojang/blaze3d/vertex/VertexFormatElement$Usage$SetupState;Lcom/mojang/blaze3d/vertex/VertexFormatElement$Usage$ClearState;)V'));
                 list.add(new VarInsnNode(Opcodes.ASTORE, newInst));
 
-                // EnumProxy.LIGHT.setValue(newInst)
-                list.add(new FieldInsnNode(Opcodes.GETSTATIC, prox, 'LIGHT', 'Lorg/mesdag/thr_dim_particle/client/EnumProxy;'));
+                // TDPEnumProxes.LIGHT.setValue(newInst)
+                list.add(new FieldInsnNode(Opcodes.GETSTATIC, prox, 'LIGHT', 'Lorg/mesdag/thr_dim_particle/client/TDPEnumProxes;'));
                 list.add(new VarInsnNode(Opcodes.ALOAD, newInst));
                 list.add(new MethodInsnNode(Opcodes.INVOKEVIRTUAL, prox, 'setValue', '(Ljava/lang/Enum;)V'));
 

@@ -8,18 +8,16 @@ import net.minecraft.Util;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 
-import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.mesdag.thr_dim_particle.client.TDPClient.*;
 
 public final class TDPRenderType extends RenderType.CompositeRenderType {
-    public static final boolean IS_LITTLE_ENDIAN = ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN;
     static final TextureStateShard NO_MIPMAP_TEXTURE = new TextureStateShard(TDPClient.ATLAS_LOCATION, false, false);
     static final TransparencyStateShard SKIP_TRANSPARENCY = new TransparencyStateShard("skip_transparency", () -> {}, () -> {});
     static final VertexFormatElement COLOR1 = new VertexFormatElement(0, VertexFormatElement.Type.UBYTE, VertexFormatElement.Usage.COLOR, 4);
-    static final VertexFormatElement LIGHT = new VertexFormatElement(0, VertexFormatElement.Type.USHORT, EnumProxy.LIGHT.getValue(), 1);
+    static final VertexFormatElement LIGHT = new VertexFormatElement(0, VertexFormatElement.Type.USHORT, TDPEnumProxes.LIGHT.getValue(), 1);
     static final VertexFormat FORMAT = new VertexFormat(ImmutableMap.<String, VertexFormatElement>builder()
             .put("Position", DefaultVertexFormat.ELEMENT_POSITION)
             .put("Color", DefaultVertexFormat.ELEMENT_COLOR)
