@@ -20,7 +20,7 @@ import java.util.function.Predicate;
 
 @Mixin(value = MolangParticleManager.class, remap = false)
 public abstract class MolangParticleManagerMixin {
-    @WrapOperation(method = "renderParticles", at = @At(value = "INVOKE", target = "Ljava/util/function/Predicate;test(Ljava/lang/Object;)Z"))
+    @WrapOperation(method = "renderParticles(Lnet/minecraft/client/renderer/LightTexture;Lnet/minecraft/client/renderer/texture/TextureManager;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/Camera;FLnet/minecraft/client/renderer/culling/Frustum;Ljava/util/function/Predicate;)V", at = @At(value = "INVOKE", target = "Ljava/util/function/Predicate;test(Ljava/lang/Object;)Z"))
     private <T> boolean skipCheck(
             Predicate<T> instance,
             T t,
@@ -35,7 +35,7 @@ public abstract class MolangParticleManagerMixin {
         return translucent;
     }
 
-    @WrapOperation(method = "renderParticles", at = @At(value = "INVOKE", target = "Ljava/util/Queue;isEmpty()Z"))
+    @WrapOperation(method = "renderParticles(Lnet/minecraft/client/renderer/LightTexture;Lnet/minecraft/client/renderer/texture/TextureManager;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/Camera;FLnet/minecraft/client/renderer/culling/Frustum;Ljava/util/function/Predicate;)V", at = @At(value = "INVOKE", target = "Ljava/util/Queue;isEmpty()Z"))
     private boolean handleCustomRenderType(
             Queue<Particle> instance,
             Operation<Boolean> original,

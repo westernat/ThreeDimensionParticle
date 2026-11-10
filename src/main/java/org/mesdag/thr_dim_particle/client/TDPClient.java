@@ -184,6 +184,10 @@ public class TDPClient {
         return atlas;
     }
 
+    public static void resetAtlas() {
+        atlas = null;
+    }
+
     public static short light2Short(int packetLight) {
         return (short) ((LightTexture.sky(packetLight) << 4) | LightTexture.block(packetLight));
     }
